@@ -1,11 +1,12 @@
+import any from './listChildDocsClass.js'; 
 let thisDocId = "";
 let thisWidgetId = "";
 let token = "cnft0vw0i1szq8hy";//API token
 // let insert2file = 1;//1: 以Markdown超链接的形式将子文档无序列表写入源文档、不在挂件中展示
 let custom_attr = {
-    insert2file: 0,
-    childListId: "",
-    listDepth: 3
+    insert2file: 0,//将链接写入到文档
+    childListId: "",//子文档列表块id
+    listDepth: 2//列出子文档的最大层级
 };
 //向思源api发送请求
 let postRequest = async function (data, url){
@@ -76,26 +77,13 @@ let getALinksText = function (doc){
 }
 
 //向挂件中加入子文档链接
-let addDocsLinks = function (docs){
-    for (doc of docs){
-        $(getALinksText(doc)).appendTo("#linksList");
-    }
+let addDocsLinks = function (text){
+    $(text).appendTo("#linksList");
 }
 
-//向文档中插入子文档链接无序列表
-let addDocsLinks2file = async function (docs, blockid = ""){
-    let insertData = "";
-    //生成无序列表Markdown文本
-    for (doc of docs){
-        let docName = doc.name;
-        if (doc.name.indexOf(".sy") >= 0){
-            docName = docName.substring(0, docName.length - 3);
-        }
-        insertData += `- [${docName}](siyuan://blocks/${doc.id})\n`;
-    }
-    //根据blockid选择插入或更新
-    let url = isValidStr(blockid) ? "http://127.0.0.1:6806/api/block/updateBlock" : "http://127.0.0.1:6806/api/block/insertBlock";//TODO: 考虑如果块已经存在，则更新块
-    let postAttr = isValidStr(blockid) ? {dataType: "markdown", data: insertData, id: blockid} : {dataType: "markdown", data: insertData, previousID: thisWidgetId};
+let addText2File = async function (markdownText, blockid = ""){
+    let url = isValidStr(blockid) ? "http://127.0.0.1:6806/api/block/updateBlock" : "http://127.0.0.1:6806/api/block/insertBlock";
+    let postAttr = isValidStr(blockid) ? {dataType: "markdown", data: markdownText, id: blockid} : {dataType: "markdown", data: markdownText, previousID: thisWidgetId};
     let result = await postRequest(postAttr, url);
     //将子文档无序列表块id写入属性
     if (result.code == 0 && isValidStr(result.data[0].doOperations[0].id)){
@@ -104,21 +92,11 @@ let addDocsLinks2file = async function (docs, blockid = ""){
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
         console.log("更新失败，下次将创建新块");
-        throw Error("更新目录失败，找不到原有无序列表块");
+        throw Error("更新目录失败，找不到原有无序列表块，再次刷新将创建新块");
     }else{
         throw Error("写入或更新无序列表块失败");
     }
 }
-
-// let addblockAttrSafely = async function(attrs){
-//     let original = await getblockAttrAPI();
-//     Object.keys(original.data).forEach((key)=>{
-//         if (!key in attrs && key != "id" && key != "updated"){
-//             attrs[key] = original.data[key];
-//         }
-//     });
-//     await addblockAttrAPI(attrs, thisWidgetId);
-// }
 
 let isValidStr = function(s){
     if (s == undefined || s == null || s === '') {
@@ -139,12 +117,7 @@ let getCustomAttr = async function(){
             console.warn("解析挂件属性json失败，将新建配置记录", err.message);
             return ;
         }
-        if ("childListId" in attrObject){
-            custom_attr['childListId'] = attrObject['childListId'];
-        }
-        if ("insert2file" in attrObject){
-            custom_attr['insert2file'] = attrObject['insert2file'];
-        }
+        Object.assign(custom_attr, attrObject);
     }
 }
 
@@ -154,8 +127,57 @@ let setCustomAttr = async function(){
     let response = await addblockAttrAPI({"custom-list-child-docs": attrString}, thisWidgetId);
 }
 
-let getNextFolder = async function(notebook, thisDocPath, insertData){
-    
+//获取要写入的markdown文本
+let getMarkdownText = async function(notebook, nowDocPath){
+    let insertData = await getOneLevelText(notebook, nowDocPath, "", 1);
+    return insertData;
+}
+
+let getOneLevelText = async function(notebook, nowDocPath, insertData, nowDepth){
+    if (nowDepth > custom_attr.listDepth){
+        return insertData;
+    }
+    let subDocsAPIResponse = await getSubDocsAPI(notebook, nowDocPath);
+    if (subDocsAPIResponse.code != 0 || subDocsAPIResponse.data == null ||
+        subDocsAPIResponse.data.files == undefined){
+        console.warn("请求子文档失败", subDocsAPIResponse);
+        return insertData;
+    }
+    //为缩进无序列表引入空格
+    let tabs = "";
+    for (let i = 0; i < (nowDepth - 1); i++){
+        tabs += "  ";
+    }
+    let docs = subDocsAPIResponse.data.files;
+    //生成无序列表Markdown文本
+    for (let doc of docs){
+        let docName = doc.name;
+        if (doc.name.indexOf(".sy") >= 0){
+            docName = docName.substring(0, docName.length - 3);
+        }
+        if (custom_attr.insert2file == 0){
+            insertData += getALinksText(doc);
+        }else{
+            insertData += tabs + `- [${docName}](siyuan://blocks/${doc.id})\n`;
+        }
+        if (doc.subFileCount > 0){
+            //path去除上一层级.sy
+            if (custom_attr.insert2file == 0){
+                insertData += `<ul>`;
+            }
+            let nextDocPath = nowDocPath.replace(".sy", "") + "/" + doc.id + ".sy";
+            insertData = await getOneLevelText(notebook, nextDocPath, insertData, nowDepth + 1);
+            if (custom_attr.insert2file == 0){
+                insertData += `</ul>`;
+            }
+        }
+        
+    }
+    return insertData;
+}
+
+let __init = async function(){
+
 }
 
 let __main = async function (){
@@ -181,18 +203,14 @@ let __main = async function (){
         let notebook = queryResult.data[0].box;//笔记本名
         let thisDocPath = queryResult.data[0].path;//当前文件路径(在笔记本下)
         //查询当前文件下子文件
-        let getSubDocsAPIResponse = await getSubDocsAPI(notebook, thisDocPath);
-        console.assert(getSubDocsAPIResponse.code == 0, "请求子文档失败", getSubDocsAPIResponse);
-        if (getSubDocsAPIResponse.code != 0){
-            throw Error("请求子文档列表失败");
-        }
+        let markdownString = await getMarkdownText(notebook, thisDocPath);
         //清理原有内容
         $(".linksListItem").remove();
         //写入子文档链接
         if (custom_attr.insert2file){
-            await addDocsLinks2file(getSubDocsAPIResponse.data.files, custom_attr.childListId);
+            await addText2File(markdownString, custom_attr.childListId);
         }else{
-            addDocsLinks(getSubDocsAPIResponse.data.files);
+            addDocsLinks(markdownString);
         }
         if (custom_attr.insert2file == 1){
             window.frameElement.style.width = "20em";
