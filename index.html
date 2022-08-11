@@ -13,7 +13,15 @@
 <body>
     <div class="app">
         <p class="upperbar">
-            <button id="refresh" onclick="getDocs()"></button>
+            <button id="refresh"></button>
+            <select id="listdepth" name="depth">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <button id="savedepth">✔</button>
             <span id="updateTime"></span>
         </p>
         <p class="linksContainer" id="linksContainer">

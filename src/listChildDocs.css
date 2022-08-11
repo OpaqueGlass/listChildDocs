@@ -1,9 +1,9 @@
 #refresh {
-    /* background-color: #4CB0F9; */
-    /* Green */
+    background-image:url("./icon2.png");
+}
+button, select{
     border: 1px solid sandybrown;
     font-weight: 300;
-    background-image:url("./icon2.png");
     background-size: auto 1.5em;
     background-repeat: no-repeat;
     background-position: center;
@@ -17,6 +17,25 @@
     display: inline-block;
     font-size: 16px;
 }
+#listdepth{
+    width: 3em;
+    height: 1.5em;
+    border: 1px solid sandybrown;
+    text-align: center;
+    display: inline-block;
+    margin-left: 0.5em;
+}
+
+#savedepth{
+    width: 3em;
+    height: 1.5em;
+    border: 1px solid sandybrown;
+    margin-left: 0.2em;
+    display: inline-block;
+    border-radius:0.3em;
+    color: #4CB0F9;
+}
+
 #updateTime{
     margin-left: 0.5em;
 }

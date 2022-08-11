@@ -1,54 +1,57 @@
 
 class Printer{
     //对齐、缩进
-    align(text, nowDepth){
+    align(nowDepth){
         return text;
     }
-    beforeChildDocs(text){
+    //在下一层级子文档列出之前
+    beforeChildDocs(){
         return text;
     }
-    afterChildDocs(text){
+    //在下一层级子文档列出之后
+    afterChildDocs(){
         return text;
     }
-    oneDocLink(text, doc){
+    //输出当前文档链接
+    oneDocLink(doc){
         return text;
     }
 }
 class HtmlAlinkPrinter extends Printer{
-    align(text, nowDepth){
-        return text;
+    align(nowDepth){
+        return "";
     }
-    beforeChildDocs(text){
-        text += "`<ul>`";
-        return text;
+    beforeChildDocs(){
+        return "<ul>";
     }
-    afterChildDocs(text){
-        text += "`</ul>`";
-        return text;
+    afterChildDocs(){
+        return "</ul>";
     }
-    oneDocLink(text, doc){
-        text += `<li class="linksListItem"><a class='childDocLinks' href="siyuan://blocks/${doc.id}">${doc.name.replace(".sy", "")}</a></li>`;
-        return text;
+    oneDocLink( doc){
+        return `<li class="linksListItem"><a class='childDocLinks' href="siyuan://blocks/${doc.id}">${doc.name.replace(".sy", "")}</a></li>`;
     }
 }
 class MarkdownUnorderListPrinter extends Printer{
     //对齐、缩进
-    align(text, nowDepth){
+    align(nowDepth){
         let spaces = "";
         for (let i = 0; i < (nowDepth - 1); i++){
             spaces += "  ";
         }
-        return text + spaces;
+        return spaces;
     }
-    beforeChildDocs(text){
-        return text;
+    beforeChildDocs(){
+        return "";
     }
-    afterChildDocs(text){
-        return text;
+    afterChildDocs(){
+        return "";
     }
-    oneDocLink(text, doc){
-        text += `- [${docName}](siyuan://blocks/${doc.id})\n`;
-        return text;
+    oneDocLink(doc){
+        let docName = doc.name;
+        if (doc.name.indexOf(".sy") >= 0){
+            docName = docName.substring(0, docName.length - 3);
+        }
+        return `- [${docName}](siyuan://blocks/${doc.id})\n`;
     }
 }
 export default {Printer, HtmlAlinkPrinter, MarkdownUnorderListPrinter}
