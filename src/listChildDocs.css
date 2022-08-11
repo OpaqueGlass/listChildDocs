@@ -1,0 +1,64 @@
+#refresh {
+    /* background-color: #4CB0F9; */
+    /* Green */
+    border: 1px solid sandybrown;
+    font-weight: 300;
+    background-image:url("./icon2.png");
+    background-size: auto 1.5em;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 3em;
+    height: 1.5em;
+    border-radius:0.3em;
+    /* color: white; */
+    /* padding: 15px 32px; */
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+#updateTime{
+    margin-left: 0.5em;
+}
+.upperbar{
+    float: left;
+    width: 100%;
+    display: flex;
+    text-align: center;
+}
+
+.linksListItem {
+    padding: 4px 0px;
+}
+
+.childDocLinks {
+    color: rgb(37, 40, 48);
+    padding: 0 2px;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(0, 0, 0, .1);
+}
+
+.childDocLinks:hover {
+    color: #1186d9;
+    border-bottom: 1px dashed #4CB0F9;
+}
+
+.errorinfo {
+    color: red;
+    text-align: center;
+}
+
+body{
+    padding: 0;
+    border: 0;
+    margin:0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* background-color: white; */
+}
+.app{
+    width: 100%;
+}
