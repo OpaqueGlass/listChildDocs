@@ -174,7 +174,7 @@ let getCurrentDocIdF = async function(){
     let thisWidgetId = getCurrentWidgetId();
     try{
         if (isValidStr(thisWidgetId)){
-            //获取dataId
+            //通过获取挂件所在页面题头图的data-node-id获取文档id
             let thisDocId = $(window.parent.document).find(`div.protyle:has(.iframe[data-node-id="${thisWidgetId}"])`)
             .find(`.protyle-background`).attr("data-node-id");
             // console.log(dataId);
@@ -189,9 +189,9 @@ let getCurrentDocIdF = async function(){
     //还不行的话依靠widgetId sql查，最终方案（挂件刚插入时查询不到！）
     if (isValidStr(thisWidgetId)){
         let queryResult = await queryAPI("SELECT parent_id as parentId FROM blocks WHERE id = '" + thisWidgetId + "'");
-        console.assert(queryResult.code == 0 && queryResult.data.length, "SQL查询失败", queryResult);
-        if (queryResult.code == 0 || queryResult.data.length == 1){
-            return queryResult.data[0].parentId;
+        console.assert(queryResult != null, "SQL查询失败", queryResult);
+        if (queryResult!= null){
+            return queryResult[0].parentId;
         }
     }
 
@@ -200,7 +200,7 @@ let getCurrentDocIdF = async function(){
         thisDocId = $(window.parent.document).find(".layout__wnd--active .protyle.fn__flex-1:not(.fn__none) .protyle-background").attr("data-node-id");
         return thisDocId;
     }
-    
+    return null;
 }
 
 /**
@@ -209,6 +209,7 @@ let getCurrentDocIdF = async function(){
  */
 let getCurrentWidgetId = function(){
     try{
+        console.log("widgetId", window.frameElement.parentElement.parentElement.dataset.nodeId);
         return window.frameElement.parentElement.parentElement.dataset.nodeId;
     }catch(err){
         console.warn("getCurrentWidgetId window...nodeId方法失效");

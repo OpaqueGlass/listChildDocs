@@ -16,16 +16,16 @@ button, select{
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
+    background-color: #f0f0f022;
     /* background-color:darkslategray;
     color: white; */
 }
-#listdepth{
-    width: 3em;
-    height: 1.5em;
-    border: 1px solid sandybrown;
-    text-align: center;
-    display: inline-block;
+select{
     margin-left: 0.5em;
+}
+
+#printMode{
+    width: 5em;
 }
 
 #savedepth{

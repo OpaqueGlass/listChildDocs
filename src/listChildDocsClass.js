@@ -3,7 +3,7 @@
 class Printer{
     //写入到文件or写入到挂件
     //0写入到挂件（以HTML格式），1写入到当前文档（以Markdown格式）
-    write2file = -1;
+    write2file = 1;
 
     /**
      * 输出对齐、缩进文本
@@ -113,14 +113,15 @@ class MarkdownDChainUnorderListPrinter extends Printer{
  * @returns 
  */
 let emojiIconHandler = function(iconString){
-    if (iconString == "")return "";
+    if (iconString == "")return "📄";//无icon默认值
     let result = "";
     iconString.split("-").forEach(element => {
         result += String.fromCodePoint("0x"+element);
     });
     return result;
 }
-export default {Printer, HtmlAlinkPrinter, MarkdownDChainUnorderListPrinter, MarkdownUrlUnorderListPrinter}//您新增的Priter子类应当在这里列出
+export default {Printer, HtmlAlinkPrinter, MarkdownDChainUnorderListPrinter, MarkdownUrlUnorderListPrinter}//Priter子类在这里列出
+export {Printer};
 /** 附录：doc对象（由文档树api获得），示例如下
  * "path": "/20220807110638-uv5bqv8/20220810155329-xnskr8a.sy",//文档路径
     "name": "test.sy",//文档名，包含.sy

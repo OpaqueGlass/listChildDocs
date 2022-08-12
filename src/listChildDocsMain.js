@@ -1,6 +1,5 @@
-import any from './listChildDocsClass.js';
+import {Printer} from './listChildDocsClass.js';
 import {
-    postRequest,
     queryAPI,
     getSubDocsAPI,
     addblockAttrAPI,
@@ -12,7 +11,7 @@ import {
     updateBlockAPI,
     insertBlockAPI
 } from './API.js'; 
-import {custom_attr, language, setting, printerList} from './config.js';
+import {custom_attr, language, setting, printerList, modeName} from './config.js';
 let thisDocId = "";
 let thisWidgetId = "";
 let mutex = 0;
@@ -127,9 +126,6 @@ let __main = async function (initmode = false){
             await getCustomAttr();
             await __refresh();
         }
-        //获取下拉选择的展示深度
-        custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").selectedIndex + 1);
-        
         //以当前页面id查询当前页面所属笔记本和路径（优先使用docid，因为挂件刚创建时无法查询）
         let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${isValidStr(thisDocId) ? thisDocId : thisWidgetId}'`);
         console.log(queryResult);
@@ -171,19 +167,31 @@ let __main = async function (initmode = false){
     mutex = 0;
 }
 
+/**
+ * 重新获取Printer
+ * 调用前确定已经获得了printMode
+ */
+let __refreshPrinter = function(){
+    //重新获取Printer
+    if (printerList[custom_attr.printMode] != undefined){
+        myPrinter = new printerList[custom_attr.printMode]();
+    }else{
+        custom_attr.printMode = "0";
+        myPrinter = new printerList[custom_attr.printMode]();
+        printError(language["wrongPrintMode"]);
+    }
+}
+
 let __refresh = async function (){
     //获取id
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
     console.log("thisdocid", thisDocId);
-    //重新获取Printer
-    if (printerList[custom_attr.printMode] != undefined){
-        myPrinter = new printerList[custom_attr.printMode]();
-    }else{
-        custom_attr.printMode = "default";
-        myPrinter = new printerList[custom_attr.printMode]();
-        printError(language["wrongPrintMode"]);
-    }
+    //获取模式设定 刷新时，保存设定
+    custom_attr["printMode"] = document.getElementById("printMode").selectedIndex.toString();
+    //获取下拉选择的展示深度
+    custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").selectedIndex + 1);
+    __refreshPrinter();
     __refreshAppearance();
 }
 
@@ -195,18 +203,21 @@ let __refreshAppearance = function(){
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1){
-        $("#refresh, #listdepth").addClass("button_dark");
+        $("#refresh, #listdepth, #printMode").addClass("button_dark");
         $("#updateTime, #linksContainer").addClass("ordinaryText_dark");
         $(".childDocLinks").addClass("childDocLinks_dark");
     }else{
-        $("#refresh, #listdepth").removeClass("button_dark");
+        $("#refresh, #listdepth, #printMode").removeClass("button_dark");
         $("#updateTime, #linksContainer").removeClass("ordinaryText_dark");
         $(".childDocLinks").removeClass("childDocLinks_dark");
     }
 }
 
 let __init = async function(){
-    //获取id
+    myPrinter = new Printer();
+    //刷新页面大小，需要先载入Printer
+    __refreshAppearance();
+    //获取id，用于在载入页面时获取挂件属性
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
     //载入挂件属性
@@ -217,18 +228,27 @@ let __init = async function(){
         printError(err.message);
     }
     console.log("载入的属性", custom_attr);
-    //获取展示层级（参数）
+    //写入模式设定选择框的选项
+    for (let key of Object.keys(printerList)){
+        $(`<option value=${key}>${modeName[key]}</option>`).appendTo("#printMode");
+    }
+    //用于载入页面，将挂件属性写到挂件中
     document.getElementById("listdepth").selectedIndex = custom_attr["listDepth"] - 1;
-    //通用刷新操作
-    await __refresh();
-    //设定事件监听
-    __setObserver();
-    //尝试规避 找不到块创建位置的运行时错误
-    setTimeout(()=>{ __main(true)}, 1000);
-    // __main();
+    document.getElementById("printMode").selectedIndex = parseInt(custom_attr["printMode"]);
+    //通用刷新Printer操作，必须在获取属性、写入挂件之后
+    __refreshPrinter();
+    
+    if (custom_attr.auto) {
+        //设定事件监听
+        __setObserver();
+        //尝试规避 找不到块创建位置的运行时错误
+        setTimeout(()=>{ __main(true)}, 1000);
+        // __main();
+    }  
 }
 
 let __setObserver = function (){
+    try{
     //(思源主窗口)可见性变化时更新列表（导致在删除插件时仍然触发的错误）
     // document.addEventListener('visibilitychange', __main);
     //页签切换时更新列表
@@ -241,13 +261,24 @@ let __setObserver = function (){
     console.assert(target.length == 1, "无法监听页签切换", target);
     //不能观察class变化，class会在每次编辑、操作时变更
     mutationObserver.observe(target[0], {"attributes": true, "attributeFilter": ["data-activetime"]});
+    }catch(err){
+        console.error(err);
+        console.warn("监视点击页签事件失败");
+    }
 }
+
+let mutationObserver = new MutationObserver(()=>{__main(true)});//避免频繁刷新id
+let mutationObserver2 = new MutationObserver(()=>{setTimeout(__refreshAppearance, 1500);});
 //绑定按钮事件
 document.getElementById("refresh").onclick=() => {__main(false)};
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
-setTimeout(__init, 300);
-let mutationObserver = new MutationObserver(()=>{__main(true)});//避免频繁刷新id
-//用于监视深色模式变化
-let mutationObserver2 = new MutationObserver(()=>{setTimeout(__refresh, 1500);});
-console.log($(window.parent.document).find("#barThemeMode").get(0));
-mutationObserver2.observe($(window.parent.document).find("#barThemeMode").get(0), {"attributes": true, "attributeFilter": ["aria-label"]});
+// setTimeout(__init, 300);
+__init();
+try {
+    //用于监视深色模式变化
+    console.log($(window.parent.document).find("#barThemeMode").get(0));
+    mutationObserver2.observe($(window.parent.document).find("#barThemeMode").get(0), {"attributes": true, "attributeFilter": ["aria-label"]});
+}catch(err){
+    console.error(err);
+    console.warn("监视外观切换事件失败");
+}
