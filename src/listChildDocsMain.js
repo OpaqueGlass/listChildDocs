@@ -191,6 +191,18 @@ let __refresh = async function (){
     custom_attr["printMode"] = document.getElementById("printMode").selectedIndex.toString();
     //获取下拉选择的展示深度
     custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").selectedIndex + 1);
+    //更换触发模式
+    let nowAutoMode = document.getElementById("autoMode").checked;
+    console.log(nowAutoMode, document.getElementById("autoMode").checked);
+    if (nowAutoMode != custom_attr["auto"]){
+        if (nowAutoMode){
+            __setObserver();
+        }else{
+            mutationObserver.disconnect();
+        }
+        custom_attr["auto"] = nowAutoMode;
+    }
+
     __refreshPrinter();
     __refreshAppearance();
 }
@@ -235,6 +247,7 @@ let __init = async function(){
     //用于载入页面，将挂件属性写到挂件中
     document.getElementById("listdepth").selectedIndex = custom_attr["listDepth"] - 1;
     document.getElementById("printMode").selectedIndex = parseInt(custom_attr["printMode"]);
+    document.getElementById("autoMode").checked = custom_attr["auto"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     
@@ -245,6 +258,10 @@ let __init = async function(){
         setTimeout(()=>{ __main(true)}, 1000);
         // __main();
     }  
+    $("#refresh").attr("title", language["refreshBtn"]);
+    $("#listdepth").attr("title", language["depthList"]);
+    $("#printMode").attr("title", language["modeList"]);
+    $("#autoMode").attr("title", language["autoBtn"]);
 }
 
 let __setObserver = function (){

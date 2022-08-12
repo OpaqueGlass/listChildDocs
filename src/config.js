@@ -3,7 +3,7 @@ let custom_attr = {//这里列出的属性为默认属性，也可以手动更�
     printMode: "url",//默认格式和输出位置，具体参数见下方的printerList
     childListId: "",//子文档列表块id，由挂件自动生成，对应的块将会被本挂件自动更新，请避免自行修改
     listDepth: 2,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
-    auto: 1, //自动刷新
+    auto: true, //自动刷新
 };
 let setting = {
     width_2file: "30em",//将列表写入文件时，此项控制挂件的宽
@@ -20,6 +20,15 @@ let en = {
     updateTime: "LastUpdate: ",
     modifywarn:　"Created by listChildDocs widget. Manual changes will not be saved.",
     getAttrFailed: "Failed to read widget properties.",
+    wrongPrintMode: "PrintMode is incorrect. The default value has been restored, please refresh again.",
+    inwidget: "Widget",
+    inUrl: "siyuan URL",
+    inDulChain: "Ref block",
+    default: "Default",
+    refreshBtn: "Click to refresh",
+    depthList: "The display depth of child-doc",
+    modeList: "Print mode",
+    autoBtn: "Fake auto refresh",
 }
 let zh_CN = {
     refreshNeeded: "更新目录失败，找不到原有无序列表块，再次刷新将创建新块。",
@@ -35,19 +44,23 @@ let zh_CN = {
     inwidget: "挂件",
     inUrl: "url",
     inDulChain: "引用块",
-    default: "默认"
+    default: "默认",
+    refreshBtn: "刷新",
+    depthList: "子文档展示层级",
+    modeList: "展示方式",
+    autoBtn: "'半'自动刷新",
 }
 let language = zh_CN;//当前使用的语言
-let modeName = {
+let modeName = {//key应为数字
     "0": language["default"],
     "1": language["inwidget"],
     "2": language["inUrl"],
     "3": language["inDulChain"],
 }
-let printerList = {
+let printerList = {//key应为数字
     "0": allPrinter.HtmlAlinkPrinter,//出错时恢复到此模式，务必存在
     "1": allPrinter.HtmlAlinkPrinter,
     "2": allPrinter.MarkdownUrlUnorderListPrinter,
     "3": allPrinter.MarkdownDChainUnorderListPrinter,
-};//您可以在./listChildDocsClass.js中自定义输出格式Printer类，然后在此声明
+};//您可以在./listChildDocsClass.js中自定义输出格式Printer类，export，然后在此列出，并在modeName中起名
 export {custom_attr, token, language, setting, printerList, modeName};

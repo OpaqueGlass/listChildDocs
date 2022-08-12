@@ -1,7 +1,7 @@
 #refresh {
     background-image:url("./icon2.png");
 }
-button, select{
+button, select, input{
     border: 1px solid sandybrown;
     font-weight: 300;
     background-size: auto 1.5em;
@@ -20,6 +20,14 @@ button, select{
     /* background-color:darkslategray;
     color: white; */
 }
+
+#autoMode{
+    width: auto;
+    height: auto;
+    text-align: center;
+    display: inline-block;
+}
+
 select{
     margin-left: 0.5em;
 }

@@ -13,8 +13,8 @@
 <body>
     <div class="app">
         <p class="upperbar">
-            <button id="refresh"></button>
-            <select id="listdepth" name="depth">
+            <button id="refresh" title="refresh"></button>
+            <select id="listdepth" name="depth" title="showDepth">
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
@@ -23,6 +23,7 @@
             </select>
             <select id="printMode" name="mode">
             </select>
+            <input type="checkbox" name="auto" value="1" id="autoMode" title="AutoRefresh?">
             <span id="updateTime"></span>
         </p>
         <div class="linksContainer" id="linksContainer">
