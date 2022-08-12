@@ -16,6 +16,8 @@ button, select{
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
+    /* background-color:darkslategray;
+    color: white; */
 }
 #listdepth{
     width: 3em;
@@ -38,6 +40,7 @@ button, select{
 
 #updateTime{
     margin-left: 0.5em;
+    /* color: darkgray; */
 }
 .upperbar{
     float: left;

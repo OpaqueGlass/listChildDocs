@@ -115,6 +115,16 @@ let __refresh = async function (){
         window.frameElement.style.width = setting.width_2file;
         window.frameElement.style.height = setting.height_2file;
     }
+    //设定深色颜色（外观）
+    
+    if (window.top.siyuan.config.appearance.mode == 1){
+        $("#refresh, #listdepth").attr("style", "background-color:darkslategray; color: white;");
+        $("#updateTime").attr("style", "color: darkgray;");
+        console.log("Hihi");
+    }else{
+        
+    }
+    
 }
 
 let __main = async function (initmode = false){
@@ -184,8 +194,16 @@ let __save = async function(){
 
 let __init = async function(){
     //获取当前页面id[Help wanted: 还有啥稳定的方法吗？]
-    thisDocId = $(window.parent.document).find(".layout__wnd--active .protyle.fn__flex-1:not(.fn__none) .protyle-background").attr("data-node-id");
+    // thisDocId = $(window.parent.document).find(".layout__wnd--active .protyle.fn__flex-1:not(.fn__none) .protyle-background").attr("data-node-id");
     thisWidgetId = window.frameElement.parentElement.parentElement.dataset.nodeId;
+    let queryResult = await queryAPI("SELECT box, path, parent_id as parentId FROM blocks WHERE id = '" + thisWidgetId + "'");
+    console.assert(queryResult.code == 0 && queryResult.data.length, "SQL查询失败", queryResult);
+    if (queryResult.code != 0 || queryResult.data.length != 1){
+        throw Error(language["getPathFailed"]);
+    }
+    thisDocId = queryResult.data[0].parentId;
+    console.log("sql", queryResult.data);
+    console.log("thisdocid", thisDocId);
     console.assert(thisDocId != null && thisDocId != undefined, "当前文档id获取失败（jquery方案失败）");
     if (thisDocId == null || thisDocId == undefined){//获取当前页面id方案2（获取的是当前挂件块id）
         thisDocId = window.frameElement.parentElement.parentElement.dataset.nodeId;
@@ -203,28 +221,50 @@ let __init = async function(){
         window.frameElement.style.width = setting.width_2file;
         window.frameElement.style.height = setting.height_2file;
     }
+    //设定事件监听
+    __setObserver();
 }
 
+let __setObserver = function (){
+    //(思源主窗口)可见性变化时更新列表（导致在删除插件时仍然触发的错误）
+    // document.addEventListener('visibilitychange', __main);
+    //页签切换时更新列表
+    let test = function (mutationsList, observer){
+        for(let mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+                console.log('A child node has been added or removed.');
+            }
+            else if (mutation.type === 'attributes') {
+                console.log('The ' + mutation.attributeName + ' attribute was modified.', mutation);
+            }
+        }
+    }
+    //获取dataId
+    let dataId = $(window.parent.document).find(`div[data-type="wnd"]:has(.protyle-background[data-node-id="${thisDocId}"])`)
+        .find(`div.protyle:has(.protyle-background[data-node-id="${thisDocId}"])`).attr("data-id");
+    // console.log(dataId);
+    // let target = $(window.parent.document).find(`div[data-type="wnd"]:has(.protyle-background[data-node-id="${thisDocId}"])`).find(".layout-tab-bar .item");
+    //由dataId找页签，挂上监视
+    let target = $(window.parent.document).find(`div[data-type="wnd"]:has(.protyle-background[data-node-id="${thisDocId}"])`)
+        .find(`.layout-tab-bar .item[data-id=${dataId}]`);
+    // console.log(target);
+    console.assert(target.length == 1, "无法监听页签切换", target);
+    let mutationObserver = new MutationObserver(__main);
+    //不能观察class变化，class会在每次编辑、操作时变更
+    mutationObserver.observe(target[0], {"attributes": true, "attributeFilter": ["data-activetime"]});
+    
+}
 //绑定按钮事件
 document.getElementById("refresh").onclick=() => {__main(false)};
 document.getElementById("savedepth").onclick=__save;
 document.getElementById("savedepth").style.display = "none";
 __init();
-//(思源主窗口)可见性变化时更新列表（导致在删除插件时仍然触发的错误）
-// document.addEventListener('visibilitychange', __main);
-//页签切换时更新列表
-let test = function (mutationsList, observer){
-    for(let mutation of mutationsList) {
-        if (mutation.type === 'childList') {
-            console.log('A child node has been added or removed.');
-        }
-        else if (mutation.type === 'attributes') {
-            console.log('The ' + mutation.attributeName + ' attribute was modified.', mutation);
-        }
-    }
-}
-let target = $(window.parent.document).find(".layout__wnd--active .layout-tab-bar .item--focus");
-console.assert(target.length == 1, "无法监听页签切换", target);
-let mutationObserver = new MutationObserver(__main);
-//不能观察class变化，class会在每次编辑、操作时变更
-mutationObserver.observe(target[0], {"attributes": true, "attributeFilter": ["data-activetime"]});
+setTimeout(__setObserver, 1000);
+//用于监视深色模式变化
+let mutationObserver2 = new MutationObserver(()=>{console.log("hh");setTimeout(__refresh, 2000);});
+console.log($(window.parent.document).find("#barThemeMode").get(0));
+mutationObserver2.observe($(window.parent.document).find("#barThemeMode").get(0), {"attributes": true, "attributeFilter": ["aria-label"]});
+//问题：当前页签在后台未展示时刷新页面，挂件将获取其他文档为主文档
+//切换深色模式后，监听页签变化也会设置错误
+//修复意见：以挂件id为准->docId->找到页签id，挂监视
+//或者手动刷新，将docId，widgetid写入属性中，非手动刷新时，需要重新获取；
