@@ -1,6 +1,7 @@
-let custom_attr = {
-    insert2file: 1,//为1将列表写入到文档，为0将列表写入挂件内
-    childListId: "",//子文档列表块id，由挂件自动处理，避免更改
+import allPrinter from './listChildDocsClass.js';
+let custom_attr = {//这里列出的属性为默认属性，也可以手动更改挂件属性custom-list-child-docs来更改
+    printMode: "default",//默认格式和输出位置，具体参数见下方的printerList
+    childListId: "",//子文档列表块id，由挂件自动生成，对应的块将会被本挂件自动更新，请避免自行修改
     listDepth: 2//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
 };
 let setting = {
@@ -27,8 +28,15 @@ let zh_CN = {
     noChildDoc: "似乎没有子文档。",
     error: "错误：",
     updateTime: "更新时间：",
-    modifywarn:　"此块由listChildDocs挂件创建，手动更改将不会保存",
-    getAttrFailed: "读取挂件属性失败",
+    modifywarn:　"此块由listChildDocs挂件创建，手动更改将不会保存。",
+    getAttrFailed: "读取挂件属性失败。",
+    wrongPrintMode: "错误的输出模式设定，再次刷新将恢复默认值。",
 }
 let language = zh_CN;//当前使用的语言
-export {custom_attr, token, language, setting};
+let printerList = {
+    "widget": allPrinter.HtmlAlinkPrinter,
+    "siyuanurl": allPrinter.MarkdownUrlUnorderListPrinter,
+    "dul-chain": allPrinter.MarkdownDChainUnorderListPrinter,
+    "default": allPrinter.HtmlAlinkPrinter,//出错时恢复到
+};//您可以在./listChildDocsClass.js中自定义输出格式Printer类，然后在此声明
+export {custom_attr, token, language, setting, printerList};

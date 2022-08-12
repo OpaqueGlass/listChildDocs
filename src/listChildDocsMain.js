@@ -4,21 +4,25 @@ import {
     queryAPI,
     getSubDocsAPI,
     addblockAttrAPI,
-    getblockAttrAPI} from './API.js'; 
-import {custom_attr, language, setting} from './config.js';
+    getblockAttrAPI,
+    isValidStr,
+    pushMsgAPI
+} from './API.js'; 
+import {custom_attr, language, setting, printerList} from './config.js';
 let thisDocId = "";
 let thisWidgetId = "";
 let mutex = 0;
+let myPrinter;
 //将Markdown文本写入文件(当前挂件之后的块)
 let addText2File = async function (markdownText, blockid = ""){
-    let url = isValidStr(blockid) ? "http://127.0.0.1:6806/api/block/updateBlock" : "http://127.0.0.1:6806/api/block/insertBlock";
+    let url = isValidStr(blockid) ? "/api/block/updateBlock" : "/api/block/insertBlock";
     let postAttr = isValidStr(blockid) ? {dataType: "markdown", data: markdownText, id: blockid} : {dataType: "markdown", data: markdownText, previousID: thisWidgetId};
     let result = await postRequest(postAttr, url);
     //将子文档无序列表块id写入属性
     if (result.code == 0 && isValidStr(result.data[0].doOperations[0].id)){
         custom_attr['childListId'] = result.data[0].doOperations[0].id;
         //写入警告信息
-        await addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);
+        setTimeout(function(){addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);}, 2000);
         
     }else if (result.code == -1){
         //找不到块，移除原有属性
@@ -28,13 +32,6 @@ let addText2File = async function (markdownText, blockid = ""){
     }else{
         throw Error(language["insertBlockFailed"]);
     }
-}
-
-let isValidStr = function(s){
-    if (s == undefined || s == null || s === '') {
-		return false;
-	}
-	return true;
 }
 
 //获取挂件属性custom-list-child-docs
@@ -66,18 +63,18 @@ let setCustomAttr = async function(){
 
 //获取子文档层级目录输出文本
 let getText = async function(notebook, nowDocPath){
-    let printer;
-    if (custom_attr.insert2file){
-        printer = new any.MarkdownUnorderListPrinter();
-    }else{
-        printer = new any.HtmlAlinkPrinter();
+    if (myPrinter == undefined){
+        console.error("输出类Printer错误", myPrinter);
+        throw Error(language["wrongPrintMode"]);
     }
-    let insertData = await getOneLevelText(notebook, nowDocPath, "", 1, printer);
+    let insertData = myPrinter.beforeAll()
+    insertData += await getOneLevelText(notebook, nowDocPath, "", 1);
+    insertData += myPrinter.afterAll()
     return insertData;
 }
 
 //获取一层级子文档输出文本
-let getOneLevelText = async function(notebook, nowDocPath, insertData, nowDepth, printer){
+let getOneLevelText = async function(notebook, nowDocPath, insertData, nowDepth){
     if (nowDepth > custom_attr.listDepth){
         return insertData;
     }
@@ -90,17 +87,34 @@ let getOneLevelText = async function(notebook, nowDocPath, insertData, nowDepth,
     let docs = subDocsAPIResponse.data.files;
     //生成写入文本
     for (let doc of docs){
-        insertData += printer.align(nowDepth);
-        insertData += printer.oneDocLink(doc);
+        insertData += myPrinter.align(nowDepth);
+        insertData += myPrinter.oneDocLink(doc);
         if (doc.subFileCount > 0 && (nowDepth+1) <= custom_attr.listDepth){
-            insertData += printer.beforeChildDocs();
+            insertData += myPrinter.beforeChildDocs(nowDepth);
             //path去除上一层级.sy
             let nextDocPath = nowDocPath.replace(".sy", "") + "/" + doc.id + ".sy";
-            insertData = await getOneLevelText(notebook, nextDocPath, insertData, nowDepth + 1, printer);
-            insertData += printer.afterChildDocs();
+            insertData = await getOneLevelText(notebook, nextDocPath, insertData, nowDepth + 1);
+            insertData += myPrinter.afterChildDocs(nowDepth);
         }
     }
     return insertData;
+}
+
+let __refresh = async function (){
+    if (printerList[custom_attr.printMode] != undefined){
+        //重新获取Printer
+        myPrinter = new printerList[custom_attr.printMode]();
+    }else{
+        custom_attr.printMode = "default";
+        myPrinter = new printerList[custom_attr.printMode]();
+        throw Error(language["wrongPrintMode"]);
+    }
+    
+    //重设窗口大小
+    if (myPrinter.write2file == 1){
+        window.frameElement.style.width = setting.width_2file;
+        window.frameElement.style.height = setting.height_2file;
+    }
 }
 
 let __main = async function (initmode = false){
@@ -109,13 +123,14 @@ let __main = async function (initmode = false){
     }else{
         return;
     }
-    console.log("开始目录更新");
+    pushMsgAPI("开始更新--listChildDoc", 1500);
     try{
         //获取挂件参数
         if (!initmode){
             await getCustomAttr();
+            await __refresh();
         }
-        //
+        //获取下拉选择的展示深度
         custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").selectedIndex + 1);
         
         //以当前页面id查询当前页面所属笔记本和路径
@@ -129,24 +144,21 @@ let __main = async function (initmode = false){
         //获取子文档层级文本
         let textString = await getText(notebook, thisDocPath);
         //清理原有内容
-        $(".linksListItem").remove();
+        $("#linksContainer *").remove();
         if (textString == ""){
             textString = "* " + language["noChildDoc"];
         }
+        console.log("otuput",textString);
         //写入子文档链接
-        if (custom_attr.insert2file){
+        if (myPrinter.write2file){
             await addText2File(textString, custom_attr.childListId);
         }else{
-            $(textString).appendTo("#linksList");
-        }
-        if (custom_attr.insert2file == 1){
-            window.frameElement.style.width = setting.width_2file;
-            window.frameElement.style.height = setting.height_2file;
+            $(textString).appendTo(".linksContainer");
         }
     }catch(err){
         console.error(err);
-        $(".linksListItem").remove();
-        $(`<li class="linksListItem errorinfo">${language["error"]}` + err.message + `</li>`).appendTo("#linksList");
+        $(".linksContainer *").remove();
+        $(`<ul><li class="linksListItem errorinfo">${language["error"]}` + err.message + `</li></ul>`).appendTo("#linksContainer");
         window.frameElement.style.height = "10em";
     }
     //写入挂件属性
@@ -172,7 +184,7 @@ let __save = async function(){
 
 let __init = async function(){
     //获取当前页面id[Help wanted: 还有啥稳定的方法吗？]
-    thisDocId = $(window.parent.document).find(".protyle.fn__flex-1:not(.fn__none) .protyle-background").attr("data-node-id");
+    thisDocId = $(window.parent.document).find(".layout__wnd--active .protyle.fn__flex-1:not(.fn__none) .protyle-background").attr("data-node-id");
     thisWidgetId = window.frameElement.parentElement.parentElement.dataset.nodeId;
     console.assert(thisDocId != null && thisDocId != undefined, "当前文档id获取失败（jquery方案失败）");
     if (thisDocId == null || thisDocId == undefined){//获取当前页面id方案2（获取的是当前挂件块id）
@@ -183,15 +195,18 @@ let __init = async function(){
     //获取展示层级（参数）
     await getCustomAttr();
     document.getElementById("listdepth").selectedIndex = custom_attr["listDepth"] - 1;
+    //通用刷新操作
+    await __refresh();
     //设置窗口大小
-    if (custom_attr.insert2file == 1){
+    //custom_attr.insert2file
+    if (myPrinter.write2file == 1){
         window.frameElement.style.width = setting.width_2file;
         window.frameElement.style.height = setting.height_2file;
     }
 }
 
 //绑定按钮事件
-document.getElementById("refresh").onclick=__main;
+document.getElementById("refresh").onclick=() => {__main(false)};
 document.getElementById("savedepth").onclick=__save;
 document.getElementById("savedepth").style.display = "none";
 __init();
@@ -208,7 +223,8 @@ let test = function (mutationsList, observer){
         }
     }
 }
-console.assert(window.parent.document.getElementsByClassName("item--focus").length == 1, "无法监听页签切换");
+let target = $(window.parent.document).find(".layout__wnd--active .layout-tab-bar .item--focus");
+console.assert(target.length == 1, "无法监听页签切换", target);
 let mutationObserver = new MutationObserver(__main);
 //不能观察class变化，class会在每次编辑、操作时变更
-mutationObserver.observe(window.parent.document.getElementsByClassName("item--focus")[0], {"attributes": true, "attributeFilter": ["data-activetime"]});
+mutationObserver.observe(target[0], {"attributes": true, "attributeFilter": ["data-activetime"]});
