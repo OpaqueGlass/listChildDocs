@@ -5,7 +5,11 @@ export {
     addblockAttrAPI,
     getblockAttrAPI,
     pushMsgAPI,
-    isValidStr
+    isValidStr,
+    getCurrentDocIdF,
+    getCurrentWidgetId,
+    updateBlockAPI,
+    insertBlockAPI
 };
 import {token} from "./config.js";
 //向思源api发送请求
@@ -26,7 +30,7 @@ let postRequest = async function (data, url){
 
 let checkResponse4Result = async function(response){
     if (response.code != 0 || response.data == null){
-        throw Error("请求失败" + response.msg);
+        return null;
     }else{
         return response;
     }
@@ -44,14 +48,20 @@ let checkResponse = async function(response){
 let queryAPI = async function (sqlstmt){
     let url = "/api/query/sql";
     let response = await postRequest({stmt: sqlstmt},url);
-    return response;
+    if (response.code == 0 && response.data != null){
+        return response.data;
+    }
+    return null;
 }
 
 //列出子文件（api）
 let getSubDocsAPI = async function (notebookId, path){
     let url = "/api/filetree/listDocsByPath";
-    let result = await postRequest({notebook: notebookId, path: path}, url);
-    return result;
+    let response = await postRequest({notebook: notebookId, path: path}, url);
+    if (response.code != 0 || response.data == null){
+        return new Array();
+    }
+    return response.data.files;
 }
 
 //添加属性（API）
@@ -77,21 +87,26 @@ let getblockAttrAPI = async function(blockid = thisWidgetId){
 
 /**
  * 更新块（返回值有删减）
- * @param {*} text 
- * @param {*} blockid 
- * @param {*} textType 
- * @returns 更新成功的块id，为null则失败
+ * @param {String} text 更新写入的文本
+ * @param {String} blockid 更新的块id
+ * @param {String} textType 文本类型，markdown、dom可选
+ * @returns 被更新的块id，为null则未知失败，为空字符串则写入失败
  */
 let updateBlockAPI = async function(text, blockid, textType = "markdown"){
     let url = "/api/block/updateBlock";
     let data = {dataType: textType, data: text, id: blockid};
     let response = await postRequest(data, url);
     try{
-        if (response.code == 0 && isValidStr(response.data[0].doOperations[0].id)){
+        if (response.code == 0 && response.data != null &&  isValidStr(response.data[0].doOperations[0].id)){
             return response.data[0].doOperations[0].id;
+        }
+        if (response.code == -1){
+            console.warn("更新块失败", response.msg);
+            return "";
         }
     }catch(err){
         console.error(err);
+        console.warn(response.msg);
     }
     return null;
 }
@@ -100,19 +115,24 @@ let updateBlockAPI = async function(text, blockid, textType = "markdown"){
  * 插入块（返回值有删减）
  * @param {*} text 文本
  * @param {*} blockid 创建的块将平级插入于该块之后
- * @param {*} textType "markdown" or "dom"
- * @return 创建的块id，为null则创建失败
+ * @param {*} textType 插入的文本类型，"markdown" or "dom"
+ * @return 创建的块id，为null则未知失败，为空字符串则写入失败，错误提示信息将输出在
  */
 let insertBlockAPI = async function(text, blockid, textType = "markdown"){
     let url = "/api/block/insertBlock";
     let data = {dataType: textType, data: text, previousID: blockid};
     let response = await postRequest(data, url);
     try{
-        if (response.code == 0 && isValidStr(response.data[0].doOperations[0].id)){
+        if (response.code == 0 && response.data != null && isValidStr(response.data[0].doOperations[0].id)){
             return response.data[0].doOperations[0].id;
+        }
+        if (response.code == -1){
+            console.warn("插入块失败", response.msg);
+            return "";
         }
     }catch(err){
         console.error(err);
+        console.warn(response.msg);
     }
     return null;
 
@@ -146,25 +166,47 @@ let pushMsgAPI = async function(msgText, timeout){
 }
 
 /**
- * 通过jQuery获取当前文档id（伪api）
+ * 获取当前文档id（伪api）
+ * 优先使用jquery查询
  */
-let getCurrentDocIdFake = function(){
+let getCurrentDocIdF = async function(){
     let thisDocId;
-    let thisWidgetId = "";
+    let thisWidgetId = getCurrentWidgetId();
     try{
-        thisDocId = $(window.parent.document).find(".layout__wnd--active .protyle.fn__flex-1:not(.fn__none) .protyle-background").attr("data-node-id");
-        if (!isValidStr(thisDocId)){//获取当前页面id方案2（获取的是当前挂件块id）
-            throw Error("jquery获取文档id失败")
+        if (isValidStr(thisWidgetId)){
+            //获取dataId
+            let thisDocId = $(window.parent.document).find(`div.protyle:has(.iframe[data-node-id="${thisWidgetId}"])`)
+            .find(`.protyle-background`).attr("data-node-id");
+            // console.log(dataId);
+            if (isValidStr(thisDocId)){
+                return thisDocId;
+            }
         }
+        
     }catch(err){
-        thisWidgetId = getCurrentWidgetId();
+        console.warn(err);
     }
-    if (thisWidgetId != ""){
-
+    //还不行的话依靠widgetId sql查，最终方案（挂件刚插入时查询不到！）
+    if (isValidStr(thisWidgetId)){
+        let queryResult = await queryAPI("SELECT parent_id as parentId FROM blocks WHERE id = '" + thisWidgetId + "'");
+        console.assert(queryResult.code == 0 && queryResult.data.length, "SQL查询失败", queryResult);
+        if (queryResult.code == 0 || queryResult.data.length == 1){
+            return queryResult.data[0].parentId;
+        }
     }
 
+    //widgetId不存在，则使用老方法（存在bug：获取当前展示的页面id（可能不是挂件所在的id））
+    if (!isValidStr(thisWidgetId)){
+        thisDocId = $(window.parent.document).find(".layout__wnd--active .protyle.fn__flex-1:not(.fn__none) .protyle-background").attr("data-node-id");
+        return thisDocId;
+    }
+    
 }
 
+/**
+ * 获取当前挂件id
+ * @returns 
+ */
 let getCurrentWidgetId = function(){
     try{
         return window.frameElement.parentElement.parentElement.dataset.nodeId;
@@ -174,6 +216,9 @@ let getCurrentWidgetId = function(){
     }
 }
 
+let queryById = function(attrString, blockid){
+
+}
 // // 移除块
 // let removeBlockAPI = async function(blockid){
 //     let url = "/api/block/deleteBlock";

@@ -42,6 +42,9 @@ button, select{
     margin-left: 0.5em;
     /* color: darkgray; */
 }
+.ordinaryText_dark{
+    color: darkgray;
+}
 .upperbar{
     float: left;
     width: 100%;
@@ -49,15 +52,24 @@ button, select{
     text-align: center;
 }
 
+.button_dark{
+    background-color:darkslategray;
+    color: white;
+}
+
 .linksListItem {
     padding: 4px 0px;
 }
 
 .childDocLinks {
-    color: rgb(37, 40, 48);
+    color: black;
     padding: 0 2px;
     text-decoration: none;
     border-bottom: 1px dashed rgba(0, 0, 0, .1);
+}
+
+.childDocLinks_dark{
+    color: #C9D1D9;
 }
 
 .childDocLinks:hover {

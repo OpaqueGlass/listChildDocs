@@ -11,52 +11,43 @@ class Printer{
      * @param {*} nowDepth 当前文档所在层级，层级号从1开始
      * @returns 
      */
-    align(nowDepth){
-        return "";
-    }
+    align(nowDepth){return "";}
     /**
      * 输出子文档列表格式文本
      * 在下一层级子文档列出之前被调用
      * @param {*} nowDepth 
      * @returns 
      */
-    beforeChildDocs(nowDepth){
-        return "";
-    }
+    beforeChildDocs(nowDepth){return "";}
     /**
      * 在下一层级子文档列出之后被调用
      * @param {*} nowDepth 
      * @returns
      * */
-    afterChildDocs(nowDepth){
-        return "";
-    }
+    afterChildDocs(nowDepth){return "";}
     /**输出当前文档链接
      * @param {doc} doc为listDocsByPath伪API输出格式
      * */
-    oneDocLink(doc){
-        return "";
-    }
+    oneDocLink(doc){return "";}
     /**
      * 在所有输出文本写入之前被调用
      * @returns
      * */
-    beforeAll(){
-        return "";
-    }
+    beforeAll(){return "";}
     /**
      * 在所有输出文本写入之后被调用
      * @returns 
      */
-    afterAll(){
-        return "";
-    }
+    afterAll(){return "";}
+    /**
+     * 如果不存在子文档，将输出错误提示，错误提示可能需要包装以便展示
+     * @params {*} emptyText 无子文档时错误信息文本
+     * @returns
+     */
+    noneString(emptyText){return emptyText;}
 }
 class HtmlAlinkPrinter extends Printer{
     write2file = 0;
-    align(nowDepth){
-        return "";
-    }
     beforeChildDocs(nowDepth){
         return "<ul>";
     }
@@ -77,12 +68,9 @@ class HtmlAlinkPrinter extends Printer{
 }
 class MarkdownUrlUnorderListPrinter extends Printer{
     write2file = 1;
-    //对齐、缩进
     align(nowDepth){
         let spaces = "";
-        for (let i = 0; i < (nowDepth - 1); i++){
-            spaces += "  ";
-        }
+        spaces += "  ".repeat(nowDepth - 1);
         return spaces;
     }
     oneDocLink(doc){
@@ -90,7 +78,11 @@ class MarkdownUrlUnorderListPrinter extends Printer{
         if (doc.name.indexOf(".sy") >= 0){
             docName = docName.substring(0, docName.length - 3);
         }
-        return `- [${docName}](siyuan://blocks/${doc.id})\n`;
+        
+        return `- ${emojiIconHandler(doc.icon)}[${docName}](siyuan://blocks/${doc.id})\n`;
+    }
+    noneString(emptyText){
+        return "* " + emptyText;
     }
 }
 class MarkdownDChainUnorderListPrinter extends Printer{
@@ -110,9 +102,26 @@ class MarkdownDChainUnorderListPrinter extends Printer{
         }
         return `- ((${doc.id} '${docName}'))\n`;
     }
+    noneString(emptyText){
+        return "* " + emptyText;
+    }
 } 
-export default {Printer, HtmlAlinkPrinter, MarkdownDChainUnorderListPrinter, MarkdownUrlUnorderListPrinter}//您新增的Priter子类应当在这里声明
-/** 附录：doc对象（由 文档树伪api获得），示例如下
+
+/**
+ * 接受并处理icon16进制字符串为Unicode字符串
+ * @param {*} iconString 形如ffff-ffff-ffff-ffff 或 来自 files[x].icon
+ * @returns 
+ */
+let emojiIconHandler = function(iconString){
+    if (iconString == "")return "";
+    let result = "";
+    iconString.split("-").forEach(element => {
+        result += String.fromCodePoint("0x"+element);
+    });
+    return result;
+}
+export default {Printer, HtmlAlinkPrinter, MarkdownDChainUnorderListPrinter, MarkdownUrlUnorderListPrinter}//您新增的Priter子类应当在这里列出
+/** 附录：doc对象（由文档树api获得），示例如下
  * "path": "/20220807110638-uv5bqv8/20220810155329-xnskr8a.sy",//文档路径
     "name": "test.sy",//文档名，包含.sy
     "icon": "",
