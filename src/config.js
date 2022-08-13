@@ -1,14 +1,16 @@
 import allPrinter from './listChildDocsClass.js';
 let custom_attr = {//这里列出的属性为默认属性，也可以手动更改挂件属性custom-list-child-docs来更改
-    printMode: "url",//默认格式和输出位置，具体参数见下方的printerList
+    printMode: "2",//默认格式和输出位置，具体参数见下方的printerList
     childListId: "",//子文档列表块id，由挂件自动生成，对应的块将会被本挂件自动更新，请避免自行修改
-    listDepth: 2,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
+    listDepth: 1,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
     auto: true, //自动刷新
 };
 let setting = {
     width_2file: "30em",//将列表写入文件时，此项控制挂件的宽
     height_2file: "4em",//将列表写入文件时，此项控制挂件的高
+    
 }
+let excludeOs = ["android", "ios"]//监视页签变化将在列出的OS上禁用
 let token = "";//API鉴权token，可以不填的样子
 let en = {
     refreshNeeded: "Can't find the child-doc-list block. Please click refresh button again.",
@@ -28,7 +30,8 @@ let en = {
     refreshBtn: "Click to refresh",
     depthList: "The display depth of child-doc",
     modeList: "Print mode",
-    autoBtn: "Fake auto refresh",
+    autoBtn: "'Auto' refresh",
+    getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
 }
 let zh_CN = {
     refreshNeeded: "更新目录失败，找不到原有无序列表块，再次刷新将创建新块。",
@@ -49,6 +52,7 @@ let zh_CN = {
     depthList: "子文档展示层级",
     modeList: "展示方式",
     autoBtn: "'半'自动刷新",
+    getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
 }
 let language = zh_CN;//当前使用的语言
 let modeName = {//key应为数字
@@ -58,9 +62,10 @@ let modeName = {//key应为数字
     "3": language["inDulChain"],
 }
 let printerList = {//key应为数字
-    "0": allPrinter.HtmlAlinkPrinter,//出错时恢复到此模式，务必存在
+    "0": allPrinter.HtmlAlinkPrinter,//出错时将重置到此模式，务必存在
     "1": allPrinter.HtmlAlinkPrinter,
     "2": allPrinter.MarkdownUrlUnorderListPrinter,
     "3": allPrinter.MarkdownDChainUnorderListPrinter,
 };//您可以在./listChildDocsClass.js中自定义输出格式Printer类，export，然后在此列出，并在modeName中起名
-export {custom_attr, token, language, setting, printerList, modeName};
+
+export {custom_attr, token, language, setting, printerList, modeName, excludeOs};

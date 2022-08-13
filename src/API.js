@@ -9,9 +9,10 @@ export {
     getCurrentDocIdF,
     getCurrentWidgetId,
     updateBlockAPI,
-    insertBlockAPI
+    insertBlockAPI,
+    checkOs
 };
-import {token} from "./config.js";
+import {token, excludeOs} from "./config.js";
 //向思源api发送请求
 let postRequest = async function (data, url){
     let result;
@@ -217,8 +218,21 @@ let getCurrentWidgetId = function(){
     }
 }
 
-let queryById = function(attrString, blockid){
-
+/**
+ * 检查运行的操作系统
+ * @return true 可以运行，当前os不在排除列表
+ */
+ let checkOs = function(){
+    try{
+        if (excludeOs.indexOf(window.top.siyuan.config.system.os.toLowerCase()) == -1){
+            return true;
+        }
+    }catch(err){
+        console.error(err);
+        console.warn("检查操作系统失败");
+    }
+    
+    return false;
 }
 // // 移除块
 // let removeBlockAPI = async function(blockid){

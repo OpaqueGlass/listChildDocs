@@ -9,7 +9,8 @@ import {
     getCurrentDocIdF,
     getCurrentWidgetId,
     updateBlockAPI,
-    insertBlockAPI
+    insertBlockAPI,
+    checkOs
 } from './API.js'; 
 import {custom_attr, language, setting, printerList, modeName} from './config.js';
 let thisDocId = "";
@@ -101,6 +102,13 @@ let getOneLevelText = async function(notebook, nowDocPath, insertData, nowDepth)
     }
     return insertData;
 }
+
+
+let debugPush = function (text,delay = 7000){
+    pushMsgAPI(text, 7000);
+}
+
+
 
 /**
  * 输出错误信息至挂件
@@ -237,7 +245,7 @@ let __init = async function(){
         await getCustomAttr();
     }catch(err){
         console.log(err);
-        printError(err.message);
+        printError(language["getAttrFailedAtInit"]);
     }
     console.log("载入的属性", custom_attr);
     //写入模式设定选择框的选项
@@ -250,7 +258,6 @@ let __init = async function(){
     document.getElementById("autoMode").checked = custom_attr["auto"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
-    
     if (custom_attr.auto) {
         //设定事件监听
         __setObserver();
@@ -266,6 +273,10 @@ let __init = async function(){
 
 let __setObserver = function (){
     try{
+    //排除操作系统：
+    if (!checkOs()){
+        return ;
+    }
     //(思源主窗口)可见性变化时更新列表（导致在删除插件时仍然触发的错误）
     // document.addEventListener('visibilitychange', __main);
     //页签切换时更新列表
@@ -280,6 +291,7 @@ let __setObserver = function (){
     mutationObserver.observe(target[0], {"attributes": true, "attributeFilter": ["data-activetime"]});
     }catch(err){
         console.error(err);
+        printError(err.message, false);
         console.warn("监视点击页签事件失败");
     }
 }
@@ -291,11 +303,15 @@ document.getElementById("refresh").onclick=() => {__main(false)};
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
 // setTimeout(__init, 300);
 __init();
+
 try {
     //用于监视深色模式变化
-    console.log($(window.parent.document).find("#barThemeMode").get(0));
-    mutationObserver2.observe($(window.parent.document).find("#barThemeMode").get(0), {"attributes": true, "attributeFilter": ["aria-label"]});
+    if (checkOs()){
+        mutationObserver2.observe($(window.parent.document).find("#barThemeMode").get(0), {"attributes": true, "attributeFilter": ["aria-label"]});
+    }
+    
 }catch(err){
     console.error(err);
+    printError(err.message,false);
     console.warn("监视外观切换事件失败");
 }
