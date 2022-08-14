@@ -1,5 +1,5 @@
 import allPrinter from './listChildDocsClass.js';
-let custom_attr = {//这里列出的属性为默认属性，也可以手动更改挂件属性custom-list-child-docs来更改，这里的属性将写入到挂件中
+let custom_attr = {//这里列出的属性为默认值，只在创建时写入到挂件中，挂件内属性custom-list-child-docs可覆盖此设置
     printMode: "2",//默认格式和输出位置，具体参数见下方的printerList
     childListId: "",//子文档列表块id，由挂件自动生成，对应的块将会被本挂件更新，请避免自行修改
     listDepth: 1,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
