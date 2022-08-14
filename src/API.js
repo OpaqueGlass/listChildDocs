@@ -12,7 +12,7 @@ export {
     insertBlockAPI,
     checkOs
 };
-import {token, excludeOs} from "./config.js";
+import {token, includeOs} from "./config.js";
 //向思源api发送请求
 let postRequest = async function (data, url){
     let result;
@@ -220,11 +220,11 @@ let getCurrentWidgetId = function(){
 
 /**
  * 检查运行的操作系统
- * @return true 可以运行，当前os不在排除列表
+ * @return true 可以运行，当前os在允许列表中
  */
  let checkOs = function(){
     try{
-        if (excludeOs.indexOf(window.top.siyuan.config.system.os.toLowerCase()) == -1){
+        if (includeOs.indexOf(window.top.siyuan.config.system.os.toLowerCase()) != -1){
             return true;
         }
     }catch(err){

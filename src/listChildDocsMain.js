@@ -127,7 +127,7 @@ let __main = async function (initmode = false){
     }else{
         return;
     }
-    pushMsgAPI("开始更新--listChildDoc", 1500);
+    // pushMsgAPI(language["startRefresh"], 4500);
     try{
         //获取挂件参数
         if (!initmode){
@@ -136,7 +136,6 @@ let __main = async function (initmode = false){
         }
         //以当前页面id查询当前页面所属笔记本和路径（优先使用docid，因为挂件刚创建时无法查询）
         let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${isValidStr(thisDocId) ? thisDocId : thisWidgetId}'`);
-        console.log(queryResult);
         if (queryResult == null || queryResult.length != 1){
             throw Error(language["getPathFailed"]);
         }
@@ -146,7 +145,6 @@ let __main = async function (initmode = false){
         let textString = await getText(notebook, thisDocPath);
         //清理原有内容
         $("#linksContainer *").remove();
-        console.log("output",textString);
         //写入子文档链接
         if (myPrinter.write2file){
             await addText2File(textString, custom_attr.childListId);
@@ -165,6 +163,7 @@ let __main = async function (initmode = false){
     //写入挂件属性
     try{
         await setCustomAttr();
+        console.log("写入挂件属性", custom_attr);
     }catch(err){
         console.error(err);
         printError(err.message);
@@ -194,14 +193,12 @@ let __refresh = async function (){
     //获取id
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
-    console.log("thisdocid", thisDocId);
     //获取模式设定 刷新时，保存设定
     custom_attr["printMode"] = document.getElementById("printMode").selectedIndex.toString();
     //获取下拉选择的展示深度
     custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").selectedIndex + 1);
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
-    console.log(nowAutoMode, document.getElementById("autoMode").checked);
     if (nowAutoMode != custom_attr["auto"]){
         if (nowAutoMode){
             __setObserver();
@@ -244,10 +241,9 @@ let __init = async function(){
     try{
         await getCustomAttr();
     }catch(err){
-        console.log(err);
+        console.warn(err);
         printError(language["getAttrFailedAtInit"]);
     }
-    console.log("载入的属性", custom_attr);
     //写入模式设定选择框的选项
     for (let key of Object.keys(printerList)){
         $(`<option value=${key}>${modeName[key]}</option>`).appendTo("#printMode");
@@ -264,11 +260,16 @@ let __init = async function(){
         //尝试规避 找不到块创建位置的运行时错误
         setTimeout(()=>{ __main(true)}, 1000);
         // __main();
-    }  
+    }
+    //写入悬停提示 
     $("#refresh").attr("title", language["refreshBtn"]);
     $("#listdepth").attr("title", language["depthList"]);
     $("#printMode").attr("title", language["modeList"]);
     $("#autoMode").attr("title", language["autoBtn"]);
+    //控制自动刷新选项是否显示
+    if (setting.permitSetAuto){
+        $("#autoMode").attr("type", "checkbox");
+    }
 }
 
 let __setObserver = function (){
