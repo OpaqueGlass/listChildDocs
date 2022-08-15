@@ -33,10 +33,10 @@ let addText2File = async function (markdownText, blockid = ""){
     }else if (response == ""){
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
-        console.log("更新失败，下次将创建新块", result);
+        console.log("更新失败，下次将创建新块", response);
         throw Error(language["refreshNeeded"]);
     }else{
-        console.error("插入/更新块失败", result);
+        console.error("插入/更新块失败", response);
         throw Error(language["insertBlockFailed"]);
     }
 }
