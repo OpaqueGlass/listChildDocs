@@ -122,11 +122,12 @@ let printError = function(msgText, clear = true){
 }
 
 /**
- * 
+ * 功能主函数
  * @param {boolean} initmode 初始化模式：在初始化模式下，将不重新获取挂件属性，没有块参数的情况下也不创建新块
- * @returns 
+ * @param {boolean} manual 手动刷新：手动刷新为true，才会执行保存属性的操作
+ * 
  */
-let __main = async function (initmode = false){
+let __main = async function (initmode = false, manualRefresh = false){
     if (mutex == 0) {//并没有什么用的试图防止同时执行的信号量hhhh
         mutex = 1;
     }else{
@@ -172,8 +173,10 @@ let __main = async function (initmode = false){
     }
     //写入挂件属性
     try{
-        await setCustomAttr();
-        console.log("写入挂件属性", custom_attr);
+        if (manualRefresh){
+            await setCustomAttr();
+            console.log("写入挂件属性", custom_attr);
+        }
     }catch(err){
         console.error(err);
         printError(err.message);
@@ -241,9 +244,6 @@ let __refreshAppearance = function(){
 }
 
 let __init = async function(){
-    myPrinter = new Printer();
-    //刷新页面大小，需要先载入Printer
-    __refreshAppearance();
     //获取id，用于在载入页面时获取挂件属性
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
@@ -265,6 +265,7 @@ let __init = async function(){
     document.getElementById("autoMode").checked = custom_attr["auto"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
+    __refreshAppearance();
     if (custom_attr.auto) {
         //设定事件监听
         __setObserver();
@@ -311,7 +312,7 @@ let __setObserver = function (){
 let mutationObserver = new MutationObserver(()=>{__main(true)});//避免频繁刷新id
 let mutationObserver2 = new MutationObserver(()=>{setTimeout(__refreshAppearance, 1500);});
 //绑定按钮事件
-document.getElementById("refresh").onclick=() => {__main(false)};
+document.getElementById("refresh").onclick=() => {__main(false, true)};
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
 // setTimeout(__init, 300);
 __init();
