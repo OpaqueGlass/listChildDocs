@@ -121,6 +121,11 @@ let printError = function(msgText, clear = true){
     window.frameElement.style.height = "10em";
 }
 
+/**
+ * 
+ * @param {boolean} initmode 初始化模式：在初始化模式下，将不重新获取挂件属性，没有块参数的情况下也不创建新块
+ * @returns 
+ */
 let __main = async function (initmode = false){
     if (mutex == 0) {//并没有什么用的试图防止同时执行的信号量hhhh
         mutex = 1;
@@ -147,7 +152,12 @@ let __main = async function (initmode = false){
         $("#linksContainer *").remove();
         //写入子文档链接
         if (myPrinter.write2file){
-            await addText2File(textString, custom_attr.childListId);
+            //在初次启动、并且需要创建子文档目录块时，禁止操作
+            if (initmode && !isValidStr(custom_attr.childListId)){
+                console.log("初次创建，不写入块");
+            }else{
+                await addText2File(textString, custom_attr.childListId);
+            }
         }else{
             $(textString).appendTo(".linksContainer");
             //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
@@ -243,6 +253,7 @@ let __init = async function(){
     }catch(err){
         console.warn(err);
         printError(language["getAttrFailedAtInit"]);
+        custom_attr.auto = false;//读取错误时关闭auto
     }
     //写入模式设定选择框的选项
     for (let key of Object.keys(printerList)){
@@ -258,8 +269,8 @@ let __init = async function(){
         //设定事件监听
         __setObserver();
         //尝试规避 找不到块创建位置的运行时错误
-        setTimeout(()=>{ __main(true)}, 1000);
-        // __main();
+        // setTimeout(()=>{ __main(true)}, 1000);
+        __main(true);//初始化模式
     }
     //写入悬停提示 
     $("#refresh").attr("title", language["refreshBtn"]);
@@ -267,7 +278,7 @@ let __init = async function(){
     $("#printMode").attr("title", language["modeList"]);
     $("#autoMode").attr("title", language["autoBtn"]);
     //控制自动刷新选项是否显示
-    if (setting.permitSetAuto){
+    if (setting.showAutoBtn){
         $("#autoMode").attr("type", "checkbox");
     }
 }
