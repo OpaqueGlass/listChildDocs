@@ -163,7 +163,7 @@ let __main = async function (initmode = false, manualRefresh = false){
         }else{
             $(textString).appendTo(".linksContainer");
             //挂一下事件，处理引用块点击和浮窗
-            $("#refContainer").click(openRefLink);
+            $("#refContainer .refLinks").click(openRefLink);
             $("#refContainer .refLinks").mouseover(showFloatWnd);
             //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
             if (window.top.siyuan.config.appearance.mode == 1){

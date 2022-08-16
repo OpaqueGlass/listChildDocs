@@ -80,7 +80,7 @@ select{
     color: #C9D1D9;
 }
 
-.childDocLinks:hover {
+.childDocLinks:hover, .refLinks:hover{
     color: #1186d9;
     border-bottom: 1px dashed #4CB0F9;
 }

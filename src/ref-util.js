@@ -67,7 +67,7 @@ let showFloatWnd = function(event){
     );
     
     虚拟链接.dispatchEvent(点击事件);
-    setTimeout( ()=> {虚拟链接.remove();},5000);
+    setTimeout( ()=> {虚拟链接.remove();},1000);
     // } else (this.链接id = "")
 }
 

@@ -55,7 +55,7 @@ class HtmlAlinkPrinter extends Printer{
         return "</ul>";
     }
     oneDocLink(doc){
-        return `<li class="linksListItem"><a class='childDocLinks' href="siyuan://blocks/${doc.id}">${doc.name.replace(".sy", "")}</a></li>`;
+        return `<li class="linksListItem"><a class='childDocLinks' href="siyuan://blocks/${doc.id}">${emojiIconHandler(doc.icon)}${doc.name.replace(".sy", "")}</a></li>`;
     }
     //在所有输出文本写入之前
     beforeAll(){
