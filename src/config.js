@@ -1,40 +1,18 @@
 import allPrinter from './listChildDocsClass.js';
-let custom_attr = {//这里列出的属性为默认值，只在创建时写入到挂件中，挂件内属性custom-list-child-docs可覆盖此设置
-    printMode: "2",//默认格式和输出位置，具体参数见下方的printerList
+let custom_attr = {//这里列出的是挂件的默认设置，只在创建时写入到挂件中，挂件内属性custom-list-child-docs可覆盖此设置
+    printMode: "2",//默认格式和输出位置，具体参数见下方的printerList（1 挂件块 2 siyuan://url 3 引用块）
     childListId: "",//子文档列表块id，由挂件自动生成，对应的块将会被本挂件更新，请避免自行修改
     listDepth: 1,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
-    auto: false, //自动刷新，默认禁用，请勿更改【！启用可能导致同步覆盖问题，详见README】
+    auto: false, //创建挂件时是否自动更新，请勿设定为true
 };
 let setting = {//全局设置
     width_2file: "30em",//将列表写入文件时，此项控制挂件的宽
     height_2file: "4em",//将列表写入文件时，此项控制挂件的高
-    permitSetAuto: false,//允许在挂件中以选项的方式设定自动刷新，【！启用可能导致同步覆盖问题，详见README】  
+    showAutoBtn: true,//在挂件中显示自动刷新选项，设定true启用【！自动刷新可能导致同步覆盖问题，详见README】 
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用
 let token = "";//API鉴权token，可以不填的样子
-let en = {
-    refreshNeeded: "Can't find the child-doc-list block. Please click refresh button again.",
-    insertBlockFailed: "Failed to create or update the unordered-list-block.",
-    writeAttrFailed: "Failed to write widget properties.",
-    getPathFailed: "Failed to query the path to which the current widget belongs.",
-    noChildDoc: "This document appears to have no child document.",
-    error: "ERROR: ",
-    updateTime: "LastUpdate: ",
-    modifywarn:　"Created by listChildDocs widget. Manual changes will not be saved.",
-    getAttrFailed: "Failed to read widget properties.",
-    wrongPrintMode: "PrintMode is incorrect. The default value has been restored, please refresh again.",
-    inwidget: "Widget",
-    inUrl: "siyuan URL",
-    inDulChain: "Ref block",
-    default: "Default",
-    refreshBtn: "Click to refresh",
-    depthList: "The display depth of child-doc",
-    modeList: "Print mode",
-    autoBtn: "'Auto' refresh",
-    getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
-    startRefresh: "Refreshing child docs list. -- from listChildDocs widget",
-};
 let zh_CN = {
     refreshNeeded: "更新目录失败，找不到原有无序列表块，再次刷新将创建新块。",
     insertBlockFailed: "创建或更新无序列表块失败，请稍后刷新重试。",
@@ -56,6 +34,28 @@ let zh_CN = {
     autoBtn: "'半'自动刷新",
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
     startRefresh: "开始更新子文档列表---来自listChildDocs挂件的通知"
+};
+let en = {
+    refreshNeeded: "Can't find the child-doc-list block. Please click refresh button again.",
+    insertBlockFailed: "Failed to create or update the unordered-list-block.",
+    writeAttrFailed: "Failed to write widget properties.",
+    getPathFailed: "Failed to query the path to which the current widget belongs.",
+    noChildDoc: "This document appears to have no child document.",
+    error: "ERROR: ",
+    updateTime: "LastUpdate: ",
+    modifywarn:　"Created by listChildDocs widget. Manual changes will not be saved.",
+    getAttrFailed: "Failed to read widget properties.",
+    wrongPrintMode: "PrintMode is incorrect. The default value has been restored, please refresh again.",
+    inwidget: "Widget",
+    inUrl: "siyuan URL",
+    inDulChain: "Ref block",
+    default: "Default",
+    refreshBtn: "Click to refresh",
+    depthList: "The display depth of child-doc",
+    modeList: "Print mode",
+    autoBtn: "'Auto' refresh",
+    getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
+    startRefresh: "Refreshing child docs list. -- from listChildDocs widget",
 };
 let language = zh_CN;//当前使用的语言
 let modeName = {//key应为数字，这里设置模式对应的名字
