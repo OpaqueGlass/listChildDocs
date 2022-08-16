@@ -154,9 +154,9 @@ let __main = async function (initmode = false, manualRefresh = false){
         $("#linksContainer *").remove();
         //写入子文档链接
         if (myPrinter.write2file){
-            //在初次启动、并且需要创建子文档目录块时，禁止操作
-            if (initmode && !isValidStr(custom_attr.childListId)){
-                console.log("初次创建，不写入块");
+            //在初次启动时，禁止操作
+            if (initmode){
+                console.log("初次创建，不写入/更新块");
             }else{
                 await addText2File(textString, custom_attr.childListId);
             }
@@ -188,6 +188,7 @@ let __main = async function (initmode = false, manualRefresh = false){
     //写入更新时间
     let updateTime = new Date();
     $("#updateTime").text(language["updateTime"] + updateTime.toLocaleString());
+    console.log("写入更新时间");
     mutex = 0;
 }
 
@@ -270,7 +271,8 @@ let __init = async function(){
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     __refreshAppearance();
-    if (custom_attr.auto) {
+    //写入/更新块时截停
+    if (custom_attr.auto && myPrinter.write2file != 1) {
         //设定事件监听
         __setObserver();
         //尝试规避 找不到块创建位置的运行时错误
