@@ -69,33 +69,21 @@ class HtmlAlinkPrinter extends Printer{
 class HtmlReflinkPrinter extends Printer{
     write2file = 0;
     beforeChildDocs(nowDepth){
-        return ``;
+        return `<ul>`;
     }
     afterChildDocs(nowDepth){
-        return ``;
+        return `</ul>`;
     }
     oneDocLink(doc){
-        return `
-        <div data-marker="*" data-subtype="u" data-node-id="20220816092525-m96f1m2" data-type="NodeListItem" class="li" updated="20220816092756">
-            <div class="protyle-action">
-                <svg><use xlink:href="#iconDot"></svg>
-            </div>
-            <div data-node-id="20220816091714-qklznzk" data-type="NodeParagraph" class="p" updated="20220816092756">
-                <div contenteditable="false" spellcheck="false">
-                    <span data-type='block-ref' data-subtype="d" data-id="${doc.id}">${doc.name.replace(".sy", "")}</span>
-                </div>
-                <div class="protyle-attr" contenteditable="false">&ZeroWidthSpace;</div>
-            </div>
-            <div class="protyle-attr" contenteditable="false>&ZeroWidthSpace;</div>
-        </div>`;
+        return `<li class="linksListItem"><span class="refLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${doc.name.replace(".sy", "")}</span></li>`;
     }
     //在所有输出文本写入之前
     beforeAll(){
-        return `<div id="refContainer" class="protyle-wysiwyg protyle-wysiwyg--attr" style="max-height: 500px;"><div data-subtype="u" data-node-id="20220816091714-2ghywxr" data-node-index="1" data-type="NodeList" class="list" updated="20220816092756">`;
+        return `<div id="refContainer"> <ul class="linksList" id="linksList">`;
     }
     //在所有输出文本写入之后
     afterAll(){
-        return `<div class="protyle-attr" contenteditable="false>&ZeroWidthSpace;</div></div></div>`;
+        return `</ul></div>`;
     }
 }
 class MarkdownUrlUnorderListPrinter extends Printer{

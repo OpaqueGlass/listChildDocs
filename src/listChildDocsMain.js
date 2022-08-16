@@ -13,6 +13,7 @@ import {
     checkOs
 } from './API.js'; 
 import {custom_attr, language, setting, printerList, modeName} from './config.js';
+import {openRefLink, showFloatWnd} from './ref-util.js'
 let thisDocId = "";
 let thisWidgetId = "";
 let mutex = 0;
@@ -161,22 +162,9 @@ let __main = async function (initmode = false, manualRefresh = false){
             }
         }else{
             $(textString).appendTo(".linksContainer");
-            //挂一下事件
-            //本部分参考：https://github.com/leolee9086/cc-template/blob/6909dac169e720d3354d77685d6cc705b1ae95be/index.html#L301
-            let refContainer = $("#refContainer").click(function (event){
-                let 主界面= window.parent.document
-                let id = event.target.getAttribute("data-id")
-                let 虚拟链接 =  主界面.createElement("span")
-                虚拟链接.setAttribute("data-type","block-ref")
-                虚拟链接.setAttribute("data-id",id)
-                let 临时目标 = 主界面.querySelector(".protyle-wysiwyg div[data-node-id] div[contenteditable]")
-                临时目标.appendChild(虚拟链接)
-                let 点击事件 =  主界面.createEvent('MouseEvents')
-                点击事件.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-                虚拟链接.dispatchEvent(点击事件);
-                虚拟链接.remove()
-            });
-
+            //挂一下事件，处理引用块点击和浮窗
+            $("#refContainer").click(openRefLink);
+            $("#refContainer .refLinks").mouseover(showFloatWnd);
             //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
             if (window.top.siyuan.config.appearance.mode == 1){
                 $(".childDocLinks").addClass("childDocLinks_dark");
