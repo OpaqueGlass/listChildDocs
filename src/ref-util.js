@@ -45,8 +45,11 @@ let showFloatWnd = function(event){
     临时目标.appendChild(虚拟链接);
     虚拟链接.style.position = "fixed";
     挂件坐标 = 获取元素视图坐标(挂件自身元素);
-    虚拟链接.style.top = (event.clientY + 挂件坐标.Y).toString() + "px";//和浮窗弹出位置相关
-    虚拟链接.style.left = (event.clientX + 挂件坐标.X).toString() + "px";
+    let Y = event.clientY + 挂件坐标.Y;
+    let X = event.clientY + 挂件坐标.X;
+    虚拟链接.style.top = Y + "px";//和浮窗弹出位置貌似无关
+    虚拟链接.style.left = X + "px";
+    
     let 点击事件 = 思源主界面.createEvent("MouseEvents");
     点击事件.initMouseEvent(
         "mouseover",
@@ -65,11 +68,32 @@ let showFloatWnd = function(event){
         0,
         null
     );
-    
+    // if (Y < 100 || X < 100) { 
+    //     虚拟链接.remove();
+    //     return null
+    // }
     虚拟链接.dispatchEvent(点击事件);
+    //但搬运过来有修改，和上面的修改有点...问题，此部分充满了玄学
+    //强制重设popover位置，间隔5ms，重设事件1.2s
+    let interval = setInterval( ()=>{
+        //参考了https://github.com/leolee9086/cc-template/blob/6909dac169e720d3354d77685d6cc705b1ae95be/index.html#L102-L117
+        let panel = 思源主界面.querySelector(`.block__popover[data-oid="${linkId}"]`);
+        if (panel) {
+            console.log("Reset",Y,X)
+            panel.style.top = Y - 24 + "px";//呃，覆盖链接部分防止闪烁
+            let left = X - (panel.offsetWidth / 2 || 0);
+            if (left < 0) left = 0;
+            panel.style.left = left + "px";
+            panel.style.maxHeight  = (window.innerHeight - panel.getBoundingClientRect().top - 8) + "px";
+            linkId = "";
+        }
+    }, 5);
     setTimeout( ()=> {虚拟链接.remove();},1000);
+    setTimeout(()=>{clearInterval(interval);}, 1200);//移除重设定时器
     // } else (this.链接id = "")
 }
+
+
 
 /** 
  * 获取元素视图坐标
