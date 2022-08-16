@@ -66,6 +66,38 @@ class HtmlAlinkPrinter extends Printer{
         return `</ul>`;
     }
 }
+class HtmlReflinkPrinter extends Printer{
+    write2file = 0;
+    beforeChildDocs(nowDepth){
+        return ``;
+    }
+    afterChildDocs(nowDepth){
+        return ``;
+    }
+    oneDocLink(doc){
+        return `
+        <div data-marker="*" data-subtype="u" data-node-id="20220816092525-m96f1m2" data-type="NodeListItem" class="li" updated="20220816092756">
+            <div class="protyle-action">
+                <svg><use xlink:href="#iconDot"></svg>
+            </div>
+            <div data-node-id="20220816091714-qklznzk" data-type="NodeParagraph" class="p" updated="20220816092756">
+                <div contenteditable="false" spellcheck="false">
+                    <span data-type='block-ref' data-subtype="d" data-id="${doc.id}">${doc.name.replace(".sy", "")}</span>
+                </div>
+                <div class="protyle-attr" contenteditable="false">&ZeroWidthSpace;</div>
+            </div>
+            <div class="protyle-attr" contenteditable="false>&ZeroWidthSpace;</div>
+        </div>`;
+    }
+    //在所有输出文本写入之前
+    beforeAll(){
+        return `<div id="refContainer" class="protyle-wysiwyg protyle-wysiwyg--attr" style="max-height: 500px;"><div data-subtype="u" data-node-id="20220816091714-2ghywxr" data-node-index="1" data-type="NodeList" class="list" updated="20220816092756">`;
+    }
+    //在所有输出文本写入之后
+    afterAll(){
+        return `<div class="protyle-attr" contenteditable="false>&ZeroWidthSpace;</div></div></div>`;
+    }
+}
 class MarkdownUrlUnorderListPrinter extends Printer{
     write2file = 1;
     align(nowDepth){
@@ -120,7 +152,7 @@ let emojiIconHandler = function(iconString){
     });
     return result;
 }
-export default {Printer, HtmlAlinkPrinter, MarkdownDChainUnorderListPrinter, MarkdownUrlUnorderListPrinter}//Priter子类在这里列出
+export default {Printer, HtmlAlinkPrinter, MarkdownDChainUnorderListPrinter, MarkdownUrlUnorderListPrinter, HtmlReflinkPrinter}//Priter子类在这里列出
 export {Printer};
 /** 附录：doc对象（由文档树api获得），示例如下
  * "path": "/20220807110638-uv5bqv8/20220810155329-xnskr8a.sy",//文档路径

@@ -33,7 +33,8 @@ let zh_CN = {
     modeList: "展示方式",
     autoBtn: "'半'自动刷新",
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
-    startRefresh: "开始更新子文档列表---来自listChildDocs挂件的通知"
+    startRefresh: "开始更新子文档列表---来自listChildDocs挂件的通知",
+    widgetRefLink: "引用in挂件"
 };
 let en = {
     refreshNeeded: "Can't find the child-doc-list block. Please click refresh button again.",
@@ -63,12 +64,14 @@ let modeName = {//key应为数字，这里设置模式对应的名字
     "1": language["inwidget"],
     "2": language["inUrl"],
     "3": language["inDulChain"],
+    "4": language["widgetRefLink"],
 };
 let printerList = {//key应为数字
     "0": allPrinter.HtmlAlinkPrinter,//出错时将重置到此模式，务必存在
     "1": allPrinter.HtmlAlinkPrinter,//挂件内
     "2": allPrinter.MarkdownUrlUnorderListPrinter,//在文档中写入无序列表 siyuanUrl
     "3": allPrinter.MarkdownDChainUnorderListPrinter,//在文档中写入无序列表 引用块
+    "4": allPrinter.HtmlReflinkPrinter,
 };//您可以在./listChildDocsClass.js中自定义输出格式Printer类，export，然后在此列出，并在modeName中起名
 
 export {custom_attr, token, language, setting, printerList, modeName, includeOs};
