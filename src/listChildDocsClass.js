@@ -55,7 +55,7 @@ class HtmlAlinkPrinter extends Printer{
         return "</ul>";
     }
     oneDocLink(doc){
-        return `<li class="linksListItem"><a class='childDocLinks' href="siyuan://blocks/${doc.id}">${emojiIconHandler(doc.icon)}${doc.name.replace(".sy", "")}</a></li>`;
+        return `<li class="linksListItem"><a class='childDocLinks' href="siyuan://blocks/${doc.id}">${emojiIconHandler(doc.icon, doc.subFileCount != 0)}${doc.name.replace(".sy", "")}</a></li>`;
     }
     //在所有输出文本写入之前
     beforeAll(){
@@ -75,7 +75,7 @@ class HtmlReflinkPrinter extends Printer{
         return `</ul>`;
     }
     oneDocLink(doc){
-        return `<li class="linksListItem"><span class="refLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${doc.name.replace(".sy", "")}</span></li>`;
+        return `<li class="linksListItem"><span class="refLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiIconHandler(doc.icon, doc.subFileCount != 0)}${doc.name.replace(".sy", "")}</span></li>`;
     }
     //在所有输出文本写入之前
     beforeAll(){
@@ -99,7 +99,7 @@ class MarkdownUrlUnorderListPrinter extends Printer{
             docName = docName.substring(0, docName.length - 3);
         }
         
-        return `- ${emojiIconHandler(doc.icon)}[${docName}](siyuan://blocks/${doc.id})\n`;
+        return `- ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
     noneString(emptyText){
         return "* " + emptyText;
@@ -130,10 +130,11 @@ class MarkdownDChainUnorderListPrinter extends Printer{
 /**
  * 接受并处理icon16进制字符串为Unicode字符串
  * @param {*} iconString 形如ffff-ffff-ffff-ffff 或 来自 files[x].icon
+ * @param {*} hasChild 有无子文档
  * @returns 
  */
-let emojiIconHandler = function(iconString){
-    if (iconString == "")return "📄";//无icon默认值
+let emojiIconHandler = function(iconString, hasChild = false){
+    if (iconString == "")return hasChild?"📑":"📄";//无icon默认值
     let result = "";
     iconString.split("-").forEach(element => {
         result += String.fromCodePoint("0x"+element);
