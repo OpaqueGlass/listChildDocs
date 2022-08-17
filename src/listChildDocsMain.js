@@ -45,7 +45,6 @@ let addText2File = async function (markdownText, blockid = ""){
 //获取挂件属性custom-list-child-docs
 let getCustomAttr = async function(){
     let response = await getblockAttrAPI(thisWidgetId);
-    console.log("请求到的属性", response);
     let attrObject = {};
     if ('custom-list-child-docs' in response.data){
         try{
@@ -59,6 +58,7 @@ let getCustomAttr = async function(){
     if (!("id" in response.data)){
         throw Error(language["getAttrFailed"]);
     }
+    console.log("请求到的属性", JSON.stringify(response.data));
 }
 
 //统一写入attr到挂件属性
@@ -68,6 +68,7 @@ let setCustomAttr = async function(){
     if (response != 0){
         throw Error(language["writeAttrFailed"]);
     }
+    console.log("写入挂件属性", attrString);
 }
 
 //获取子文档层级目录输出文本
@@ -128,7 +129,7 @@ let printError = function(msgText, clear = true){
  * @param {boolean} manual 手动刷新：手动刷新为true，才会执行保存属性的操作
  * 
  */
-let __main = async function (initmode = false, manualRefresh = false){
+let __main = async function (initmode = false){
     if (mutex == 0) {//并没有什么用的试图防止同时执行的信号量hhhh
         mutex = 1;
     }else{
@@ -154,8 +155,8 @@ let __main = async function (initmode = false, manualRefresh = false){
         $("#linksContainer *").remove();
         //写入子文档链接
         if (myPrinter.write2file){
-            //在初次启动时，禁止操作
-            if (initmode){
+            //在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
+            if (initmode && (setting.safeMode || custom_attr.childListId == "")){
                 console.log("初次创建，不写入/更新块");
             }else{
                 await addText2File(textString, custom_attr.childListId);
@@ -175,23 +176,25 @@ let __main = async function (initmode = false, manualRefresh = false){
         console.error(err);
         printError(err.message);
     }
+    //写入更新时间
+    let updateTime = new Date();
+    $("#updateTime").text(language["updateTime"] + updateTime.toLocaleString());
+    console.log("已更新子文档目录列表");
+    mutex = 0;
+}
+//保存设置项
+let __save = async function(){
+    //获取最新设置
+    await __refresh();
     //写入挂件属性
     try{
-        if (manualRefresh){
-            await setCustomAttr();
-            console.log("写入挂件属性", custom_attr);
-        }
+        await setCustomAttr();
+        $("#updateTime").text(language["saved"]);
     }catch(err){
         console.error(err);
         printError(err.message);
     }
-    //写入更新时间
-    let updateTime = new Date();
-    $("#updateTime").text(language["updateTime"] + updateTime.toLocaleString());
-    console.log("写入更新时间");
-    mutex = 0;
 }
-
 /**
  * 重新获取Printer
  * 调用前确定已经获得了printMode
@@ -228,6 +231,7 @@ let __refresh = async function (){
 
     __refreshPrinter();
     __refreshAppearance();
+    console.log("已刷新");
 }
 
 let __refreshAppearance = function(){
@@ -271,14 +275,6 @@ let __init = async function(){
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     __refreshAppearance();
-    //写入/更新块时截停
-    if (custom_attr.auto && myPrinter.write2file != 1) {
-        //设定事件监听
-        __setObserver();
-        //尝试规避 找不到块创建位置的运行时错误
-        // setTimeout(()=>{ __main(true)}, 1000);
-        __main(true);//初始化模式
-    }
     //写入悬停提示 
     $("#refresh").attr("title", language["refreshBtn"]);
     $("#listdepth").attr("title", language["depthList"]);
@@ -287,6 +283,16 @@ let __init = async function(){
     //控制自动刷新选项是否显示
     if (setting.showAutoBtn){
         $("#autoMode").attr("type", "checkbox");
+    }
+    //自动更新
+    if (custom_attr.auto) {
+        //在更新/写入文档时截停操作（安全模式）
+        if (setting.safeMode && myPrinter.write2file == 1) return;
+        //设定事件监听
+        __setObserver();
+        //尝试规避 找不到块创建位置的运行时错误
+        // setTimeout(()=>{ __main(true)}, 1000);
+        __main(true);//初始化模式
     }
 }
 
@@ -317,8 +323,10 @@ let __setObserver = function (){
 
 let mutationObserver = new MutationObserver(()=>{__main(true)});//避免频繁刷新id
 let mutationObserver2 = new MutationObserver(()=>{setTimeout(__refreshAppearance, 1500);});
+let refreshBtnTimeout;
 //绑定按钮事件
-document.getElementById("refresh").onclick=() => {__main(false, true)};
+document.getElementById("refresh").onclick=async function(){clearTimeout(refreshBtnTimeout);refreshBtnTimeout = setTimeout(async function(){await __main(false)}, 300);};
+document.getElementById("refresh").ondblclick=async function(){clearTimeout(refreshBtnTimeout); await __save();};
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
 // setTimeout(__init, 300);
 __init();
