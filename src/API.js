@@ -210,7 +210,6 @@ let getCurrentDocIdF = async function(){
  */
 let getCurrentWidgetId = function(){
     try{
-        console.log("widgetId", window.frameElement.parentElement.parentElement.dataset.nodeId);
         return window.frameElement.parentElement.parentElement.dataset.nodeId;
     }catch(err){
         console.warn("getCurrentWidgetId window...nodeId方法失效");
