@@ -35,6 +35,7 @@ let addText2File = async function (markdownText, blockid = ""){
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
         console.log("更新失败，下次将创建新块", response);
+        await setCustomAttr();//移除id属性后需要保存
         throw Error(language["refreshNeeded"]);
     }else{
         console.error("插入/更新块失败", response);
