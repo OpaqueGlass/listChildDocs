@@ -30,7 +30,8 @@ let addText2File = async function (markdownText, blockid = ""){
         //将子文档无序列表块id写入属性
         custom_attr['childListId'] = response;
         //为创建的块写入警告信息
-        setTimeout(function(){addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);}, 2000);
+        setTimeout(function(){addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);}, 700);
+        // addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);
     }else if (response == ""){
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
