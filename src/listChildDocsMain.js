@@ -158,6 +158,10 @@ let __main = async function (initmode = false){
             //在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
             if (initmode && (setting.safeMode || custom_attr.childListId == "")){
                 console.log("初次创建，不写入/更新块");
+            }else if (custom_attr.childListId == ""){
+                await addText2File(textString, custom_attr.childListId);
+                //如果需要创建块，自动保存一下设置
+                await __save();
             }else{
                 await addText2File(textString, custom_attr.childListId);
             }
