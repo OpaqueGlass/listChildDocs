@@ -1,6 +1,6 @@
 ## list Child Docs列出子文档
 
-> 当前版本： v0.0.1 从这里开始
+> 当前版本： v0.0.2 修复：一些情况下重复创建块的问题
 
 > 用于思源笔记创建、更新子文档目录列表的挂件，依靠bugs运行。
 
@@ -23,11 +23,12 @@
     <img src="README.assets/image-20220817225741199.png" alt="image-20220817225741199" style="zoom:50%;" />
     <img src="README.assets/image-20220817225805958.png" alt="image-20220817225805958" style="zoom:50%;" /></details>
 
+
 ## 设置项说明
 
 ### 界面
 
-<img src="README.assets/image-20220814221708461.png" alt="image-20220814221708461" style="zoom:50%;" />
+![图片](README.assets/image-20220814221708461.png)
 
 1: 刷新按钮：单击将刷新子文档列表 ；双击将保存当前设置 ；
 
@@ -74,7 +75,7 @@
 
 ## 反馈bug
 
-请到github仓库新建issue。
+请到github仓库[新建issue](https://github.com/OpaqueGlass/listChildDocs/issues/new/choose)，或在链滴社区内[联系挂件开发者](https://ld246.com/member/Undii)。
 
 ## 参考&感谢
 
