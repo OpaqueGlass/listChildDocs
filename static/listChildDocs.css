@@ -1,7 +1,10 @@
 #refresh {
-    background-image:url("./icon.png");
+    background-image: url("./icon.png");
 }
-button, select, input{
+
+button,
+select,
+input {
     border: 1px solid sandybrown;
     font-weight: 300;
     background-size: auto 1.5em;
@@ -9,7 +12,7 @@ button, select, input{
     background-position: center;
     width: 3em;
     height: 1.5em;
-    border-radius:0.3em;
+    border-radius: 0.3em;
     /* color: white; */
     /* padding: 15px 32px; */
     text-align: center;
@@ -21,47 +24,49 @@ button, select, input{
     color: white; */
 }
 
-#autoMode{
+#autoMode {
     width: auto;
     height: auto;
     text-align: center;
     display: inline-block;
 }
 
-select{
+.upperbar>* {
     margin-left: 0.5em;
 }
 
-#printMode{
+#printMode {
     width: 5em;
 }
 
-#savedepth{
+#savedepth {
     width: 3em;
     height: 1.5em;
     border: 1px solid sandybrown;
     margin-left: 0.2em;
     display: inline-block;
-    border-radius:0.3em;
+    border-radius: 0.3em;
     color: #4CB0F9;
 }
 
-#updateTime{
+#updateTime {
     margin-left: 0.5em;
     /* color: darkgray; */
 }
-.ordinaryText_dark{
+
+.ordinaryText_dark {
     color: darkgray;
 }
-.upperbar{
+
+.upperbar {
     float: left;
     width: 100%;
     display: flex;
     text-align: center;
 }
 
-.button_dark{
-    background-color:darkslategray;
+.button_dark {
+    background-color: darkslategray;
     color: white;
 }
 
@@ -69,18 +74,20 @@ select{
     padding: 4px 0px;
 }
 
-.childDocLinks, .refLinks{
+.childDocLinks,
+.refLinks {
     color: black;
     padding: 0 2px;
     text-decoration: none;
     border-bottom: 1px dashed rgba(0, 0, 0, .1);
 }
 
-.childDocLinks_dark{
+.childDocLinks_dark {
     color: #C9D1D9;
 }
 
-.childDocLinks:hover, .refLinks:hover{
+.childDocLinks:hover,
+.refLinks:hover {
     color: #1186d9;
     border-bottom: 1px dashed #4CB0F9;
 }
@@ -90,10 +97,10 @@ select{
     text-align: center;
 }
 
-body{
+body {
     padding: 0;
     border: 0;
-    margin:0;
+    margin: 0;
     width: 100%;
     height: 100%;
     display: flex;
@@ -101,6 +108,7 @@ body{
     justify-content: center;
     /* background-color: white; */
 }
-.app{
+
+.app {
     width: 100%;
 }

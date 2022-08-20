@@ -14,13 +14,14 @@
     <div class="app">
         <p class="upperbar">
             <button id="refresh" title="refresh"></button>
-            <select id="listdepth" name="depth" title="showDepth">
+            <!-- <select id="listdepth" name="depth" title="showDepth">
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
                 <option value="5">5</option>
-            </select>
+            </select> -->
+            <input id="listdepth" type="number" name="depth" title="showDepth" min="1" value="1">
             <select id="printMode" name="mode">
             </select>
             <input type="hidden" name="auto" value="0" id="autoMode" title="AutoRefresh?">

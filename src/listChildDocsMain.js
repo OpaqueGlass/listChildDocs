@@ -223,7 +223,8 @@ let __refresh = async function (){
     //获取模式设定 刷新时，保存设定
     custom_attr["printMode"] = document.getElementById("printMode").selectedIndex.toString();
     //获取下拉选择的展示深度
-    custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").selectedIndex + 1);
+    // custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").selectedIndex + 1);
+    custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").value);
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
     if (nowAutoMode != custom_attr["auto"]){
@@ -275,7 +276,8 @@ let __init = async function(){
         $(`<option value=${key}>${modeName[key]}</option>`).appendTo("#printMode");
     }
     //用于载入页面，将挂件属性写到挂件中
-    document.getElementById("listdepth").selectedIndex = custom_attr["listDepth"] - 1;
+    // document.getElementById("listdepth").selectedIndex = custom_attr["listDepth"] - 1;
+    document.getElementById("listdepth").value = custom_attr["listDepth"];
     document.getElementById("printMode").selectedIndex = parseInt(custom_attr["printMode"]);
     document.getElementById("autoMode").checked = custom_attr["auto"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
