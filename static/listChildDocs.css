@@ -13,6 +13,7 @@ input {
     width: 3em;
     height: 1.5em;
     border-radius: 0.3em;
+    box-sizing: border-box;
     /* color: white; */
     /* padding: 15px 32px; */
     text-align: center;
