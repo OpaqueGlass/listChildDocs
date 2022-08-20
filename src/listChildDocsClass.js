@@ -75,7 +75,7 @@ class HtmlReflinkPrinter extends Printer{
         return `</ul>`;
     }
     oneDocLink(doc){
-        return `<li class="linksListItem"><span class="refLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiIconHandler(doc.icon, doc.subFileCount != 0)}${doc.name.replace(".sy", "")}</span></li>`;
+        return `<li class="linksListItem"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiIconHandler(doc.icon, doc.subFileCount != 0)}${doc.name.replace(".sy", "")}</span></li>`;
     }
     //在所有输出文本写入之前
     beforeAll(){
