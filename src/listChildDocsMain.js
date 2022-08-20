@@ -184,7 +184,7 @@ let __main = async function (initmode = false){
     }
     //写入更新时间
     let updateTime = new Date();
-    $("#updateTime").text(language["updateTime"] + updateTime.toLocaleString());
+    $("#updateTime").text(language["updateTime"] + updateTime.toLocaleTimeString());
     console.log("已更新子文档目录列表");
     mutex = 0;
 }
