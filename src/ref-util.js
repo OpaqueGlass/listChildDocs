@@ -83,7 +83,7 @@ let showFloatWnd = function(event){
         let panel = 思源主界面.querySelector(`.block__popover[data-oid="${linkId}"]`);
         if (panel) {
             console.log("Reset",Y,X)
-            panel.style.top = Y - 24 + "px";//呃，覆盖链接部分防止闪烁
+            panel.style.top = Y + 24 + "px";//呃，不再覆盖链接试一下
             let left = X - (panel.offsetWidth / 2 || 0);
             if (left < 0) left = 0;
             panel.style.left = left + "px";
