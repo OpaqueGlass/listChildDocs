@@ -1,4 +1,4 @@
-
+import {setting} from './config.js'
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自此基类
 class Printer{
     //写入到文件or写入到挂件
@@ -52,9 +52,10 @@ class Printer{
      * (挂件内分栏通过css实现，请直接返回初始值)
      * @params {string} originalText 初始值
      * @params {int} nColumns 列数
+     * @params {int} nDepth 文档列出层级/深度
      * @returns 分栏后的初始值
      */
-    splitColumns(originalText, nColumns){return originalText;}
+    splitColumns(originalText, nColumns, nDepth){return originalText;}
 }
 class HtmlAlinkPrinter extends Printer{
     write2file = 0;
@@ -114,8 +115,8 @@ class MarkdownUrlUnorderListPrinter extends Printer{
     noneString(emptyText){
         return "* " + emptyText;
     }
-    splitColumns(originalText, nColumns){
-        return generateSuperBlock(originalText, nColumns);
+    splitColumns(originalText, nColumns, nDepth){
+        return generateSuperBlock(originalText, nColumns, nDepth);
     }
 }
 class MarkdownDChainUnorderListPrinter extends Printer{
@@ -133,13 +134,13 @@ class MarkdownDChainUnorderListPrinter extends Printer{
         if (doc.name.indexOf(".sy") >= 0){
             docName = docName.substring(0, docName.length - 3);
         }
-        return `- ((${doc.id} '${docName}'))\n`;
+        return `- ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
     }
     noneString(emptyText){
         return "* " + emptyText;
     }
-    splitColumns(originalText, nColumns){
-        return generateSuperBlock(originalText, nColumns);
+    splitColumns(originalText, nColumns, nDepth){
+        return generateSuperBlock(originalText, nColumns, nDepth);
     }
 } 
 
@@ -150,6 +151,7 @@ class MarkdownDChainUnorderListPrinter extends Printer{
  * @returns 
  */
 let emojiIconHandler = function(iconString, hasChild = false){
+    if (!setting.emojiEnable) return "";//禁用emoji时
     if (iconString == "")return hasChild?"📑":"📄";//无icon默认值
     let result = "";
     iconString.split("-").forEach(element => {
@@ -160,58 +162,78 @@ let emojiIconHandler = function(iconString, hasChild = false){
 
 /**
  * 用于根据nColumns分列数生成超级块（单行！）
- * @param {string} originalText 
- * @param {int} nColumns 
- * @returns 
+ * @param {string} originalText 原始文本
+ * @param {int} nColumns 文档分列数
+ * @param {int} nDepth 文档列出深度
+ * @returns 超级块Markdown文本
  */
-function generateSuperBlock(originalText, nColumns){
-    //debug
-    console.log(originalText);
+function generateSuperBlock(originalText, nColumns, nDepth){
     if (nColumns <= 1) return originalText;
     //定位合适的划分点
     let regex = /^- .*/gm;
     let allBulletsRegex = /^ *- .*/gm;
     let firstBullets = originalText.match(regex);//一层级
     let allBullets = originalText.match(allBulletsRegex);//多层级
-    console.log("firestBullet", firstBullets);
-    console.log("allBullets", allBullets);
-    
-    let divideIndex = new Array(firstBullets.length);
-    let divideAllIndex = new Array(allBullets.length);
+    let divideIndex = new Array(firstBullets.length);//list划分位置（仅首层行）
+    let divideAllIndex = new Array(allBullets.length);//list划分位置（所有行）
+    let firstBulletIndex = new Array(firstBullets.length);//所有行中，是首层行下标
+    let cIsFirstBullet = 0;
+    //1层级无序列表下标
     for (let i = 0; i < divideIndex.length; i++){
         divideIndex[i] = originalText.indexOf(firstBullets[i]);
     }
+    //所有层级无序列表下标
     for (let i = 0; i < divideAllIndex.length; i++){
         divideAllIndex[i] = originalText.indexOf(allBullets[i]);
+        if (firstBullets.indexOf(allBullets[i]) != -1){
+            firstBulletIndex[cIsFirstBullet++] = i;
+        }
     }
     console.log("index", divideIndex, divideAllIndex);
     let result = originalText;
-    let splitInterval = Math.floor(firstBullets.length / nColumns);
-    let splitIntervalRef = Math.floor(allBullets.length / nColumns);
+    let splitInterval = Math.floor(firstBullets.length / nColumns) + 1;
+    let splitIntervalRef = Math.floor(allBullets.length / nColumns) + 1;
     console.log("interval", splitInterval, splitIntervalRef);
     if (splitInterval <= 0) splitInterval = 1;
 
-    //主要还是拆分逻辑有问题
-    for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length;
-        i += splitIntervalRef, cColumn++){
-        if (i == splitIntervalRef) i+= Math.floor(splitIntervalRef * 0.1 + 1);
-        let splitAtIndex = result.indexOf(allBullets[i]);
-        if (firstBullets.indexOf(splitAtIndex) == -1){
-            result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n- Continue\n" + result.slice(splitAtIndex);
-        }else{
-            result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+    if (setting.divideColumnAtIndent){
+        //缩进中折列 Mode1
+        // for (let i = allBullets.length - splitIntervalRef, cColumn = 0; i > 0 && cColumn < nColumns - 1;
+        //     i -= splitIntervalRef, cColumn++){
+        for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length && cColumn < nColumns - 1;
+            i += splitIntervalRef, cColumn++){
+            // if (i == splitIntervalRef) i+= Math.floor(splitIntervalRef * 0.1 + 1);
+            let splitAtIndex = result.indexOf(allBullets[i]);
+            if (firstBulletIndex.indexOf(i) == -1){//在缩进中截断折列
+                //console.log("判定层级数",result.slice(splitAtIndex).match(/ */)[0].length);
+                let continueIndentStr = "";//补偿缩进
+                for (let j = 0; j < result.slice(splitAtIndex).match(/ */)[0].length / 2; j++){
+                    continueIndentStr += "  ".repeat(j) + `- ${setting.divideIndentWord}\n`;
+                }
+                result = result.slice(0, splitAtIndex) + `}}}\n{{{row\n${continueIndentStr}` + result.slice(splitAtIndex);
+            }else{
+                result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+            }
+            console.log(cColumn);   
         }
-        console.log(cColumn);   
+    }else{
+        //禁用缩进中截断Mode2（依据首层折断）
+        for (let i = splitInterval, cColumn = 0;
+            i < firstBullets.length && cColumn < nColumns - 1;
+            i += splitInterval, cColumn++){
+            let splitAtIndex = result.indexOf(firstBullets[i]);
+            result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+            console.log(cColumn);   
+        }
     }
+    
+
+    
     result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
     console.log(result);
     return result;
 }
 
-//用于均匀递归拆分
-function splitInHalf(text, divideIndex, depth){
-
-}
 
 export default {Printer, HtmlAlinkPrinter, MarkdownDChainUnorderListPrinter, MarkdownUrlUnorderListPrinter, HtmlReflinkPrinter}//Priter子类在这里列出
 export {Printer};

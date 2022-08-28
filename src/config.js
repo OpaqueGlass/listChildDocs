@@ -1,4 +1,11 @@
-import allPrinter from './listChildDocsClass.js';
+/**
+ * 萌新更改提示：如果修改后崩溃或运行不正常，请删除重新下载
+ * 请不要删除//双斜杠注释
+ * 请不要删除//双斜杠注释前的英文逗号,（如果有）
+ * 为true 或者 false的设置项，只能填这两者
+ * 有英文双引号的设置项，只更改英文双引号内的内容，不要删除英文双引号
+ *  */
+
 let custom_attr = {//这里列出的是挂件的默认设置，只在创建时写入到挂件中，挂件内属性custom-list-child-docs可覆盖此设置
     printMode: "0",//默认格式和输出位置，具体参数见下方的printerList
     childListId: "",//子文档列表块id，由挂件自动生成，对应的块将会被本挂件更新，请避免自行修改
@@ -13,6 +20,9 @@ let setting = {//全局设置
     showDeptnBtn: true,//在挂件中显示子文档深度选项，设定true显示，false隐藏
     showColumnBtn: true,//在挂件中显示分列数选项，设定true启用，false隐藏
     safeMode: true,//安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块，可以避免此挂件自行刷新导致可能的同步覆盖问题。
+    divideIndentWord: "(续)", //分列截断提示词（仅用于写入文档模式：url、引用块）
+    divideColumnAtIndent: true, //分列截断方式（仅用于写入文档模式：url、引用块）为true: 多层级时，在缩进处截断，使每列行数相同，但层级>=2时体验不佳; 为false，按照第一层级分列，每列行数不等
+    emojiEnable: true, //为true则一并写入文档icon Emoji
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用
@@ -66,18 +76,6 @@ let zh_CN = {
     widgetRefLink: "in Widget beta"
 };*/
 let language = zh_CN;//当前使用的语言
-let modeName = {//key应为数字，且由0递增。这里设置模式对应的名字
-    "0": language["default"],
-    "1": language["widgetRefLink"],
-    "2": language["inUrl"],
-    "3": language["inDulChain"],
-    
-};
-let printerList = {//key应为数字，且由0递增。
-    "0": allPrinter.HtmlAlinkPrinter,//出错时将重置到此模式
-    "1": allPrinter.HtmlReflinkPrinter,//挂件内，伪引用块
-    "2": allPrinter.MarkdownUrlUnorderListPrinter,//在文档中写入无序列表 siyuanUrl
-    "3": allPrinter.MarkdownDChainUnorderListPrinter,//在文档中写入无序列表 引用块    
-};//您可以在./listChildDocsClass.js中自定义输出格式Printer类，export，然后在此列出，并在modeName中起名
 
-export {custom_attr, token, language, setting, printerList, modeName, includeOs};
+
+export {custom_attr, token, language, setting, includeOs};

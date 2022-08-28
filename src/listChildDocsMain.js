@@ -12,7 +12,8 @@ import {
     insertBlockAPI,
     checkOs
 } from './API.js'; 
-import {custom_attr, language, setting, printerList, modeName} from './config.js';
+import {custom_attr, language, setting} from './config.js';
+import {printerList, modeName} from "./printerConfig.js";
 import {openRefLink, showFloatWnd} from './ref-util.js'
 let thisDocId = "";
 let thisWidgetId = "";
@@ -85,7 +86,7 @@ let getText = async function(notebook, nowDocPath){
         rawData = myPrinter.noneString(language["noChildDoc"]);
     }
     insertData += rawData + myPrinter.afterAll();
-    insertData = myPrinter.splitColumns(insertData, custom_attr["listColumn"]);
+    insertData = myPrinter.splitColumns(insertData, custom_attr["listColumn"], custom_attr["listDepth"]);
     return insertData;
 }
 
