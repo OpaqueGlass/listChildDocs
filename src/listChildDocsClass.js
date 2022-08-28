@@ -170,23 +170,37 @@ function generateSuperBlock(originalText, nColumns){
     if (nColumns <= 1) return originalText;
     //定位合适的划分点
     let regex = /^- .*/gm;
-    let signalBullet = originalText.match(regex);
-    console.log("matchRess", signalBullet);
+    let allBulletsRegex = /^ *- .*/gm;
+    let firstBullets = originalText.match(regex);//一层级
+    let allBullets = originalText.match(allBulletsRegex);//多层级
+    console.log("firestBullet", firstBullets);
+    console.log("allBullets", allBullets);
     
-    let divideIndex = new Array(signalBullet.length);
+    let divideIndex = new Array(firstBullets.length);
+    let divideAllIndex = new Array(allBullets.length);
     for (let i = 0; i < divideIndex.length; i++){
-        console.log(originalText.indexOf(signalBullet[i]));
-        divideIndex[i] = originalText.indexOf(signalBullet[i]);
+        divideIndex[i] = originalText.indexOf(firstBullets[i]);
     }
-    console.log("index", divideIndex);
+    for (let i = 0; i < divideAllIndex.length; i++){
+        divideAllIndex[i] = originalText.indexOf(allBullets[i]);
+    }
+    console.log("index", divideIndex, divideAllIndex);
     let result = originalText;
-    let splitInterval = Math.floor(signalBullet.length / nColumns);
-    console.log("interval", splitInterval);
+    let splitInterval = Math.floor(firstBullets.length / nColumns);
+    let splitIntervalRef = Math.floor(allBullets.length / nColumns);
+    console.log("interval", splitInterval, splitIntervalRef);
     if (splitInterval <= 0) splitInterval = 1;
-    let cColumn = 0;
-    for (let i = signalBullet.length - 1; i > 0  && cColumn < nColumns - 1; i -= splitInterval, cColumn++){
-        let splitAtIndex = result.indexOf(signalBullet[i]);
-        result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+
+    //主要还是拆分逻辑有问题
+    for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length;
+        i += splitIntervalRef, cColumn++){
+        if (i == splitIntervalRef) i+= Math.floor(splitIntervalRef * 0.1 + 1);
+        let splitAtIndex = result.indexOf(allBullets[i]);
+        if (firstBullets.indexOf(splitAtIndex) == -1){
+            result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n- Continue\n" + result.slice(splitAtIndex);
+        }else{
+            result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+        }
         console.log(cColumn);   
     }
     result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
