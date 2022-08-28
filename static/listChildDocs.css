@@ -66,9 +66,17 @@ input {
     text-align: center;
 }
 
+.upperbardiv{
+    display: block;
+}
+
 .button_dark {
     background-color: darkslategray;
     color: white;
+}
+
+.linksList{
+    margin-top: 0px;
 }
 
 .linksListItem {
@@ -98,16 +106,19 @@ input {
     text-align: center;
 }
 
+#linksContainer {
+    column-fill: balance;
+    clear: both;
+}
+
 body {
     padding: 0;
     border: 0;
     margin: 0;
     width: 100%;
     height: 100%;
-    display: flex;
     align-items: center;
     justify-content: center;
-    /* background-color: white; */
 }
 
 .app {

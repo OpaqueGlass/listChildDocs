@@ -4,16 +4,19 @@ let custom_attr = {//这里列出的是挂件的默认设置，只在创建时�
     childListId: "",//子文档列表块id，由挂件自动生成，对应的块将会被本挂件更新，请避免自行修改
     listDepth: 1,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
     auto: false, //创建挂件时是否自动更新，请勿设定为true
+    listColumn: 3,//子文档列表列数，目前仅挂件内生效，过多的列数将导致显示问题
 };
 let setting = {//全局设置
     width_2file: "30em",//将列表写入文件时，此项控制挂件的宽
     height_2file: "4em",//将列表写入文件时，此项控制挂件的高
-    showAutoBtn: true,//在挂件中显示自动刷新选项，设定true启用【！自动刷新可能导致同步覆盖问题，详见README】
+    showAutoBtn: true,//在挂件中显示自动刷新选项，设定true启用、false禁用【！自动刷新可能导致同步覆盖问题，详见README】
+    showDeptnBtn: true,//在挂件中显示子文档深度选项，设定true显示，false隐藏
+    showColumnBtn: true,//在挂件中显示分列数选项，设定true启用，false隐藏
     safeMode: true,//安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块，可以避免此挂件自行刷新导致可能的同步覆盖问题。
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用
-let token = "";//API鉴权token，可以不填的样子
+let token = "";//API鉴权token，可以不填的样子（在设置-关于中查看）
 let zh_CN = {
     refreshNeeded: "更新目录失败，找不到原有无序列表块，再次刷新将创建新块。",
     insertBlockFailed: "创建或更新无序列表块失败，请稍后刷新重试。",
@@ -36,7 +39,8 @@ let zh_CN = {
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
     startRefresh: "开始更新子文档列表---来自listChildDocs挂件的通知",
     widgetRefLink: "挂件beta",
-    saved: "设置项已保存"
+    saved: "设置项已保存",
+    columnBtn: "子文档展示列数",
 };
 /*let en = {//先当他不存在
     refreshNeeded: "Can't find the child-doc-list block. Please click refresh button again.",

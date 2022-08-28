@@ -172,6 +172,8 @@ let __main = async function (initmode = false){
             //挂一下事件，处理引用块点击和浮窗
             $("#refContainer .refLinks").click(openRefLink);
             $("#refContainer .refLinks").mouseover(showFloatWnd);
+            //设定分列值
+            $("#linksContainer").css("column-count", custom_attr.listColumn);
             //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
             if (window.top.siyuan.config.appearance.mode == 1){
                 $(".childDocLinks").addClass("childDocLinks_dark");
@@ -223,8 +225,9 @@ let __refresh = async function (){
     //获取模式设定 刷新时，保存设定
     custom_attr["printMode"] = document.getElementById("printMode").selectedIndex.toString();
     //获取下拉选择的展示深度
-    // custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").selectedIndex + 1);
     custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").value);
+    //重设分列
+    custom_attr["listColumn"] = document.getElementById("listColumn").value;
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
     if (nowAutoMode != custom_attr["auto"]){
@@ -280,6 +283,7 @@ let __init = async function(){
     document.getElementById("listdepth").value = custom_attr["listDepth"];
     document.getElementById("printMode").selectedIndex = parseInt(custom_attr["printMode"]);
     document.getElementById("autoMode").checked = custom_attr["auto"];
+    document.getElementById("listColumn").value = custom_attr["listColumn"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     __refreshAppearance();
@@ -288,10 +292,17 @@ let __init = async function(){
     $("#listdepth").attr("title", language["depthList"]);
     $("#printMode").attr("title", language["modeList"]);
     $("#autoMode").attr("title", language["autoBtn"]);
+    $("#listColumn").attr("title", language["columnBtn"]);
     //控制自动刷新选项是否显示
     if (setting.showAutoBtn){
         $("#autoMode").attr("type", "checkbox");
     }
+    //初始化时设定列数
+    if (custom_attr.listColumn > 1){
+        console.log("设定列数");
+        $("#linksContainer").css("column-count", custom_attr.listColumn);
+    }
+    $("#linksContainer").css
     //自动更新
     if (custom_attr.auto) {
         //在更新/写入文档时截停操作（安全模式）
