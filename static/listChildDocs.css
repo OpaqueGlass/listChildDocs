@@ -2,6 +2,14 @@
     background-image: url("./icon.png");
 }
 
+#setting{
+    background-image: url("./iconSetting.png");
+    background-size: 80%;
+    border: 0px;
+    width: 1.5em;
+    height: 1.5em;
+}
+
 button,
 select,
 input {
@@ -48,6 +56,11 @@ input {
     display: inline-block;
     border-radius: 0.3em;
     color: #4CB0F9;
+}
+
+#listcolumn{
+    border-style: dashed;
+    border-color: purple;
 }
 
 #updateTime {

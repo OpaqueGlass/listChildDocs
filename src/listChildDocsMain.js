@@ -19,6 +19,7 @@ let thisDocId = "";
 let thisWidgetId = "";
 let mutex = 0;
 let myPrinter;
+let showSetting;
 //将Markdown文本写入文件(当前挂件之后的块)
 let addText2File = async function (markdownText, blockid = ""){
     let response;
@@ -114,7 +115,16 @@ let debugPush = function (text,delay = 7000){
     pushMsgAPI(text, 7000);
 }
 
-
+/**
+ * 显示/隐藏设置
+ * @param {boolean} showBtn 显示设置？
+ */
+let showOrHideSetting = function (showBtn){
+    let display = showBtn ? "":"none";
+    $("#printMode").css("display", display);
+    $("#listcolumn").css("display", display);
+    $("#listdepth").css("display", display);
+}
 
 /**
  * 输出错误信息至挂件
@@ -229,7 +239,7 @@ let __refresh = async function (){
     //获取下拉选择的展示深度
     custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").value);
     //重设分列
-    custom_attr["listColumn"] = document.getElementById("listColumn").value;
+    custom_attr["listColumn"] = document.getElementById("listcolumn").value;
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
     if (nowAutoMode != custom_attr["auto"]){
@@ -285,7 +295,7 @@ let __init = async function(){
     document.getElementById("listdepth").value = custom_attr["listDepth"];
     document.getElementById("printMode").selectedIndex = parseInt(custom_attr["printMode"]);
     document.getElementById("autoMode").checked = custom_attr["auto"];
-    document.getElementById("listColumn").value = custom_attr["listColumn"];
+    document.getElementById("listcolumn").value = custom_attr["listColumn"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     __refreshAppearance();
@@ -294,17 +304,19 @@ let __init = async function(){
     $("#listdepth").attr("title", language["depthList"]);
     $("#printMode").attr("title", language["modeList"]);
     $("#autoMode").attr("title", language["autoBtn"]);
-    $("#listColumn").attr("title", language["columnBtn"]);
+    $("#listcolumn").attr("title", language["columnBtn"]);
+    $("#setting").attr("title", language["settingBtn"]);
     //控制自动刷新选项是否显示
-    if (setting.showAutoBtn){
-        $("#autoMode").attr("type", "checkbox");
+    if (!setting.showAutoBtn){
+        $("#autoMode").attr("type", "hidden");
     }
+    showSetting = setting.showSettingOnStartUp;
+    showOrHideSetting(showSetting);
     //初始化时设定列数
     if (custom_attr.listColumn > 1){
         console.log("设定列数");
         $("#linksContainer").css("column-count", custom_attr.listColumn);
     }
-    $("#linksContainer").css
     //自动更新
     if (custom_attr.auto) {
         //在更新/写入文档时截停操作（安全模式）
@@ -348,6 +360,14 @@ let refreshBtnTimeout;
 //绑定按钮事件
 document.getElementById("refresh").onclick=async function(){clearTimeout(refreshBtnTimeout);refreshBtnTimeout = setTimeout(async function(){await __main(false)}, 300);};
 document.getElementById("refresh").ondblclick=async function(){clearTimeout(refreshBtnTimeout); await __save();};
+document.getElementById("setting").onclick=function(){
+    if (showSetting){//原来为显示，改为不再显示
+        showSetting = false;
+    }else{
+        showSetting = true;
+    }
+    showOrHideSetting(showSetting);
+};
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
 // setTimeout(__init, 300);
 __init();
