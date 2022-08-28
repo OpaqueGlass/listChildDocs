@@ -189,13 +189,10 @@ function generateSuperBlock(originalText, nColumns, nDepth){
             firstBulletIndex[cIsFirstBullet++] = i;
         }
     }
-    console.log("index", divideIndex, divideAllIndex);
     let result = originalText;
     let splitInterval = Math.floor(firstBullets.length / nColumns) + 1;
     let splitIntervalRef = Math.floor(allBullets.length / nColumns) + 1;
-    console.log("interval", splitInterval, splitIntervalRef);
     if (splitInterval <= 0) splitInterval = 1;
-
     if (setting.divideColumnAtIndent){
         //缩进中折列 Mode1
         // for (let i = allBullets.length - splitIntervalRef, cColumn = 0; i > 0 && cColumn < nColumns - 1;
@@ -210,11 +207,11 @@ function generateSuperBlock(originalText, nColumns, nDepth){
                 for (let j = 0; j < result.slice(splitAtIndex).match(/ */)[0].length / 2; j++){
                     continueIndentStr += "  ".repeat(j) + `- ${setting.divideIndentWord}\n`;
                 }
+                //可以尝试加入原文档
                 result = result.slice(0, splitAtIndex) + `}}}\n{{{row\n${continueIndentStr}` + result.slice(splitAtIndex);
             }else{
                 result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
             }
-            console.log(cColumn);   
         }
     }else{
         //禁用缩进中截断Mode2（依据首层折断）
