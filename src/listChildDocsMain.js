@@ -85,6 +85,7 @@ let getText = async function(notebook, nowDocPath){
         rawData = myPrinter.noneString(language["noChildDoc"]);
     }
     insertData += rawData + myPrinter.afterAll();
+    insertData = myPrinter.splitColumns(insertData, custom_attr["listColumn"]);
     return insertData;
 }
 

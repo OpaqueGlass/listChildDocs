@@ -45,6 +45,16 @@ class Printer{
      * @returns
      */
     noneString(emptyText){return emptyText;}
+
+    /**
+     * 分栏操作
+     * 如果不需要实现，请直接返回初始值
+     * (挂件内分栏通过css实现，请直接返回初始值)
+     * @params {string} originalText 初始值
+     * @params {int} nColumns 列数
+     * @returns 分栏后的初始值
+     */
+    splitColumns(originalText, nColumns){return originalText;}
 }
 class HtmlAlinkPrinter extends Printer{
     write2file = 0;
@@ -104,6 +114,9 @@ class MarkdownUrlUnorderListPrinter extends Printer{
     noneString(emptyText){
         return "* " + emptyText;
     }
+    splitColumns(originalText, nColumns){
+        return generateSuperBlock(originalText, nColumns);
+    }
 }
 class MarkdownDChainUnorderListPrinter extends Printer{
     write2file = 1;
@@ -125,6 +138,9 @@ class MarkdownDChainUnorderListPrinter extends Printer{
     noneString(emptyText){
         return "* " + emptyText;
     }
+    splitColumns(originalText, nColumns){
+        return generateSuperBlock(originalText, nColumns);
+    }
 } 
 
 /**
@@ -141,6 +157,48 @@ let emojiIconHandler = function(iconString, hasChild = false){
     });
     return result;
 }
+
+/**
+ * 用于根据nColumns分列数生成超级块（单行！）
+ * @param {string} originalText 
+ * @param {int} nColumns 
+ * @returns 
+ */
+function generateSuperBlock(originalText, nColumns){
+    //debug
+    console.log(originalText);
+    if (nColumns <= 1) return originalText;
+    //定位合适的划分点
+    let regex = /^- .*/gm;
+    let signalBullet = originalText.match(regex);
+    console.log("matchRess", signalBullet);
+    
+    let divideIndex = new Array(signalBullet.length);
+    for (let i = 0; i < divideIndex.length; i++){
+        console.log(originalText.indexOf(signalBullet[i]));
+        divideIndex[i] = originalText.indexOf(signalBullet[i]);
+    }
+    console.log("index", divideIndex);
+    let result = originalText;
+    let splitInterval = Math.floor(signalBullet.length / nColumns);
+    console.log("interval", splitInterval);
+    if (splitInterval <= 0) splitInterval = 1;
+    let cColumn = 0;
+    for (let i = signalBullet.length - 1; i > 0  && cColumn < nColumns - 1; i -= splitInterval, cColumn++){
+        let splitAtIndex = result.indexOf(signalBullet[i]);
+        result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+        console.log(cColumn);   
+    }
+    result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
+    console.log(result);
+    return result;
+}
+
+//用于均匀递归拆分
+function splitInHalf(text, divideIndex, depth){
+
+}
+
 export default {Printer, HtmlAlinkPrinter, MarkdownDChainUnorderListPrinter, MarkdownUrlUnorderListPrinter, HtmlReflinkPrinter}//Priter子类在这里列出
 export {Printer};
 /** 附录：doc对象（由文档树api获得），示例如下
