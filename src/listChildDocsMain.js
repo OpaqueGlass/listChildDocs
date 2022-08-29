@@ -121,9 +121,17 @@ let debugPush = function (text,delay = 7000){
  */
 let showOrHideSetting = function (showBtn){
     let display = showBtn ? "":"none";
-    $("#printMode").css("display", display);
-    $("#listcolumn").css("display", display);
-    $("#listdepth").css("display", display);
+    $("#printMode, #listcolumn, #listdepth").css("display", display);
+    $("#depthhint, #columnhint").css("display", display);
+}
+
+/**
+ * 控制挂件内css分列（分栏），在页面宽度不足时强制重设分列数
+ */
+let setColumn = function (){
+    let nColumns = custom_attr.listColumn;
+    if (window.screen.availWidth <= 768) nColumns = "";
+    $("#linksContainer").css("column-count", nColumns);
 }
 
 /**
@@ -185,7 +193,7 @@ let __main = async function (initmode = false){
             $("#refContainer .refLinks").click(openRefLink);
             $("#refContainer .refLinks").mouseover(showFloatWnd);
             //设定分列值
-            $("#linksContainer").css("column-count", custom_attr.listColumn);
+            setColumn();
             //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
             if (window.top.siyuan.config.appearance.mode == 1){
                 $(".childDocLinks").addClass("childDocLinks_dark");
@@ -265,11 +273,11 @@ let __refreshAppearance = function(){
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1){
         $("#refresh, #listdepth, #printMode, #listcolumn").addClass("button_dark");
-        $("#updateTime, #linksContainer").addClass("ordinaryText_dark");
+        $("#updateTime, #linksContainer, #columnhint, #depthhint").addClass("ordinaryText_dark");
         $(".childDocLinks").addClass("childDocLinks_dark");
     }else{
         $("#refresh, #listdepth, #printMode, #listcolumn").removeClass("button_dark");
-        $("#updateTime, #linksContainer").removeClass("ordinaryText_dark");
+        $("#updateTime, #linksContainer, #columnhint, #depthhint").removeClass("ordinaryText_dark");
         $(".childDocLinks").removeClass("childDocLinks_dark");
     }
 }
@@ -306,15 +314,18 @@ let __init = async function(){
     $("#autoMode").attr("title", language["autoBtn"]);
     $("#listcolumn").attr("title", language["columnBtn"]);
     $("#setting").attr("title", language["settingBtn"]);
+    $("#depthhint").text(language["depthHint"]);
+    $("#columnhint").text(language["columnHint"]);
     //控制自动刷新选项是否显示
     if (!setting.showAutoBtn){
         $("#autoMode").attr("type", "hidden");
     }
     showSetting = setting.showSettingOnStartUp;
     showOrHideSetting(showSetting);
+    console.log("屏幕宽度"+ window.screen.availWidth);
     //初始化时设定列数
     if (custom_attr.listColumn > 1){
-        $("#linksContainer").css("column-count", custom_attr.listColumn);
+        setColumn();
     }
     //自动更新
     if (custom_attr.auto) {

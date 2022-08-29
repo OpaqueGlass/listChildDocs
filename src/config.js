@@ -51,6 +51,8 @@ let zh_CN = {
     saved: "设置项已保存",
     columnBtn: "子文档展示列数",
     settingBtn: "显示/隐藏设置",
+    columnHint: "分列",
+    depthHint: "层级",
 };
 /*let en = {//先当他不存在
     refreshNeeded: "Can't find the child-doc-list block. Please click refresh button again.",
