@@ -157,7 +157,7 @@ let __main = async function (initmode = false){
             await __refresh();
         }
         //以当前页面id查询当前页面所属笔记本和路径（优先使用docid，因为挂件刚创建时无法查询）
-        let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${isValidStr(thisDocId) ? thisDocId : thisWidgetId}'`);
+        let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisWidgetId ? thisWidgetId : thisDocId}'`);
         if (queryResult == null || queryResult.length != 1){
             throw Error(language["getPathFailed"]);
         }
@@ -314,7 +314,6 @@ let __init = async function(){
     showOrHideSetting(showSetting);
     //初始化时设定列数
     if (custom_attr.listColumn > 1){
-        console.log("设定列数");
         $("#linksContainer").css("column-count", custom_attr.listColumn);
     }
     //自动更新

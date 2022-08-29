@@ -173,13 +173,23 @@ let pushMsgAPI = async function(msgText, timeout){
 let getCurrentDocIdF = async function(){
     let thisDocId;
     let thisWidgetId = getCurrentWidgetId();
+    //依靠widgetId sql查，运行时最稳定方案（但挂件刚插入时查询不到！）
+    if (isValidStr(thisWidgetId)){
+        let queryResult = await queryAPI("SELECT root_id as parentId FROM blocks WHERE id = '" + thisWidgetId + "'");
+        console.assert(queryResult != null && queryResult.length == 1, "SQL查询失败", queryResult);
+        if (queryResult!= null && queryResult.length >= 1){
+            console.log("获取当前文档idBy方案A"+queryResult[0].parentId);
+            return queryResult[0].parentId;
+        }
+    }
+
     try{
         if (isValidStr(thisWidgetId)){
             //通过获取挂件所在页面题头图的data-node-id获取文档id
-            let thisDocId = $(window.parent.document).find(`div.protyle:has(.iframe[data-node-id="${thisWidgetId}"])`)
+            let thisDocId = $(window.parent.document).find(`div.protyle-content:has(.iframe[data-node-id="${thisWidgetId}"])`)
             .find(`.protyle-background`).attr("data-node-id");
-            // console.log(dataId);
             if (isValidStr(thisDocId)){
+                console.log("获取当前文档idBy方案B" + thisDocId);
                 return thisDocId;
             }
         }
@@ -187,18 +197,11 @@ let getCurrentDocIdF = async function(){
     }catch(err){
         console.warn(err);
     }
-    //还不行的话依靠widgetId sql查，最终方案（挂件刚插入时查询不到！）
-    if (isValidStr(thisWidgetId)){
-        let queryResult = await queryAPI("SELECT parent_id as parentId FROM blocks WHERE id = '" + thisWidgetId + "'");
-        console.assert(queryResult != null, "SQL查询失败", queryResult);
-        if (queryResult!= null){
-            return queryResult[0].parentId;
-        }
-    }
 
     //widgetId不存在，则使用老方法（存在bug：获取当前展示的页面id（可能不是挂件所在的id））
     if (!isValidStr(thisWidgetId)){
         thisDocId = $(window.parent.document).find(".layout__wnd--active .protyle.fn__flex-1:not(.fn__none) .protyle-background").attr("data-node-id");
+        console.log("获取当前文档idBy方案C" + thisDocId);
         return thisDocId;
     }
     return null;
