@@ -123,6 +123,9 @@ function showOrHideSetting(showBtn){
     let display = showBtn ? "":"none";
     $("#printMode, #listcolumn, #listdepth").css("display", display);
     $("#depthhint, #columnhint").css("display", display);
+    if (myPrinter.write2file == 1){//写入文档时重设挂件大小
+        window.frameElement.style.height = showBtn ? setting.height_2file_setting : setting.height_2file;
+    }
 }
 
 /**
@@ -191,7 +194,7 @@ async function __main(initmode = false){
             $(textString).appendTo(".linksContainer");
             //挂一下事件，处理引用块点击和浮窗
             $("#refContainer .refLinks").click(openRefLink);
-            $("#refContainer .refLinks").mouseover(showFloatWnd);
+            if (setting["floatWindowEnable"]) $("#refContainer .refLinks").mouseover(showFloatWnd);
             //设定分列值
             setColumn();
             //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承

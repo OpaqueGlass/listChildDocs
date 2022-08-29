@@ -14,14 +14,16 @@ let custom_attr = {//这里列出的是挂件的默认设置，只在创建时�
     listColumn: 2,//子文档列表列数，过多的列数将导致显示问题
 };
 let setting = {//全局设置
-    width_2file: "30em",//将列表写入文件时，此项控制挂件的宽
+    width_2file: "20em",//将列表写入文件时，此项控制挂件的宽
     height_2file: "4em",//将列表写入文件时，此项控制挂件的高
+    height_2file_setting: "6em",//将列表写入文件时，此项控制显示设置时挂件的高
     showAutoBtn: true,//在挂件中显示自动刷新选项，设定true启用、false禁用【！自动刷新可能导致同步覆盖问题，详见README】
     showSettingOnStartUp: false, //在启动时显示所有设置项，设定true启用
     safeMode: true,//安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块，可以避免此挂件自行刷新导致可能的同步覆盖问题。
     divideIndentWord: "(续)", //分列截断提示词（仅用于写入文档模式：url、引用块）
     divideColumnAtIndent: true, //分列截断方式（仅用于写入文档模式：url、引用块）为true: 多层级时，在缩进处截断，使每列行数相同，但层级>=2时体验不佳; 为false，按照第一层级分列，每列行数不等
     emojiEnable: true, //为true则一并写入文档icon Emoji
+    floatWindowEnable: true,//为true启用挂件内浮窗（beta）
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用
