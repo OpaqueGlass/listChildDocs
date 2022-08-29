@@ -21,7 +21,7 @@ let mutex = 0;
 let myPrinter;
 let showSetting;
 //将Markdown文本写入文件(当前挂件之后的块)
-let addText2File = async function (markdownText, blockid = ""){
+async function addText2File(markdownText, blockid = ""){
     let response;
     if (isValidStr(blockid)){
         response = await updateBlockAPI(markdownText, blockid);
@@ -47,7 +47,7 @@ let addText2File = async function (markdownText, blockid = ""){
 }
 
 //获取挂件属性custom-list-child-docs
-let getCustomAttr = async function(){
+async function getCustomAttr(){
     let response = await getblockAttrAPI(thisWidgetId);
     let attrObject = {};
     if ('custom-list-child-docs' in response.data){
@@ -66,7 +66,7 @@ let getCustomAttr = async function(){
 }
 
 //统一写入attr到挂件属性
-let setCustomAttr = async function(){
+async function setCustomAttr(){
     let attrString = JSON.stringify(custom_attr);
     let response = await addblockAttrAPI({"custom-list-child-docs": attrString}, thisWidgetId);
     if (response != 0){
@@ -76,7 +76,7 @@ let setCustomAttr = async function(){
 }
 
 //获取子文档层级目录输出文本
-let getText = async function(notebook, nowDocPath){
+async function getText(notebook, nowDocPath){
     if (myPrinter == undefined){
         console.error("输出类Printer错误", myPrinter);
         throw Error(language["wrongPrintMode"]);
@@ -92,7 +92,7 @@ let getText = async function(notebook, nowDocPath){
 }
 
 //获取一层级子文档输出文本
-let getOneLevelText = async function(notebook, nowDocPath, insertData, nowDepth){
+async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
     if (nowDepth > custom_attr.listDepth){
         return insertData;
     }
@@ -111,7 +111,7 @@ let getOneLevelText = async function(notebook, nowDocPath, insertData, nowDepth)
 }
 
 
-let debugPush = function (text,delay = 7000){
+function debugPush(text,delay = 7000){
     pushMsgAPI(text, 7000);
 }
 
@@ -119,7 +119,7 @@ let debugPush = function (text,delay = 7000){
  * 显示/隐藏设置
  * @param {boolean} showBtn 显示设置？
  */
-let showOrHideSetting = function (showBtn){
+function showOrHideSetting(showBtn){
     let display = showBtn ? "":"none";
     $("#printMode, #listcolumn, #listdepth").css("display", display);
     $("#depthhint, #columnhint").css("display", display);
@@ -128,7 +128,7 @@ let showOrHideSetting = function (showBtn){
 /**
  * 控制挂件内css分列（分栏），在页面宽度不足时强制重设分列数
  */
-let setColumn = function (){
+function setColumn(){
     let nColumns = custom_attr.listColumn;
     if (window.screen.availWidth <= 768) nColumns = "";
     $("#linksContainer").css("column-count", nColumns);
@@ -139,7 +139,7 @@ let setColumn = function (){
  * @param {msgText} 错误信息
  * @param {boolean} clear 输出前是否清空 
  */
-let printError = function(msgText, clear = true){
+function printError(msgText, clear = true){
     if (clear) $(".linksContainer *").remove();
     $(`<ul><li class="linksListItem errorinfo">${language["error"]}` + msgText + `</li></ul>`).appendTo("#linksContainer");
     window.frameElement.style.height = "10em";
@@ -151,7 +151,7 @@ let printError = function(msgText, clear = true){
  * @param {boolean} manual 手动刷新：手动刷新为true，才会执行保存属性的操作
  * 
  */
-let __main = async function (initmode = false){
+async function __main(initmode = false){
     if (mutex == 0) {//并没有什么用的试图防止同时执行的信号量hhhh
         mutex = 1;
     }else{
@@ -211,7 +211,7 @@ let __main = async function (initmode = false){
     mutex = 0;
 }
 //保存设置项
-let __save = async function(){
+async function __save(){
     //获取最新设置
     await __refresh();
     //写入挂件属性
@@ -227,7 +227,7 @@ let __save = async function(){
  * 重新获取Printer
  * 调用前确定已经获得了printMode
  */
-let __refreshPrinter = function(){
+function __refreshPrinter(){
     //重新获取Printer
     if (printerList[custom_attr.printMode] != undefined){
         myPrinter = new printerList[custom_attr.printMode]();
@@ -238,7 +238,7 @@ let __refreshPrinter = function(){
     }
 }
 
-let __refresh = async function (){
+async function __refresh(){
     //获取id
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
@@ -264,7 +264,7 @@ let __refresh = async function (){
     console.log("已刷新");
 }
 
-let __refreshAppearance = function(){
+function __refreshAppearance(){
     //重设窗口大小
     if (myPrinter.write2file == 1){
         window.frameElement.style.width = setting.width_2file;
@@ -282,7 +282,7 @@ let __refreshAppearance = function(){
     }
 }
 
-let __init = async function(){
+async function __init(){
     //获取id，用于在载入页面时获取挂件属性
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
@@ -339,7 +339,7 @@ let __init = async function(){
     }
 }
 
-let __setObserver = function (){
+function __setObserver(){
     try{
     //排除操作系统：
     if (!checkOs()){

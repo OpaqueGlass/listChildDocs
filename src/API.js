@@ -1,20 +1,6 @@
-export {
-    postRequest,
-    queryAPI,
-    getSubDocsAPI,
-    addblockAttrAPI,
-    getblockAttrAPI,
-    pushMsgAPI,
-    isValidStr,
-    getCurrentDocIdF,
-    getCurrentWidgetId,
-    updateBlockAPI,
-    insertBlockAPI,
-    checkOs
-};
 import {token, includeOs} from "./config.js";
 //向思源api发送请求
-let postRequest = async function (data, url){
+export async function postRequest(data, url){
     let result;
     await fetch(url, {
         body: JSON.stringify(data),
@@ -29,7 +15,7 @@ let postRequest = async function (data, url){
     return result;
 }
 
-let checkResponse4Result = async function(response){
+export async function checkResponse4Result(response){
     if (response.code != 0 || response.data == null){
         return null;
     }else{
@@ -37,7 +23,7 @@ let checkResponse4Result = async function(response){
     }
 }
 
-let checkResponse = async function(response){
+export async function checkResponse(response){
     if (response.code == 0){
         return 0;
     }else{
@@ -46,7 +32,7 @@ let checkResponse = async function(response){
 }
 
 //SQL（api）
-let queryAPI = async function (sqlstmt){
+export async function queryAPI(sqlstmt){
     let url = "/api/query/sql";
     let response = await postRequest({stmt: sqlstmt},url);
     if (response.code == 0 && response.data != null){
@@ -56,7 +42,7 @@ let queryAPI = async function (sqlstmt){
 }
 
 //列出子文件（api）
-let getSubDocsAPI = async function (notebookId, path){
+export async function getSubDocsAPI(notebookId, path){
     let url = "/api/filetree/listDocsByPath";
     let response = await postRequest({notebook: notebookId, path: path}, url);
     if (response.code != 0 || response.data == null){
@@ -65,8 +51,12 @@ let getSubDocsAPI = async function (notebookId, path){
     return response.data.files;
 }
 
-//添加属性（API）
-let addblockAttrAPI = async function(attrs, blockid = thisWidgetId){
+/**
+ * 添加属性（API）
+ * @param attrs 属性对象
+ * @blockid 挂件id
+ * */
+export async function addblockAttrAPI(attrs, blockid = thisWidgetId){
     let url = "/api/attr/setBlockAttrs";
     let attr = {
         id: blockid,
@@ -77,7 +67,7 @@ let addblockAttrAPI = async function(attrs, blockid = thisWidgetId){
 }
 
 //获取挂件块参数（API）
-let getblockAttrAPI = async function(blockid = thisWidgetId){
+export async function getblockAttrAPI(blockid = thisWidgetId){
     let url = "/api/attr/getBlockAttrs";
     let response = await postRequest({id: blockid}, url);
     if (response.code != 0){
@@ -93,7 +83,7 @@ let getblockAttrAPI = async function(blockid = thisWidgetId){
  * @param {String} textType 文本类型，markdown、dom可选
  * @returns 被更新的块id，为null则未知失败，为空字符串则写入失败
  */
-let updateBlockAPI = async function(text, blockid, textType = "markdown"){
+export async function updateBlockAPI(text, blockid, textType = "markdown"){
     let url = "/api/block/updateBlock";
     let data = {dataType: textType, data: text, id: blockid};
     let response = await postRequest(data, url);
@@ -119,7 +109,7 @@ let updateBlockAPI = async function(text, blockid, textType = "markdown"){
  * @param {*} textType 插入的文本类型，"markdown" or "dom"
  * @return 创建的块id，为null则未知失败，为空字符串则写入失败，错误提示信息将输出在
  */
-let insertBlockAPI = async function(text, blockid, textType = "markdown"){
+export async function insertBlockAPI(text, blockid, textType = "markdown"){
     let url = "/api/block/insertBlock";
     let data = {dataType: textType, data: text, previousID: blockid};
     let response = await postRequest(data, url);
@@ -144,7 +134,7 @@ let insertBlockAPI = async function(text, blockid, textType = "markdown"){
  * @param {*} s 
  * @returns 非空字符串true，空字符串false
  */
-let isValidStr = function(s){
+export function isValidStr(s){
     if (s == undefined || s == null || s === '') {
 		return false;
 	}
@@ -157,7 +147,7 @@ let isValidStr = function(s){
  * @param {*} timeout 显示时间，单位毫秒
  * @return 0正常推送 -1 推送失败
  */
-let pushMsgAPI = async function(msgText, timeout){
+export async function pushMsgAPI(msgText, timeout){
     let url = "/api/notification/pushMsg";
     let response = await postRequest({msg: msgText, timeout: timeout}, url);
     if (response.code != 0 || response.data == null || !isValidStr(response.data.id)){
@@ -170,7 +160,7 @@ let pushMsgAPI = async function(msgText, timeout){
  * 获取当前文档id（伪api）
  * 优先使用jquery查询
  */
-let getCurrentDocIdF = async function(){
+export async function getCurrentDocIdF(){
     let thisDocId;
     let thisWidgetId = getCurrentWidgetId();
     //依靠widgetId sql查，运行时最稳定方案（但挂件刚插入时查询不到！）
@@ -185,7 +175,7 @@ let getCurrentDocIdF = async function(){
 
     try{
         if (isValidStr(thisWidgetId)){
-            //通过获取挂件所在页面题头图的data-node-id获取文档id
+            //通过获取挂件所在页面题头图的data-node-id获取文档id【安卓下跳转返回有问题，原因未知】
             let thisDocId = $(window.parent.document).find(`div.protyle-content:has(.iframe[data-node-id="${thisWidgetId}"])`)
             .find(`.protyle-background`).attr("data-node-id");
             if (isValidStr(thisDocId)){
@@ -211,7 +201,7 @@ let getCurrentDocIdF = async function(){
  * 获取当前挂件id
  * @returns 
  */
-let getCurrentWidgetId = function(){
+export function getCurrentWidgetId(){
     try{
         return window.frameElement.parentElement.parentElement.dataset.nodeId;
     }catch(err){
@@ -224,7 +214,7 @@ let getCurrentWidgetId = function(){
  * 检查运行的操作系统
  * @return true 可以运行，当前os在允许列表中
  */
- let checkOs = function(){
+ export function checkOs(){
     try{
         if (includeOs.indexOf(window.top.siyuan.config.system.os.toLowerCase()) != -1){
             return true;
@@ -246,3 +236,17 @@ let getCurrentWidgetId = function(){
 //     }
 //     return -1;
 // }
+
+/**
+ * 获取块kramdown源码
+ * @param {*} blockid 
+ * @returns 
+ */
+export async function getKramdown(blockid){
+    let url = "/api/block/getBlockKramdown";
+    let response = await postRequest({id: blockid}, url);
+    if (response.code == 0 && response.data != null && "kramdown" in response.data){
+        return response.data.kramdown;
+    }
+    return null;
+}
