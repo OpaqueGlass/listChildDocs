@@ -34,10 +34,12 @@ input {
 }
 
 #autoMode {
-    width: auto;
-    height: auto;
-    text-align: center;
-    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-top: 0.25em;
+    /* box-sizing: border-box; */
+    /* text-align: center;
+    display: inline-block; */
 }
 
 .upperbar>* {

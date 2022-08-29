@@ -264,11 +264,11 @@ let __refreshAppearance = function(){
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1){
-        $("#refresh, #listdepth, #printMode").addClass("button_dark");
+        $("#refresh, #listdepth, #printMode, #listcolumn").addClass("button_dark");
         $("#updateTime, #linksContainer").addClass("ordinaryText_dark");
         $(".childDocLinks").addClass("childDocLinks_dark");
     }else{
-        $("#refresh, #listdepth, #printMode").removeClass("button_dark");
+        $("#refresh, #listdepth, #printMode, #listcolumn").removeClass("button_dark");
         $("#updateTime, #linksContainer").removeClass("ordinaryText_dark");
         $(".childDocLinks").removeClass("childDocLinks_dark");
     }
