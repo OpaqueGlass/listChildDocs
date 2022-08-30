@@ -240,12 +240,12 @@ function __refreshPrinter(){
         printError(language["wrongPrintMode"]);
     }
 }
-
+//重新从html读取设定，读取id，更改自动模式，更改外观
 async function __refresh(){
     //获取id
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
-    //获取模式设定 刷新时，保存设定
+    //获取模式设定 刷新时，从html读取设定
     custom_attr["printMode"] = document.getElementById("printMode").selectedIndex.toString();
     //获取下拉选择的展示深度
     custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").value);

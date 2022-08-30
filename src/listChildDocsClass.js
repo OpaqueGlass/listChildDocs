@@ -226,11 +226,9 @@ function generateSuperBlock(originalText, nColumns, nDepth){
             i += splitInterval, cColumn++){
             let splitAtIndex = result.indexOf(firstBullets[i]);
             result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
-            console.log(cColumn);   
         }
     }
     result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
-    console.log(result);
     return result;
 }
 
