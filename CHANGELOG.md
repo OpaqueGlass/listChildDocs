@@ -2,8 +2,8 @@
 
 ### v0.0.4
 
-- 新增：支持目录列表分列（分栏）（写入文档时生成超级块）（#2）；
-- 修复：安卓端点击链接后返回，显示前一文档目录的问题（#3）；
+- 新增：支持目录列表分列（分栏）（写入文档时生成超级块）（[#2](https://github.com/OpaqueGlass/listChildDocs/issues/2)）；
+- 修复：安卓端点击链接后返回，显示前一文档目录的问题（[#3](https://github.com/OpaqueGlass/listChildDocs/issues/3)）；
 - 改进：设置项显示方式，设置项支持部分隐藏；
 - 改进：`config.js`新增全局设置项：(部分)
   - `emojiEnable`关闭/打开文档emoji-icon写入；
