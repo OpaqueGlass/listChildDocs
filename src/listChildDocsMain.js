@@ -250,7 +250,7 @@ async function __refresh(){
     //获取下拉选择的展示深度
     custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").value);
     //重设分列
-    custom_attr["listColumn"] = document.getElementById("listcolumn").value;
+    custom_attr["listColumn"] = parseInt(document.getElementById("listcolumn").value);
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
     if (nowAutoMode != custom_attr["auto"]){
