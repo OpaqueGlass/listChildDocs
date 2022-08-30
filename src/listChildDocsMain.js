@@ -164,7 +164,7 @@ async function __main(initmode = false){
     try{
         //获取挂件参数
         if (!initmode){
-            await getCustomAttr();
+            // await getCustomAttr();//决定不再支持
             await __refresh();
         }
         //以当前页面id查询当前页面所属笔记本和路径（优先使用docid，因为挂件刚创建时无法查询）

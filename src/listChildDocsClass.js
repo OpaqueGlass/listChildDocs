@@ -170,10 +170,10 @@ let emojiIconHandler = function(iconString, hasChild = false){
 function generateSuperBlock(originalText, nColumns, nDepth){
     if (nColumns <= 1) return originalText;
     //定位合适的划分点
-    let regex = /^- .*/gm;
-    let allBulletsRegex = /^ *- .*/gm;
+    let regex = /^- .*/gm;//首层级
+    let allBulletsRegex = /^ *- .*/gm;//所有行
     let firstBullets = originalText.match(regex);//一层级
-    let allBullets = originalText.match(allBulletsRegex);//多层级
+    let allBullets = originalText.match(allBulletsRegex);//所有行
     let divideIndex = new Array(firstBullets.length);//list划分位置（仅首层行）
     let divideAllIndex = new Array(allBullets.length);//list划分位置（所有行）
     let firstBulletIndex = new Array(firstBullets.length);//所有行中，是首层行下标
@@ -190,8 +190,14 @@ function generateSuperBlock(originalText, nColumns, nDepth){
         }
     }
     let result = originalText;
-    let splitInterval = Math.floor(firstBullets.length / nColumns) + 1;
-    let splitIntervalRef = Math.floor(allBullets.length / nColumns) + 1;
+    let splitInterval = Math.floor(firstBullets.length / nColumns);//仅计算首行，分列间隔
+    let splitIntervalRef = Math.floor(allBullets.length / nColumns);//算上所有行，分列间隔
+    if ((allBullets.length / nColumns).toString().match(/\./) != null){//均匀排布
+        splitIntervalRef++;
+    }
+    if ((firstBullets.length / nColumns).toString().match(/\./) != null){//均匀排布
+        splitInterval++;
+    }
     if (splitInterval <= 0) splitInterval = 1;
     if (setting.divideColumnAtIndent){
         //缩进中折列 Mode1
@@ -223,9 +229,6 @@ function generateSuperBlock(originalText, nColumns, nDepth){
             console.log(cColumn);   
         }
     }
-    
-
-    
     result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
     console.log(result);
     return result;
