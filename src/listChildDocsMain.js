@@ -10,7 +10,8 @@ import {
     getCurrentWidgetId,
     updateBlockAPI,
     insertBlockAPI,
-    checkOs
+    checkOs,
+    reindexDoc
 } from './API.js'; 
 import {custom_attr, language, setting} from './config.js';
 import {printerList, modeName} from "./printerConfig.js";
@@ -25,12 +26,18 @@ async function addText2File(markdownText, blockid = ""){
     let attrData = {};
     //读取属性.blockid为null时不能去读
     if (isValidStr(blockid)){
-        attrData = await getblockAttrAPI(blockid);
+        //判断是否是分列的目录块
+        let subLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
+        
+        //如果是分列的目录块，那么以超级块首个无序列表的属性为基准，应用于更新后的块
+        attrData = await getblockAttrAPI(subLists.length >= 1 ? subLists[0].id : blockid);
+        console.log("更新前，", subLists, "attrGet", attrData);
         attrData = attrData.data;
+        //避免重新写入id和updated信息
         delete attrData.id;
         delete attrData.updated;
     }
-    
+    //创建/更新块
     let response;
     if (isValidStr(blockid)){
         response = await updateBlockAPI(markdownText, blockid);
@@ -40,8 +47,6 @@ async function addText2File(markdownText, blockid = ""){
     if (isValidStr(response)){
         //将子文档无序列表块id写入属性
         custom_attr['childListId'] = response;
-        
-        
         // addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);
     }else if (response == ""){
         //找不到块，移除原有属性
@@ -53,15 +58,47 @@ async function addText2File(markdownText, blockid = ""){
         console.error("插入/更新块失败", response);
         throw Error(language["insertBlockFailed"]);
     }
-    //TODO 重写属性
+    //默认的重建索引太慢了，这边手动触发一次看看效果
+    await reindexDoc(g_thisDocPath);
+    //重写属性
     //TODO 增加对超级块的判断，不要写入超级块
-    //超级块最终还是会丢失的……
     attrData["memo"] = language["modifywarn"];//为创建的块写入警告信息
-    addblockAttrAPI(attrData, custom_attr['childListId']);
-    // setTimeout(function(){addblockAttrAPI(attrData, custom_attr['childListId']);}, 700);
-
+    //这个超级块判断改为indexOf吧，不是超级块不延迟等待
+    setTimeout(async function(){
+        let subListBlockIdQueryResult = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
+        console.log("subListBlockIdQueryResult", subListBlockIdQueryResult);
+        let rewriteTargetId = [];//重写属性的目标
+        if (subListBlockIdQueryResult.length == 0){
+            subListBlockIdQueryResult.push({id: blockid});
+        }
+        for (let subList of subListBlockIdQueryResult){
+            await addblockAttrAPI(attrData, subList.id);
+        }
+        setAttrToDom(subListBlockIdQueryResult, attrData);
+    }, 5000);
     
 }
+
+/**
+ * 将属性写入对应dom元素属性中
+ * 只有位于setting.includeAttrName中的属性名才会写入
+ * @param {*} queryBlockIds 要将attr写入的块id（为sql查询结果对象，将访问其id属性）
+ * @param {*} attrs 要设置的属性
+ * 
+ */
+function setAttrToDom(queryBlockIds, attrs){
+    console.log(attrs);
+    for (let queryBlockId of queryBlockIds){
+        console.log(queryBlockId);
+        for (let setAttrName of setting.includeAttrName){
+            console.log("setAttr", setAttrName);
+            if (setAttrName in attrs){
+                $(window.parent.document).find(`div[data-node-id="${queryBlockId.id}"`).attr(setAttrName, attrs[setAttrName]);
+            }
+        }
+    }
+}
+
 
 //获取挂件属性custom-list-child-docs
 async function getCustomAttr(){
@@ -186,11 +223,12 @@ async function __main(initmode = false){
         }
         //以当前页面id查询当前页面所属笔记本和路径（优先使用docid，因为挂件刚创建时无法查询）
         let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisWidgetId ? thisWidgetId : thisDocId}'`);
-        if (queryResult == null || queryResult.length != 1){
+        if (queryResult == null || queryResult.length < 1){
             throw Error(language["getPathFailed"]);
         }
         let notebook = queryResult[0].box;//笔记本名
         let thisDocPath = queryResult[0].path;//当前文件路径(在笔记本下)
+        g_thisDocPath = thisDocId;
         //获取子文档层级文本
         let textString = await getText(notebook, thisDocPath);
         //清理原有内容
@@ -385,6 +423,7 @@ function __setObserver(){
 let mutationObserver = new MutationObserver(()=>{__main(true)});//避免频繁刷新id
 let mutationObserver2 = new MutationObserver(()=>{setTimeout(__refreshAppearance, 1500);});
 let refreshBtnTimeout;
+let g_thisDocPath;
 //绑定按钮事件
 document.getElementById("refresh").onclick=async function(){clearTimeout(refreshBtnTimeout);refreshBtnTimeout = setTimeout(async function(){await __main(false)}, 300);};
 document.getElementById("refresh").ondblclick=async function(){clearTimeout(refreshBtnTimeout); await __save();};

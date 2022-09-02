@@ -24,6 +24,7 @@ let setting = {//全局设置
     divideColumnAtIndent: true, //分列截断方式（仅用于写入文档模式：url、引用块）为true: 多层级时，在缩进处截断，使每列行数相同，但层级>=2时体验不佳; 为false，按照第一层级分列，每列行数不等
     emojiEnable: true, //为true则一并写入文档icon Emoji
     floatWindowEnable: true,//为true启用挂件内浮窗（beta）
+    includeAttrName: ["custom-f"],//数组中的属性名将在更新目录列表块
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用

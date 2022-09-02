@@ -41,6 +41,13 @@ export async function queryAPI(sqlstmt){
     return null;
 }
 
+//重建索引
+export async function reindexDoc(docpath){
+    let url = "/api/filetree/reindexTree";
+    let response = await postRequest({path: docpath},url);
+    return 0;
+}
+
 //列出子文件（api）
 export async function getSubDocsAPI(notebookId, path){
     let url = "/api/filetree/listDocsByPath";
