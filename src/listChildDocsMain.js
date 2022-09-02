@@ -22,6 +22,15 @@ let myPrinter;
 let showSetting;
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = ""){
+    let attrData = {};
+    //读取属性.blockid为null时不能去读
+    if (isValidStr(blockid)){
+        attrData = await getblockAttrAPI(blockid);
+        attrData = attrData.data;
+        delete attrData.id;
+        delete attrData.updated;
+    }
+    
     let response;
     if (isValidStr(blockid)){
         response = await updateBlockAPI(markdownText, blockid);
@@ -31,8 +40,8 @@ async function addText2File(markdownText, blockid = ""){
     if (isValidStr(response)){
         //将子文档无序列表块id写入属性
         custom_attr['childListId'] = response;
-        //为创建的块写入警告信息
-        setTimeout(function(){addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);}, 700);
+        
+        
         // addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);
     }else if (response == ""){
         //找不到块，移除原有属性
@@ -44,6 +53,14 @@ async function addText2File(markdownText, blockid = ""){
         console.error("插入/更新块失败", response);
         throw Error(language["insertBlockFailed"]);
     }
+    //TODO 重写属性
+    //TODO 增加对超级块的判断，不要写入超级块
+    //超级块最终还是会丢失的……
+    attrData["memo"] = language["modifywarn"];//为创建的块写入警告信息
+    addblockAttrAPI(attrData, custom_attr['childListId']);
+    // setTimeout(function(){addblockAttrAPI(attrData, custom_attr['childListId']);}, 700);
+
+    
 }
 
 //获取挂件属性custom-list-child-docs
@@ -352,18 +369,16 @@ function __setObserver(){
     // document.addEventListener('visibilitychange', __main);
     //页签切换时更新列表
     //获取当前文档用于前端展示的data-id
-    let dataId = $(window.parent.document).find(`div[data-type="wnd"]:has(.protyle-background[data-node-id="${thisDocId}"])`)
-        .find(`div.protyle:has(.protyle-background[data-node-id="${thisDocId}"])`).attr("data-id");
+    let dataId = $(window.parent.document).find(`div.protyle:has(div[data-node-id="${thisWidgetId}")`).attr("data-id");
     //由dataId找所在文档的页签
-    let target = $(window.parent.document).find(`div[data-type="wnd"]:has(.protyle-background[data-node-id="${thisDocId}"])`)
-        .find(`.layout-tab-bar .item[data-id=${dataId}]`);
-    console.assert(target.length == 1, "无法监听页签切换", target);
+    let target = $(window.parent.document).find(`.layout-tab-bar .item[data-id=${dataId}]`);
+    console.assert(target.length == 1, "无法监听页签切换", target, dataId);
     //不能观察class变化，class会在每次编辑、操作时变更
     mutationObserver.observe(target[0], {"attributes": true, "attributeFilter": ["data-activetime"]});
     }catch(err){
         console.error(err);
-        printError(err.message, false);
-        console.warn("监视点击页签事件失败");
+        printError("监听点击页签事件失败", false);
+        console.warn("监视点击页签事件失败" + err);
     }
 }
 
