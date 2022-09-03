@@ -274,7 +274,7 @@ async function __main(initmode = false){
                 $(".childDocLinks").addClass("childDocLinks_dark");
             }
         }
-        __refreshAppearance();
+        // __refreshAppearance();
     }catch(err){
         console.error(err);
         printError(err.message);
@@ -297,6 +297,7 @@ async function __save(){
         console.error(err);
         printError(err.message);
     }
+    __refreshAppearance();
 }
 /**
  * 重新获取Printer
@@ -312,7 +313,7 @@ function __refreshPrinter(){
         printError(language["wrongPrintMode"]);
     }
 }
-//重新从html读取设定，读取id，更改自动模式，更改外观
+//重新从html读取设定，读取id，更改自动模式//解耦，不再更改外观
 async function __refresh(){
     //获取id
     thisWidgetId = getCurrentWidgetId();
@@ -335,7 +336,6 @@ async function __refresh(){
     }
 
     __refreshPrinter();
-    __refreshAppearance();
     console.log("已刷新");
 }
 
