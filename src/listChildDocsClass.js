@@ -1,4 +1,5 @@
-import {setting} from './config.js'
+import {setting} from './config.js';
+import {getUpdateString, generateBlockId} from "./API.js";
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自此基类
 class Printer{
     //写入到文件or写入到挂件
@@ -110,7 +111,7 @@ class MarkdownUrlUnorderListPrinter extends Printer{
             docName = docName.substring(0, docName.length - 3);
         }
         
-        return `- ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
+        return `* ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
     noneString(emptyText){
         return "* " + emptyText;
@@ -134,7 +135,7 @@ class MarkdownDChainUnorderListPrinter extends Printer{
         if (doc.name.indexOf(".sy") >= 0){
             docName = docName.substring(0, docName.length - 3);
         }
-        return `- ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
+        return `* ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
     }
     noneString(emptyText){
         return "* " + emptyText;
@@ -160,8 +161,9 @@ let emojiIconHandler = function(iconString, hasChild = false){
     return result;
 }
 
+
 /**
- * 用于根据nColumns分列数生成超级块（单行！）
+ * 用于根据nColumns分列数拆分无序列表生成超级块（单行！）
  * @param {string} originalText 原始文本
  * @param {int} nColumns 文档分列数
  * @param {int} nDepth 文档列出深度
@@ -169,11 +171,17 @@ let emojiIconHandler = function(iconString, hasChild = false){
  */
 function generateSuperBlock(originalText, nColumns, nDepth){
     if (nColumns <= 1) return originalText;
+    console.log(originalText)
     //定位合适的划分点
-    let regex = /^- .*/gm;//首层级
-    let allBulletsRegex = /^ *- .*/gm;//所有行
+    let regex = /^\* .*/gm;//首层级
+    let allBulletsRegex = /^ *\* .*/gm;//所有行
     let firstBullets = originalText.match(regex);//一层级
     let allBullets = originalText.match(allBulletsRegex);//所有行
+    //没有匹配时停止
+    if (firstBullets == null || allBullets == null){
+        console.error("未能在文本中找到无序列表，超级块分列失败");
+        return originalText;
+    }
     let divideIndex = new Array(firstBullets.length);//list划分位置（仅首层行）
     let divideAllIndex = new Array(allBullets.length);//list划分位置（所有行）
     let firstBulletIndex = new Array(firstBullets.length);//所有行中，是首层行下标
@@ -199,6 +207,11 @@ function generateSuperBlock(originalText, nColumns, nDepth){
         splitInterval++;
     }
     if (splitInterval <= 0) splitInterval = 1;
+    // let newColumnDivideStr = "}}}\n{{{row\n";//分栏字符串
+    //TODO: 函数返回随机id，并作为分隔符的一部分
+    // if (setting.superBlockBeta){////回来搞成一个函数返回随机数吧
+    //     newColumnDivideStr = "{: id=\"20220903164645-opaqueg\" updated=\"20220903164701\"}\n\n";
+    // }
     if (setting.divideColumnAtIndent){
         //缩进中折列 Mode1
         // for (let i = allBullets.length - splitIntervalRef, cColumn = 0; i > 0 && cColumn < nColumns - 1;
@@ -214,9 +227,9 @@ function generateSuperBlock(originalText, nColumns, nDepth){
                     continueIndentStr += "  ".repeat(j) + `- ${setting.divideIndentWord}\n`;
                 }
                 //可以尝试加入原文档
-                result = result.slice(0, splitAtIndex) + `}}}\n{{{row\n${continueIndentStr}` + result.slice(splitAtIndex);
+                result = result.slice(0, splitAtIndex) + `${getDivider()}${continueIndentStr}` + result.slice(splitAtIndex);
             }else{
-                result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+                result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
             }
         }
     }else{
@@ -225,11 +238,27 @@ function generateSuperBlock(originalText, nColumns, nDepth){
             i < firstBullets.length && cColumn < nColumns - 1;
             i += splitInterval, cColumn++){
             let splitAtIndex = result.indexOf(firstBullets[i]);
-            result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+            // result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+            result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
         }
     }
-    result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
+    if (setting.superBlockBeta){
+        result = "{{{col\n" + result + getDivider() +  "}}}\n";//超级块写入测试模式
+    }else{
+        result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
+    }
+    
+    console.log(result);
     return result;
+    //生成kramdown类型的块分隔（？）
+    function getDivider(){
+        if (setting.superBlockBeta){
+            return `  \n{: id=\"${generateBlockId()}\" updated=\"${getUpdateString()}\"}\n\n`;
+        }else{
+            return "}}}\n{{{row\n";
+        }
+        
+    }
 }
 
 
