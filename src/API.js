@@ -88,7 +88,7 @@ export async function getblockAttrAPI(blockid = thisWidgetId){
  * @param {String} text 更新写入的文本
  * @param {String} blockid 更新的块id
  * @param {String} textType 文本类型，markdown、dom可选
- * @returns 被更新的块id，为null则未知失败，为空字符串则写入失败
+ * @returns 对象，为response.data[0].doOperations[0]的值，返回码为-1时也返回null
  */
 export async function updateBlockAPI(text, blockid, textType = "markdown"){
     let url = "/api/block/updateBlock";
@@ -96,11 +96,11 @@ export async function updateBlockAPI(text, blockid, textType = "markdown"){
     let response = await postRequest(data, url);
     try{
         if (response.code == 0 && response.data != null &&  isValidStr(response.data[0].doOperations[0].id)){
-            return response.data[0].doOperations[0].id;
+            return response.data[0].doOperations[0];
         }
         if (response.code == -1){
             console.warn("更新块失败", response.msg);
-            return "";
+            return null;
         }
     }catch(err){
         console.error(err);
@@ -114,7 +114,7 @@ export async function updateBlockAPI(text, blockid, textType = "markdown"){
  * @param {*} text 文本
  * @param {*} blockid 创建的块将平级插入于该块之后
  * @param {*} textType 插入的文本类型，"markdown" or "dom"
- * @return 创建的块id，为null则未知失败，为空字符串则写入失败，错误提示信息将输出在
+ * @return 对象，为response.data[0].doOperations[0]的值，返回码为-1时也返回null
  */
 export async function insertBlockAPI(text, blockid, textType = "markdown"){
     let url = "/api/block/insertBlock";
@@ -122,11 +122,11 @@ export async function insertBlockAPI(text, blockid, textType = "markdown"){
     let response = await postRequest(data, url);
     try{
         if (response.code == 0 && response.data != null && isValidStr(response.data[0].doOperations[0].id)){
-            return response.data[0].doOperations[0].id;
+            return response.data[0].doOperations[0];
         }
         if (response.code == -1){
             console.warn("插入块失败", response.msg);
-            return "";
+            return null;
         }
     }catch(err){
         console.error(err);

@@ -21,10 +21,10 @@ let setting = {//全局设置
     showSettingOnStartUp: false, //在启动时显示所有设置项，设定true启用
     safeMode: true,//安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块，可以避免此挂件自行刷新导致可能的同步覆盖问题。
     divideIndentWord: "(续)", //分列截断提示词（仅用于写入文档模式：url、引用块）
-    divideColumnAtIndent: true, //分列截断方式（仅用于写入文档模式：url、引用块）为true: 多层级时，在缩进处截断，使每列行数相同，但层级>=2时体验不佳; 为false，按照第一层级分列，每列行数不等
+    divideColumnAtIndent: false, //分列截断方式（仅用于写入文档模式：url、引用块）为true: 多层级时，在缩进处截断，使每列行数相同，但层级>=2时体验不佳; 为false，按照第一层级分列，每列行数不等
     emojiEnable: true, //为true则一并写入文档icon Emoji
     floatWindowEnable: true,//为true启用挂件内浮窗（beta）
-    includeAttrName: ["custom-f"],//数组中的属性名将在更新目录列表块
+    includeAttrName: ["custom-f"],//数组中的属性名将在更新目录列表块时一并写入无序列表对应的dom，或许可以适配部分主题的无序列表转导图功能
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用
@@ -37,7 +37,7 @@ let zh_CN = {
     noChildDoc: "似乎没有子文档。",
     error: "错误：",
     updateTime: "更新时间：",
-    modifywarn:　"此块由listChildDocs挂件创建，您的更改可能会被覆盖。如果挂件删除，请删除此块。",
+    modifywarn:　"此块由listChildDocs挂件创建，若刷新列表，您的更改将会被覆盖。",
     getAttrFailed: "读取挂件属性失败。",
     wrongPrintMode: "错误的输出模式设定，已恢复默认值，请刷新重试。",
     inwidget: "挂件",

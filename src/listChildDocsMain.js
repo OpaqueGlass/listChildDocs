@@ -26,9 +26,8 @@ async function addText2File(markdownText, blockid = ""){
     let attrData = {};
     //读取属性.blockid为null时不能去读
     if (isValidStr(blockid)){
-        //判断是否是分列的目录块
+        //判断是否是分列的目录块（是否是超级块）
         let subLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
-        
         //如果是分列的目录块，那么以超级块首个无序列表的属性为基准，应用于更新后的块
         attrData = await getblockAttrAPI(subLists.length >= 1 ? subLists[0].id : blockid);
         console.log("更新前，", subLists, "attrGet", attrData);
@@ -44,56 +43,74 @@ async function addText2File(markdownText, blockid = ""){
     }else{
         response = await insertBlockAPI(markdownText, thisWidgetId);
     }
-    if (isValidStr(response)){
+    if (isValidStr(response.id)){
         //将子文档无序列表块id写入属性
-        custom_attr['childListId'] = response;
+        custom_attr['childListId'] = response.id;
         // addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);
-    }else if (response == ""){
+    }else if (response.id == ""){
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
-        console.log("更新失败，下次将创建新块", response);
+        console.log("更新失败，下次将创建新块", response.id);
         await setCustomAttr();//移除id属性后需要保存
         throw Error(language["refreshNeeded"]);
     }else{
-        console.error("插入/更新块失败", response);
+        console.error("插入/更新块失败", response.id);
         throw Error(language["insertBlockFailed"]);
     }
-    //默认的重建索引太慢了，这边手动触发一次看看效果
-    await reindexDoc(g_thisDocPath);
+    
     //重写属性
-    //TODO 增加对超级块的判断，不要写入超级块
     attrData["memo"] = language["modifywarn"];//为创建的块写入警告信息
-    //这个超级块判断改为indexOf吧，不是超级块不延迟等待
-    setTimeout(async function(){
-        let subListBlockIdQueryResult = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
-        console.log("subListBlockIdQueryResult", subListBlockIdQueryResult);
-        let rewriteTargetId = [];//重写属性的目标
-        if (subListBlockIdQueryResult.length == 0){
-            subListBlockIdQueryResult.push({id: blockid});
-        }
-        for (let subList of subListBlockIdQueryResult){
-            await addblockAttrAPI(attrData, subList.id);
-        }
-        setAttrToDom(subListBlockIdQueryResult, attrData);
-    }, 5000);
+    //超级块重写属性特殊对待
+    if (custom_attr.listColumn > 1){
+        //方案1，由更新返回值获取超级块下无序列表块id
+        let domDataNodeId = [];
+        //找超级块的直接子元素，且子元素是无序列表块（容器块）
+        $(response.data).find("[data-type='NodeSuperBlock'] > [data-subtype='u'].list").each(function(){console.log($(this));domDataNodeId.push($(this).attr("data-node-id"));});
+        console.assert(domDataNodeId.length >= 1, "无法在返回值中找到对应块，更新子块属性失败", domDataNodeId);
+        setAttrToDom(domDataNodeId, attrData);//将属性写入dom
+        setTimeout(async function(){//为每个无序列表子块设定属性（其实memo设置的有点多了），延时是防止属性写入失败
+            domDataNodeId.forEach(async function(currentValue){
+                await addblockAttrAPI(attrData, currentValue);
+            });
+        }, 1000);
+        //方案2:，等更新后sql查询获得超级块下无序列表块id（需要延迟等待数据库更新）
+        //默认的重建索引太慢了，这边手动触发一次看看效果//好像和重建索引没多大关系:)
+        // await reindexDoc(g_thisDocPath);
+        // setTimeout(async function(){
+        //     let subListBlockIdQueryResult = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
+        //     console.log("subListBlockIdQueryResult", subListBlockIdQueryResult);
+        //     let rewriteTargetId = [];//重写属性的目标
+        //     if (subListBlockIdQueryResult.length == 0){
+        //         subListBlockIdQueryResult.push({id: blockid});
+        //     }
+        //     for (let subList of subListBlockIdQueryResult){
+        //         await addblockAttrAPI(attrData, subList.id);
+        //     }
+        //     let subListBlockIds = subListBlockIdQueryResult.map((currentValue)=>{return currentValue.id});
+        //     setAttrToDom(subListBlockIds, attrData);
+        // }, 5000);
+    }else{
+        //对于非超级块，已经有id了，直接写入属性
+        await addblockAttrAPI(attrData, blockid);
+        setAttrToDom([blockid], attrData);
+    }
+    
     
 }
 
 /**
  * 将属性写入对应dom元素属性中
  * 只有位于setting.includeAttrName中的属性名才会写入
- * @param {*} queryBlockIds 要将attr写入的块id（为sql查询结果对象，将访问其id属性）
+ * @param {*} queryBlockIds 要将attr写入的块id，数组
  * @param {*} attrs 要设置的属性
  * 
  */
 function setAttrToDom(queryBlockIds, attrs){
     console.log(attrs);
     for (let queryBlockId of queryBlockIds){
-        console.log(queryBlockId);
         for (let setAttrName of setting.includeAttrName){
-            console.log("setAttr", setAttrName);
             if (setAttrName in attrs){
-                $(window.parent.document).find(`div[data-node-id="${queryBlockId.id}"`).attr(setAttrName, attrs[setAttrName]);
+                $(window.parent.document).find(`div[data-node-id="${queryBlockId}"`).attr(setAttrName, attrs[setAttrName]);
             }
         }
     }
@@ -327,6 +344,7 @@ function __refreshAppearance(){
     if (myPrinter.write2file == 1){
         window.frameElement.style.width = setting.width_2file;
         window.frameElement.style.height = setting.height_2file;
+        showOrHideSetting(false);
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1){
@@ -415,7 +433,7 @@ function __setObserver(){
     mutationObserver.observe(target[0], {"attributes": true, "attributeFilter": ["data-activetime"]});
     }catch(err){
         console.error(err);
-        printError("监听点击页签事件失败", false);
+        // printError("监听点击页签事件失败", false);//监听页签将作为附加功能，不再向用户展示错误提示
         console.warn("监视点击页签事件失败" + err);
     }
 }
