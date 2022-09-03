@@ -43,14 +43,14 @@ async function addText2File(markdownText, blockid = ""){
     }else{
         response = await insertBlockAPI(markdownText, thisWidgetId);
     }
-    if (isValidStr(response.id)){
+    if (response != null && isValidStr(response.id)){
         //将子文档无序列表块id写入属性
         custom_attr['childListId'] = response.id;
         // addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);
-    }else if (response.id == ""){
+    }else if (response == null || response.id == ""){
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
-        console.log("更新失败，下次将创建新块", response.id);
+        console.log("更新失败，下次将创建新块", response ? response.id:undefined);
         await setCustomAttr();//移除id属性后需要保存
         throw Error(language["refreshNeeded"]);
     }else{
@@ -106,7 +106,6 @@ async function addText2File(markdownText, blockid = ""){
  * 
  */
 function setAttrToDom(queryBlockIds, attrs){
-    console.log(attrs);
     for (let queryBlockId of queryBlockIds){
         for (let setAttrName of setting.includeAttrName){
             if (setAttrName in attrs){
