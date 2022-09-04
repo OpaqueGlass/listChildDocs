@@ -65,6 +65,8 @@ async function addText2File(markdownText, blockid = ""){
     
     //超级块重写属性特殊对待
     if (custom_attr.listColumn > 1){
+        await addblockAttrAPI({"memo": language["modifywarn"]}, blockid);
+        return;
         //方案1，由更新返回值获取超级块下无序列表块id
         let domDataNodeId = [];
         //找超级块的直接子元素，且子元素是无序列表块（容器块）
@@ -79,22 +81,6 @@ async function addText2File(markdownText, blockid = ""){
                 setTimeout(async function(){await addblockAttrAPI(attrData, currentValue)}, 1000);
             });
         }, 1000);
-        //方案2:，等更新后sql查询获得超级块下无序列表块id（需要延迟等待数据库更新）
-        //默认的重建索引太慢了，这边手动触发一次看看效果//好像和重建索引没多大关系:)
-        // await reindexDoc(g_thisDocPath);
-        // setTimeout(async function(){
-        //     let subListBlockIdQueryResult = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
-        //     console.log("subListBlockIdQueryResult", subListBlockIdQueryResult);
-        //     let rewriteTargetId = [];//重写属性的目标
-        //     if (subListBlockIdQueryResult.length == 0){
-        //         subListBlockIdQueryResult.push({id: blockid});
-        //     }
-        //     for (let subList of subListBlockIdQueryResult){
-        //         await addblockAttrAPI(attrData, subList.id);
-        //     }
-        //     let subListBlockIds = subListBlockIdQueryResult.map((currentValue)=>{return currentValue.id});
-        //     setAttrToDom(subListBlockIds, attrData);
-        // }, 5000);
     }else{
         attrData["memo"] = language["modifywarn"];//为创建的块写入警告信息
         //对于非超级块，已经有id了，直接写入属性
