@@ -236,8 +236,12 @@ function generateSuperBlock(originalText, nColumns, nDepth){
             result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
         }
     }
-    // result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
-    result = "{{{col\n" + result + getDivider() +  "}}}\n";
+    if (setting.superBlockBeta){
+        result = "{{{col\n" + result + getDivider() +  "}}}\n";//超级块写入测试模式
+    }else{
+        result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
+    }
+    
     console.log(result);
     return result;
     //生成kramdown类型的块分隔（？）
