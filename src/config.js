@@ -25,6 +25,7 @@ let setting = {//全局设置
     emojiEnable: true, //为true则一并写入文档icon Emoji
     floatWindowEnable: true,//为true启用挂件内浮窗（beta）
     includeAttrName: ["custom-f"],//数组中的属性名将在更新目录列表块时一并写入无序列表对应的dom，或许可以适配部分主题的无序列表转导图功能
+    superBlockBeta: true,//使用玄学的超级块分栏（分列）方式
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用

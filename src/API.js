@@ -63,7 +63,7 @@ export async function getSubDocsAPI(notebookId, path){
  * @param attrs 属性对象
  * @blockid 挂件id
  * */
-export async function addblockAttrAPI(attrs, blockid = thisWidgetId){
+export async function addblockAttrAPI(attrs, blockid){
     let url = "/api/attr/setBlockAttrs";
     let attr = {
         id: blockid,
@@ -74,7 +74,7 @@ export async function addblockAttrAPI(attrs, blockid = thisWidgetId){
 }
 
 //获取挂件块参数（API）
-export async function getblockAttrAPI(blockid = thisWidgetId){
+export async function getblockAttrAPI(blockid){
     let url = "/api/attr/getBlockAttrs";
     let response = await postRequest({id: blockid}, url);
     if (response.code != 0){
@@ -256,4 +256,31 @@ export async function getKramdown(blockid){
         return response.data.kramdown;
     }
     return null;
+}
+
+/**
+ * 获取当前更新时间字符串
+ * @returns 
+ */
+export function getUpdateString(){
+    let nowDate = new Date();
+    let timeStr = nowDate.toJSON().replaceAll("-","").substring(0, 8) + nowDate.toLocaleTimeString().replaceAll(":", "");
+    return timeStr;
+}
+
+/**
+ * 生成一个随机的块id
+ * @returns 
+ */
+export function generateBlockId(){
+    let timeStr = getUpdateString();
+    let alphabet = new Array();
+    for (let i = 48; i <= 57; i++) alphabet.push(String.fromCharCode(i));
+    for (let i = 97; i <= 122; i++) alphabet.push(String.fromCharCode(i));
+    let randomStr = "";
+    for (let i = 0; i < 7; i++){
+        randomStr += alphabet[Math.floor(Math.random() * alphabet.length)];
+    }
+    let result = timeStr + "-" + randomStr;
+    return result;
 }
