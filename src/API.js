@@ -137,6 +137,22 @@ export async function insertBlockAPI(text, blockid, textType = "markdown"){
 }
 
 /**
+ * 获取文档大纲
+ * @param {string} docid 要获取的文档id
+ * @returns {*} 响应的data部分，为outline对象数组
+ */
+export async function getDocOutlineAPI(docid){
+    let url = "/api/outline/getDocOutline";
+    let data = {"id": docid};
+    let response = await postRequest(data, url);
+    if (response.code == 0){
+        return response.data;
+    }else{
+        return null;
+    }
+}
+
+/**
  * 判断字符串是否为空
  * @param {*} s 
  * @returns 非空字符串true，空字符串false

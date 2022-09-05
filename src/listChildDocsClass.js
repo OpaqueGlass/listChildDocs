@@ -1,6 +1,8 @@
 import {setting} from './config.js';
 import {getUpdateString, generateBlockId} from "./API.js";
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自此基类
+//警告doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
+//其他情况请做判断
 class Printer{
     //写入到文件or写入到挂件
     //0写入到挂件（以HTML格式），1写入到当前文档（以Markdown格式）
@@ -28,6 +30,8 @@ class Printer{
     afterChildDocs(nowDepth){return "";}
     /**输出当前文档链接
      * @param {doc} doc为listDocsByPath伪API输出格式
+     * 兼容性警告，目前这个参数也输入大纲对象，大纲对象情况较为复杂，请只读取doc.id doc.name属性，否则请另外判断
+     * 属性是否存在、是否合法
      * */
     oneDocLink(doc){return "";}
     /**
@@ -154,6 +158,7 @@ class MarkdownDChainUnorderListPrinter extends Printer{
 let emojiIconHandler = function(iconString, hasChild = false){
     if (!setting.emojiEnable) return "";//禁用emoji时
     if (iconString == "")return hasChild?"📑":"📄";//无icon默认值
+    if (iconString == undefined || iconString == null) return "";//没有icon属性，不是文档类型，不返回emoji
     let result = "";
     iconString.split("-").forEach(element => {
         result += String.fromCodePoint("0x"+element);

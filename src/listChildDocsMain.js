@@ -11,7 +11,8 @@ import {
     updateBlockAPI,
     insertBlockAPI,
     checkOs,
-    reindexDoc
+    reindexDoc,
+    getDocOutlineAPI
 } from './API.js'; 
 import {custom_attr, language, setting} from './config.js';
 import {printerList, modeName} from "./printerConfig.js";
@@ -150,8 +151,14 @@ async function getText(notebook, nowDocPath){
         console.error("输出类Printer错误", myPrinter);
         throw Error(language["wrongPrintMode"]);
     }
-    let insertData = myPrinter.beforeAll()
-    let rawData = await getOneLevelText(notebook, nowDocPath, "", 1);
+    let insertData = myPrinter.beforeAll();
+    let rawData;
+    if (custom_attr.listDepth == 0){
+        rawData = await getDocOutlineText(thisDocId, 1);
+    }else{
+        rawData = await getOneLevelText(notebook, nowDocPath, "", 1);//层级从1开始
+    }
+    
     if (rawData == ""){
         rawData = myPrinter.noneString(language["noChildDoc"]);
     }
@@ -160,7 +167,14 @@ async function getText(notebook, nowDocPath){
     return insertData;
 }
 
-//获取一层级子文档输出文本
+/**
+ * 获取一层级子文档输出文本
+ * @param {*} notebook 
+ * @param {*} nowDocPath 
+ * @param {*} insertData 
+ * @param {*} nowDepth 
+ * @returns 
+ */
 async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
     if (nowDepth > custom_attr.listDepth){
         return insertData;
@@ -174,11 +188,53 @@ async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
             insertData += myPrinter.beforeChildDocs(nowDepth);
             insertData = await getOneLevelText(notebook, doc.path, insertData, nowDepth + 1);
             insertData += myPrinter.afterChildDocs(nowDepth);
-        }
+        }//TODO: 终端节点列出大纲，加上选项
     }
     return insertData;
 }
 
+/**
+ * 生成文档大纲输出文本
+ * @param {*} docId
+ * @param {*} nowDepth 当前层级
+ * @return {*} 仅大纲的输出文本，如果有其他，请+=保存
+ */
+async function getDocOutlineText(docId, nowDepth){
+    let outlines = await getDocOutlineAPI(docId);
+    if (outlines == null) {console.warn("获取大纲失败");return "";}
+    let result = "";
+    result += getOneLevelOutline(outlines, nowDepth);
+    return result;
+}
+
+/**
+ * 生成本层级大纲文本
+ * @param {*} outlines 大纲对象
+ * @param {*} nowDepth 
+ * @returns 本层级及其子层级大纲生成文本，请+=保存；
+ */
+function getOneLevelOutline(outlines, nowDepth){
+    let result = "";
+    for (let outline of outlines){
+        if (!isValidStr(outline.name)){//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
+            outline.name = outline.content;
+        }
+        result += myPrinter.align(nowDepth);
+        result += myPrinter.oneDocLink(outline);
+        if (outline.type === "outline" && outline.blocks != null){
+            result += myPrinter.beforeChildDocs();
+            result += getOneLevelOutline(outline.blocks, nowDepth + 1);
+            result += myPrinter.afterChildDocs();
+        }else if (outline.type == "NodeHeading" && outline.children != null){
+            result += myPrinter.beforeChildDocs();
+            result += getOneLevelOutline(outline.children, nowDepth + 1);
+            result += myPrinter.afterChildDocs();
+        }else if (outline.type != "outline" && outline.type != "NodeHeading"){
+            console.warn("未被处理的大纲情况");
+        }
+    }
+    return result;
+}
 
 function debugPush(text,delay = 7000){
     pushMsgAPI(text, 7000);
