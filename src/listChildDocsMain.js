@@ -11,7 +11,7 @@ import {
     updateBlockAPI,
     insertBlockAPI,
     checkOs,
-    reindexDoc
+    getDocOutlineAPI
 } from './API.js'; 
 import {custom_attr, language, setting} from './config.js';
 import {printerList, modeName} from "./printerConfig.js";
@@ -25,15 +25,15 @@ let showSetting;
 async function addText2File(markdownText, blockid = ""){
     let attrData = {};
     //读取属性.blockid为null时不能去读
-    if (isValidStr(blockid)){
+    if (isValidStr(blockid) && setting.inheritAttrs){
         //判断是否是分列的目录块（是否是超级块）
-        let subLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
+        // let subLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
         let subDirectLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id = '${blockid}'`);
-        console.log("超级块内超级块下的列表数？", subLists.length);
-        console.log("超级块下直接的列表数", subDirectLists.length);
+        // console.log("超级块内超级块下的列表数？", subLists.length);
+        // console.log("超级块下直接的列表数", subDirectLists.length);
         //如果是分列的目录块，那么以超级块中一个随机的无序列表的属性为基准，应用于更新后的块
         attrData = await getblockAttrAPI(subDirectLists.length >= 1 ? subDirectLists[0].id : blockid);
-        console.log("更新前，", subDirectLists, "attrGet", attrData);
+        // console.log("更新前，", subDirectLists, "attrGet", attrData);
         attrData = attrData.data;
         //避免重新写入id和updated信息
         delete attrData.id;
@@ -49,7 +49,6 @@ async function addText2File(markdownText, blockid = ""){
     if (response != null && isValidStr(response.id)){
         //将子文档无序列表块id写入属性
         custom_attr['childListId'] = response.id;
-        // addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);
     }else if (response == null || response.id == ""){
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
@@ -63,7 +62,7 @@ async function addText2File(markdownText, blockid = ""){
     
     //重写属性
     //超级块重写属性特殊对待
-    if (custom_attr.listColumn > 1){
+    if (custom_attr.listColumn > 1 && setting.inheritAttrs){
         //没有启用新的模式就不写超级块了，v0.0.4的超级块逻辑没适配
         if (!setting.superBlockBeta){
             await addblockAttrAPI({"memo": language["modifywarn"]}, blockid);
@@ -77,7 +76,6 @@ async function addText2File(markdownText, blockid = ""){
         $(response.data).children().filter(".list[data-subtype='u']").each(function(){domDataNodeId.push($(this).attr("data-node-id"));});
         // $(`<div id="listChildDocs">${response.data}</div>`).find("div[data-type='NodeSuperBlock'] > .list[data-subtype='u']").each(function(){console.log($(this));domDataNodeId.push($(this).attr("data-node-id"));});
         console.assert(domDataNodeId.length >= 1, "无法在返回值中找到对应块，更新子块属性失败", domDataNodeId);
-        // await reindexDoc("/data/"+g_thisDocPath);
         let timeoutIncrease = 700;
         //为每个无序列表子块设定属性（其实memo设置的有点多了），延时是防止属性写入失败//上次的bug是循环内都延时5000==没延时
         domDataNodeId.forEach(async function(currentValue){
@@ -150,17 +148,34 @@ async function getText(notebook, nowDocPath){
         console.error("输出类Printer错误", myPrinter);
         throw Error(language["wrongPrintMode"]);
     }
-    let insertData = myPrinter.beforeAll()
-    let rawData = await getOneLevelText(notebook, nowDocPath, "", 1);
+    let insertData = myPrinter.beforeAll();
+    let rawData;
+    if (custom_attr.listDepth == 0){
+        rawData = await getDocOutlineText(thisDocId, 1, false);
+    }else{
+        rawData = await getOneLevelText(notebook, nowDocPath, "", 1);//层级从1开始
+    }
+    
     if (rawData == ""){
-        rawData = myPrinter.noneString(language["noChildDoc"]);
+        if (custom_attr.listDepth > 0){
+            rawData = myPrinter.noneString(language["noChildDoc"]);
+        }else{
+            rawData = myPrinter.noneString(language["noOutline"]);
+        } 
     }
     insertData += rawData + myPrinter.afterAll();
     insertData = myPrinter.splitColumns(insertData, custom_attr["listColumn"], custom_attr["listDepth"]);
     return insertData;
 }
 
-//获取一层级子文档输出文本
+/**
+ * 获取一层级子文档输出文本
+ * @param {*} notebook 
+ * @param {*} nowDocPath 
+ * @param {*} insertData 
+ * @param {*} nowDepth 
+ * @returns 
+ */
 async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
     if (nowDepth > custom_attr.listDepth){
         return insertData;
@@ -174,11 +189,67 @@ async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
             insertData += myPrinter.beforeChildDocs(nowDepth);
             insertData = await getOneLevelText(notebook, doc.path, insertData, nowDepth + 1);
             insertData += myPrinter.afterChildDocs(nowDepth);
+        }else if (setting.showEndDocOutline){//终端节点列出大纲，由选项控制
+            let outlines = await getDocOutlineAPI(doc.id);
+            if (outlines != null){
+                insertData += myPrinter.beforeChildDocs(nowDepth);
+                insertData += getOneLevelOutline(outlines, nowDepth + 1, true);
+                insertData += myPrinter.afterChildDocs(nowDepth);
+            }
         }
     }
     return insertData;
 }
 
+/**
+ * 生成文档大纲输出文本
+ * @param {*} docId
+ * @param {*} nowDepth 当前层级
+ * @param {*} distinguish 区分大纲和页面，如果同时列出文档且需要区分，为true
+ * @return {*} 仅大纲的输出文本，如果有其他，请+=保存
+ */
+async function getDocOutlineText(docId, nowDepth, distinguish){
+    let outlines = await getDocOutlineAPI(docId);
+    if (outlines == null) {console.warn("获取大纲失败");return "";}
+    let result = "";
+    result += getOneLevelOutline(outlines, nowDepth, distinguish);
+    return result;
+}
+
+/**
+ * 生成本层级大纲文本
+ * @param {*} outlines 大纲对象
+ * @param {*} nowDepth 
+ * @param {*} distinguish 区分大纲和页面，如果同时列出文档且需要区分，为true
+ * @returns 本层级及其子层级大纲生成文本，请+=保存；
+ */
+function getOneLevelOutline(outlines, nowDepth, distinguish){
+    if (outlines == null || outlines[0].depth >= custom_attr.outlineDepth) return "";
+    let result = "";
+    for (let outline of outlines){
+        if (!isValidStr(outline.name)){//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
+            outline.name = outline.content;
+        }
+        if (distinguish){
+            outline.name = `@${outline.name}`;
+        }
+        outline.name = outline.name.replace("&nbsp;", " ");//替换空格转义符
+        result += myPrinter.align(nowDepth);
+        result += myPrinter.oneDocLink(outline);
+        if (outline.type === "outline" && outline.blocks != null){
+            result += myPrinter.beforeChildDocs();
+            result += getOneLevelOutline(outline.blocks, nowDepth + 1, distinguish);
+            result += myPrinter.afterChildDocs();
+        }else if (outline.type == "NodeHeading" && outline.children != null){
+            result += myPrinter.beforeChildDocs();
+            result += getOneLevelOutline(outline.children, nowDepth + 1, distinguish);
+            result += myPrinter.afterChildDocs();
+        }else if (outline.type != "outline" && outline.type != "NodeHeading"){
+            console.warn("未被处理的大纲情况");
+        }
+    }
+    return result;
+}
 
 function debugPush(text,delay = 7000){
     pushMsgAPI(text, 7000);
@@ -190,8 +261,8 @@ function debugPush(text,delay = 7000){
  */
 function showOrHideSetting(showBtn){
     let display = showBtn ? "":"none";
-    $("#printMode, #listcolumn, #listdepth").css("display", display);
-    $("#depthhint, #columnhint").css("display", display);
+    $("#printMode, #listcolumn, #listdepth, #outlinedepth").css("display", display);
+    $("#depthhint, #columnhint, #outlinedepthhint").css("display", display);
     if (myPrinter.write2file == 1){//写入文档时重设挂件大小
         window.frameElement.style.height = showBtn ? setting.height_2file_setting : setting.height_2file;
     }
@@ -322,6 +393,8 @@ async function __refresh(){
     custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").value);
     //重设分列
     custom_attr["listColumn"] = parseInt(document.getElementById("listcolumn").value);
+    //重设大纲层级
+    custom_attr["outlineDepth"] = parseInt(document.getElementById("outlinedepth").value)
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
     if (nowAutoMode != custom_attr["auto"]){
@@ -343,15 +416,16 @@ function __refreshAppearance(){
         window.frameElement.style.width = setting.width_2file;
         window.frameElement.style.height = setting.height_2file;
         showOrHideSetting(false);
+        showSetting = false;
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1){
         $("#refresh, #listdepth, #printMode, #listcolumn").addClass("button_dark");
-        $("#updateTime, #linksContainer, #columnhint, #depthhint").addClass("ordinaryText_dark");
+        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint").addClass("ordinaryText_dark");
         $(".childDocLinks").addClass("childDocLinks_dark");
     }else{
         $("#refresh, #listdepth, #printMode, #listcolumn").removeClass("button_dark");
-        $("#updateTime, #linksContainer, #columnhint, #depthhint").removeClass("ordinaryText_dark");
+        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint").removeClass("ordinaryText_dark");
         $(".childDocLinks").removeClass("childDocLinks_dark");
     }
 }
@@ -378,6 +452,7 @@ async function __init(){
     document.getElementById("printMode").selectedIndex = parseInt(custom_attr["printMode"]);
     document.getElementById("autoMode").checked = custom_attr["auto"];
     document.getElementById("listcolumn").value = custom_attr["listColumn"];
+    document.getElementById("outlinedepth").value = custom_attr["outlineDepth"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     __refreshAppearance();
@@ -390,6 +465,7 @@ async function __init(){
     $("#setting").attr("title", language["settingBtn"]);
     $("#depthhint").text(language["depthHint"]);
     $("#columnhint").text(language["columnHint"]);
+    $("#outlinedepthhint").text(language["outlineDepthHint"]);
     //控制自动刷新选项是否显示
     if (!setting.showAutoBtn){
         $("#autoMode").attr("type", "hidden");

@@ -1,6 +1,8 @@
 import {setting} from './config.js';
 import {getUpdateString, generateBlockId} from "./API.js";
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自此基类
+//警告doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
+//其他情况请做判断
 class Printer{
     //写入到文件or写入到挂件
     //0写入到挂件（以HTML格式），1写入到当前文档（以Markdown格式）
@@ -28,6 +30,8 @@ class Printer{
     afterChildDocs(nowDepth){return "";}
     /**输出当前文档链接
      * @param {doc} doc为listDocsByPath伪API输出格式
+     * 兼容性警告，目前这个参数也输入大纲对象，大纲对象情况较为复杂，请只读取doc.id doc.name属性，否则请另外判断
+     * 属性是否存在、是否合法
      * */
     oneDocLink(doc){return "";}
     /**
@@ -154,6 +158,7 @@ class MarkdownDChainUnorderListPrinter extends Printer{
 let emojiIconHandler = function(iconString, hasChild = false){
     if (!setting.emojiEnable) return "";//禁用emoji时
     if (iconString == "")return hasChild?"📑":"📄";//无icon默认值
+    if (iconString == undefined || iconString == null) return "";//没有icon属性，不是文档类型，不返回emoji
     let result = "";
     iconString.split("-").forEach(element => {
         result += String.fromCodePoint("0x"+element);
@@ -234,13 +239,31 @@ function generateSuperBlock(originalText, nColumns, nDepth){
         }
     }else{
         //禁用缩进中截断Mode2（依据首层折断）
-        for (let i = splitInterval, cColumn = 0;
-            i < firstBullets.length && cColumn < nColumns - 1;
-            i += splitInterval, cColumn++){
-            let splitAtIndex = result.indexOf(firstBullets[i]);
-            // result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+        //分列方式尽可能均匀
+        let splitAtFirstIndex = new Array();
+        //先按行分，从理应换行位置向后找不截断的换行位置，但在文档数超长时仍可能不均分
+        for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length && cColumn < nColumns - 1;
+             i += splitIntervalRef, cColumn++){
+            for (let j = i; j < allBullets.length; j++){//寻找合适的不截断换行位置（首层级）
+                let index = firstBullets.indexOf(allBullets[j]);
+                if (index != -1){
+                    splitAtFirstIndex.push(index);
+                    break;
+                }
+            }
+        }
+        for (let index of splitAtFirstIndex){
+            let splitAtIndex = result.indexOf(firstBullets[index]);
             result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
         }
+        //旧方法
+        // for (let i = splitInterval, cColumn = 0;
+        //     i < firstBullets.length && cColumn < nColumns - 1;
+        //     i += splitInterval, cColumn++){
+        //     let splitAtIndex = result.indexOf(firstBullets[i]);
+        //     // result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+        //     result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
+        // }
     }
     if (setting.superBlockBeta){
         result = "{{{col\n" + result + getDivider() +  "}}}\n";//超级块写入测试模式
