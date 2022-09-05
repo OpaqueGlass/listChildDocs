@@ -31,9 +31,9 @@ async function addText2File(markdownText, blockid = ""){
         let subDirectLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id = '${blockid}'`);
         console.log("超级块内超级块下的列表数？", subLists.length);
         console.log("超级块下直接的列表数", subDirectLists.length);
-        //如果是分列的目录块，那么以超级块首个无序列表的属性为基准，应用于更新后的块
+        //如果是分列的目录块，那么以超级块中一个随机的无序列表的属性为基准，应用于更新后的块
         attrData = await getblockAttrAPI(subDirectLists.length >= 1 ? subDirectLists[0].id : blockid);
-        console.log("更新前，", subLists, "attrGet", attrData);
+        console.log("更新前，", subDirectLists, "attrGet", attrData);
         attrData = attrData.data;
         //避免重新写入id和updated信息
         delete attrData.id;
@@ -62,11 +62,13 @@ async function addText2File(markdownText, blockid = ""){
     }
     
     //重写属性
-    
     //超级块重写属性特殊对待
     if (custom_attr.listColumn > 1){
-        await addblockAttrAPI({"memo": language["modifywarn"]}, blockid);
-        return;
+        //没有启用新的模式就不写超级块了，v0.0.4的超级块逻辑没适配
+        if (!setting.superBlockBeta){
+            await addblockAttrAPI({"memo": language["modifywarn"]}, blockid);
+            return;
+        }
         //方案1，由更新返回值获取超级块下无序列表块id
         let domDataNodeId = [];
         //找超级块的直接子元素，且子元素是无序列表块（容器块）
@@ -75,12 +77,16 @@ async function addText2File(markdownText, blockid = ""){
         $(response.data).children().filter(".list[data-subtype='u']").each(function(){domDataNodeId.push($(this).attr("data-node-id"));});
         // $(`<div id="listChildDocs">${response.data}</div>`).find("div[data-type='NodeSuperBlock'] > .list[data-subtype='u']").each(function(){console.log($(this));domDataNodeId.push($(this).attr("data-node-id"));});
         console.assert(domDataNodeId.length >= 1, "无法在返回值中找到对应块，更新子块属性失败", domDataNodeId);
-        setAttrToDom(domDataNodeId, attrData);//将属性写入dom
-        setTimeout(async function(){//为每个无序列表子块设定属性（其实memo设置的有点多了），延时是防止属性写入失败
-            domDataNodeId.forEach(async function(currentValue){
-                setTimeout(async function(){await addblockAttrAPI(attrData, currentValue)}, 1000);
-            });
-        }, 1000);
+        // await reindexDoc("/data/"+g_thisDocPath);
+        let timeoutIncrease = 700;
+        //为每个无序列表子块设定属性（其实memo设置的有点多了），延时是防止属性写入失败//上次的bug是循环内都延时5000==没延时
+        domDataNodeId.forEach(async function(currentValue){
+            setTimeout(async function(){await addblockAttrAPI(attrData, currentValue);console.log("设置子块属性", currentValue)}, timeoutIncrease+=700);
+        });
+        //延时将指定的属性写入dom
+        setTimeout(
+            ()=>{setAttrToDom(domDataNodeId, attrData);}
+        , 700 * domDataNodeId.length);
     }else{
         attrData["memo"] = language["modifywarn"];//为创建的块写入警告信息
         //对于非超级块，已经有id了，直接写入属性
@@ -237,7 +243,7 @@ async function __main(initmode = false){
         }
         let notebook = queryResult[0].box;//笔记本名
         let thisDocPath = queryResult[0].path;//当前文件路径(在笔记本下)
-        g_thisDocPath = thisDocId;
+        g_thisDocPath = notebook + thisDocPath;
         //获取子文档层级文本
         let textString = await getText(notebook, thisDocPath);
         //清理原有内容

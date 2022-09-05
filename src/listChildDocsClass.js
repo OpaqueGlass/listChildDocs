@@ -111,7 +111,7 @@ class MarkdownUrlUnorderListPrinter extends Printer{
             docName = docName.substring(0, docName.length - 3);
         }
         
-        return `- ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
+        return `* ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
     noneString(emptyText){
         return "* " + emptyText;
@@ -135,7 +135,7 @@ class MarkdownDChainUnorderListPrinter extends Printer{
         if (doc.name.indexOf(".sy") >= 0){
             docName = docName.substring(0, docName.length - 3);
         }
-        return `- ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
+        return `* ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
     }
     noneString(emptyText){
         return "* " + emptyText;
@@ -163,7 +163,7 @@ let emojiIconHandler = function(iconString, hasChild = false){
 
 
 /**
- * 用于根据nColumns分列数生成超级块（单行！）
+ * 用于根据nColumns分列数拆分无序列表生成超级块（单行！）
  * @param {string} originalText 原始文本
  * @param {int} nColumns 文档分列数
  * @param {int} nDepth 文档列出深度
@@ -171,11 +171,17 @@ let emojiIconHandler = function(iconString, hasChild = false){
  */
 function generateSuperBlock(originalText, nColumns, nDepth){
     if (nColumns <= 1) return originalText;
+    console.log(originalText)
     //定位合适的划分点
-    let regex = /^- .*/gm;//首层级
-    let allBulletsRegex = /^ *- .*/gm;//所有行
+    let regex = /^\* .*/gm;//首层级
+    let allBulletsRegex = /^ *\* .*/gm;//所有行
     let firstBullets = originalText.match(regex);//一层级
     let allBullets = originalText.match(allBulletsRegex);//所有行
+    //没有匹配时停止
+    if (firstBullets == null || allBullets == null){
+        console.error("未能在文本中找到无序列表，超级块分列失败");
+        return originalText;
+    }
     let divideIndex = new Array(firstBullets.length);//list划分位置（仅首层行）
     let divideAllIndex = new Array(allBullets.length);//list划分位置（所有行）
     let firstBulletIndex = new Array(firstBullets.length);//所有行中，是首层行下标
@@ -247,7 +253,7 @@ function generateSuperBlock(originalText, nColumns, nDepth){
     //生成kramdown类型的块分隔（？）
     function getDivider(){
         if (setting.superBlockBeta){
-            return `{: id=\"${generateBlockId()}\" updated=\"${getUpdateString()}\"}\n\n`;
+            return `  \n{: id=\"${generateBlockId()}\" updated=\"${getUpdateString()}\"}\n\n`;
         }else{
             return "}}}\n{{{row\n";
         }
