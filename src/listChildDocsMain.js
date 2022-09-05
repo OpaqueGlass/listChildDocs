@@ -26,15 +26,15 @@ let showSetting;
 async function addText2File(markdownText, blockid = ""){
     let attrData = {};
     //读取属性.blockid为null时不能去读
-    if (isValidStr(blockid)){
+    if (isValidStr(blockid) && setting.inheritAttrs){
         //判断是否是分列的目录块（是否是超级块）
-        let subLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
+        // let subLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
         let subDirectLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id = '${blockid}'`);
-        console.log("超级块内超级块下的列表数？", subLists.length);
-        console.log("超级块下直接的列表数", subDirectLists.length);
+        // console.log("超级块内超级块下的列表数？", subLists.length);
+        // console.log("超级块下直接的列表数", subDirectLists.length);
         //如果是分列的目录块，那么以超级块中一个随机的无序列表的属性为基准，应用于更新后的块
         attrData = await getblockAttrAPI(subDirectLists.length >= 1 ? subDirectLists[0].id : blockid);
-        console.log("更新前，", subDirectLists, "attrGet", attrData);
+        // console.log("更新前，", subDirectLists, "attrGet", attrData);
         attrData = attrData.data;
         //避免重新写入id和updated信息
         delete attrData.id;
@@ -50,7 +50,6 @@ async function addText2File(markdownText, blockid = ""){
     if (response != null && isValidStr(response.id)){
         //将子文档无序列表块id写入属性
         custom_attr['childListId'] = response.id;
-        // addblockAttrAPI({"memo": language["modifywarn"]}, custom_attr['childListId']);
     }else if (response == null || response.id == ""){
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
@@ -154,13 +153,17 @@ async function getText(notebook, nowDocPath){
     let insertData = myPrinter.beforeAll();
     let rawData;
     if (custom_attr.listDepth == 0){
-        rawData = await getDocOutlineText(thisDocId, 1);
+        rawData = await getDocOutlineText(thisDocId, 1, false);
     }else{
         rawData = await getOneLevelText(notebook, nowDocPath, "", 1);//层级从1开始
     }
     
     if (rawData == ""){
-        rawData = myPrinter.noneString(language["noChildDoc"]);
+        if (custom_attr.listDepth > 0){
+            rawData = myPrinter.noneString(language["noChildDoc"]);
+        }else{
+            rawData = myPrinter.noneString(language["noOutline"]);
+        } 
     }
     insertData += rawData + myPrinter.afterAll();
     insertData = myPrinter.splitColumns(insertData, custom_attr["listColumn"], custom_attr["listDepth"]);
@@ -188,7 +191,14 @@ async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
             insertData += myPrinter.beforeChildDocs(nowDepth);
             insertData = await getOneLevelText(notebook, doc.path, insertData, nowDepth + 1);
             insertData += myPrinter.afterChildDocs(nowDepth);
-        }//TODO: 终端节点列出大纲，加上选项
+        }else if (setting.showEndDocOutline){//终端节点列出大纲，由选项控制
+            let outlines = await getDocOutlineAPI(doc.id);
+            if (outlines != null){
+                insertData += myPrinter.beforeChildDocs(nowDepth);
+                insertData += getOneLevelOutline(outlines, nowDepth + 1, true);
+                insertData += myPrinter.afterChildDocs(nowDepth);
+            }
+        }
     }
     return insertData;
 }
@@ -197,13 +207,14 @@ async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
  * 生成文档大纲输出文本
  * @param {*} docId
  * @param {*} nowDepth 当前层级
+ * @param {*} distinguish 区分大纲和页面，如果同时列出文档且需要区分，为true
  * @return {*} 仅大纲的输出文本，如果有其他，请+=保存
  */
-async function getDocOutlineText(docId, nowDepth){
+async function getDocOutlineText(docId, nowDepth, distinguish){
     let outlines = await getDocOutlineAPI(docId);
     if (outlines == null) {console.warn("获取大纲失败");return "";}
     let result = "";
-    result += getOneLevelOutline(outlines, nowDepth);
+    result += getOneLevelOutline(outlines, nowDepth, distinguish);
     return result;
 }
 
@@ -211,23 +222,27 @@ async function getDocOutlineText(docId, nowDepth){
  * 生成本层级大纲文本
  * @param {*} outlines 大纲对象
  * @param {*} nowDepth 
+ * @param {*} distinguish 区分大纲和页面，如果同时列出文档且需要区分，为true
  * @returns 本层级及其子层级大纲生成文本，请+=保存；
  */
-function getOneLevelOutline(outlines, nowDepth){
+function getOneLevelOutline(outlines, nowDepth, distinguish){
     let result = "";
     for (let outline of outlines){
         if (!isValidStr(outline.name)){//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
             outline.name = outline.content;
         }
+        if (distinguish){
+            outline.name = `@${outline.name}`;
+        }
         result += myPrinter.align(nowDepth);
         result += myPrinter.oneDocLink(outline);
         if (outline.type === "outline" && outline.blocks != null){
             result += myPrinter.beforeChildDocs();
-            result += getOneLevelOutline(outline.blocks, nowDepth + 1);
+            result += getOneLevelOutline(outline.blocks, nowDepth + 1, distinguish);
             result += myPrinter.afterChildDocs();
         }else if (outline.type == "NodeHeading" && outline.children != null){
             result += myPrinter.beforeChildDocs();
-            result += getOneLevelOutline(outline.children, nowDepth + 1);
+            result += getOneLevelOutline(outline.children, nowDepth + 1, distinguish);
             result += myPrinter.afterChildDocs();
         }else if (outline.type != "outline" && outline.type != "NodeHeading"){
             console.warn("未被处理的大纲情况");
