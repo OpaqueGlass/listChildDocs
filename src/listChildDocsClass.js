@@ -239,13 +239,31 @@ function generateSuperBlock(originalText, nColumns, nDepth){
         }
     }else{
         //禁用缩进中截断Mode2（依据首层折断）
-        for (let i = splitInterval, cColumn = 0;
-            i < firstBullets.length && cColumn < nColumns - 1;
-            i += splitInterval, cColumn++){
-            let splitAtIndex = result.indexOf(firstBullets[i]);
-            // result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+        //分列方式尽可能均匀
+        let splitAtFirstIndex = new Array();
+        //先按行分，从理应换行位置向后找不截断的换行位置，但在文档数超长时仍可能不均分
+        for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length && cColumn < nColumns - 1;
+             i += splitIntervalRef, cColumn++){
+            for (let j = i; j < allBullets.length; j++){//寻找合适的不截断换行位置（首层级）
+                let index = firstBullets.indexOf(allBullets[j]);
+                if (index != -1){
+                    splitAtFirstIndex.push(index);
+                    break;
+                }
+            }
+        }
+        for (let index of splitAtFirstIndex){
+            let splitAtIndex = result.indexOf(firstBullets[index]);
             result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
         }
+        //旧方法
+        // for (let i = splitInterval, cColumn = 0;
+        //     i < firstBullets.length && cColumn < nColumns - 1;
+        //     i += splitInterval, cColumn++){
+        //     let splitAtIndex = result.indexOf(firstBullets[i]);
+        //     // result = result.slice(0, splitAtIndex) + "}}}\n{{{row\n" + result.slice(splitAtIndex);
+        //     result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
+        // }
     }
     if (setting.superBlockBeta){
         result = "{{{col\n" + result + getDivider() +  "}}}\n";//超级块写入测试模式
