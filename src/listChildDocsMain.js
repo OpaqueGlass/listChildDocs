@@ -11,7 +11,6 @@ import {
     updateBlockAPI,
     insertBlockAPI,
     checkOs,
-    reindexDoc,
     getDocOutlineAPI
 } from './API.js'; 
 import {custom_attr, language, setting} from './config.js';
@@ -63,7 +62,7 @@ async function addText2File(markdownText, blockid = ""){
     
     //重写属性
     //超级块重写属性特殊对待
-    if (custom_attr.listColumn > 1){
+    if (custom_attr.listColumn > 1 && setting.inheritAttrs){
         //没有启用新的模式就不写超级块了，v0.0.4的超级块逻辑没适配
         if (!setting.superBlockBeta){
             await addblockAttrAPI({"memo": language["modifywarn"]}, blockid);
@@ -77,7 +76,6 @@ async function addText2File(markdownText, blockid = ""){
         $(response.data).children().filter(".list[data-subtype='u']").each(function(){domDataNodeId.push($(this).attr("data-node-id"));});
         // $(`<div id="listChildDocs">${response.data}</div>`).find("div[data-type='NodeSuperBlock'] > .list[data-subtype='u']").each(function(){console.log($(this));domDataNodeId.push($(this).attr("data-node-id"));});
         console.assert(domDataNodeId.length >= 1, "无法在返回值中找到对应块，更新子块属性失败", domDataNodeId);
-        // await reindexDoc("/data/"+g_thisDocPath);
         let timeoutIncrease = 700;
         //为每个无序列表子块设定属性（其实memo设置的有点多了），延时是防止属性写入失败//上次的bug是循环内都延时5000==没延时
         domDataNodeId.forEach(async function(currentValue){
@@ -234,6 +232,7 @@ function getOneLevelOutline(outlines, nowDepth, distinguish){
         if (distinguish){
             outline.name = `@${outline.name}`;
         }
+        outline.name = outline.name.replace("&nbsp;", " ");//替换空格转义符
         result += myPrinter.align(nowDepth);
         result += myPrinter.oneDocLink(outline);
         if (outline.type === "outline" && outline.blocks != null){
