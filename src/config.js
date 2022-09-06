@@ -12,11 +12,12 @@ let custom_attr = {//这里列出的是挂件的默认设置，只在创建时�
     listDepth: 1,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
     auto: false, //创建挂件时是否自动更新，请勿设定为true
     listColumn: 1,//子文档列表列数，过多的列数将导致显示问题
+    outlineDepth: 1,//大纲列出层级数，混合列出时此项无效
 };
 let setting = {//全局设置
     width_2file: "20em",//将列表写入文件时，此项控制挂件的宽
     height_2file: "4em",//将列表写入文件时，此项控制挂件的高
-    height_2file_setting: "6em",//将列表写入文件时，此项控制显示设置时挂件的高
+    height_2file_setting: "7em",//将列表写入文件时，此项控制显示设置时挂件的高
     showAutoBtn: true,//在挂件中显示自动刷新选项，设定true启用、false禁用【！自动刷新可能导致同步覆盖问题，详见README】
     showSettingOnStartUp: false, //在启动时显示所有设置项，设定true启用
     safeMode: true,//安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块，可以避免此挂件自行刷新导致可能的同步覆盖问题。
@@ -60,6 +61,7 @@ let zh_CN = {
     columnHint: "分列",
     depthHint: "层级",
     noOutline: "似乎没有文档大纲。",
+    outlineDepthHint: "大纲层级",
 };
 /*let en = {//先当他不存在
     refreshNeeded: "Can't find the child-doc-list block. Please click refresh button again.",

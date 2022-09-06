@@ -224,6 +224,7 @@ async function getDocOutlineText(docId, nowDepth, distinguish){
  * @returns 本层级及其子层级大纲生成文本，请+=保存；
  */
 function getOneLevelOutline(outlines, nowDepth, distinguish){
+    if (outlines == null || outlines[0].depth >= custom_attr.outlineDepth) return "";
     let result = "";
     for (let outline of outlines){
         if (!isValidStr(outline.name)){//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
@@ -260,8 +261,8 @@ function debugPush(text,delay = 7000){
  */
 function showOrHideSetting(showBtn){
     let display = showBtn ? "":"none";
-    $("#printMode, #listcolumn, #listdepth").css("display", display);
-    $("#depthhint, #columnhint").css("display", display);
+    $("#printMode, #listcolumn, #listdepth, #outlinedepth").css("display", display);
+    $("#depthhint, #columnhint, #outlinedepthhint").css("display", display);
     if (myPrinter.write2file == 1){//写入文档时重设挂件大小
         window.frameElement.style.height = showBtn ? setting.height_2file_setting : setting.height_2file;
     }
@@ -392,6 +393,8 @@ async function __refresh(){
     custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").value);
     //重设分列
     custom_attr["listColumn"] = parseInt(document.getElementById("listcolumn").value);
+    //重设大纲层级
+    custom_attr["outlineDepth"] = parseInt(document.getElementById("outlinedepth").value)
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
     if (nowAutoMode != custom_attr["auto"]){
@@ -413,15 +416,16 @@ function __refreshAppearance(){
         window.frameElement.style.width = setting.width_2file;
         window.frameElement.style.height = setting.height_2file;
         showOrHideSetting(false);
+        showSetting = false;
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1){
         $("#refresh, #listdepth, #printMode, #listcolumn").addClass("button_dark");
-        $("#updateTime, #linksContainer, #columnhint, #depthhint").addClass("ordinaryText_dark");
+        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint").addClass("ordinaryText_dark");
         $(".childDocLinks").addClass("childDocLinks_dark");
     }else{
         $("#refresh, #listdepth, #printMode, #listcolumn").removeClass("button_dark");
-        $("#updateTime, #linksContainer, #columnhint, #depthhint").removeClass("ordinaryText_dark");
+        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint").removeClass("ordinaryText_dark");
         $(".childDocLinks").removeClass("childDocLinks_dark");
     }
 }
@@ -448,6 +452,7 @@ async function __init(){
     document.getElementById("printMode").selectedIndex = parseInt(custom_attr["printMode"]);
     document.getElementById("autoMode").checked = custom_attr["auto"];
     document.getElementById("listcolumn").value = custom_attr["listColumn"];
+    document.getElementById("outlinedepth").value = custom_attr["outlineDepth"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     __refreshAppearance();
@@ -460,6 +465,7 @@ async function __init(){
     $("#setting").attr("title", language["settingBtn"]);
     $("#depthhint").text(language["depthHint"]);
     $("#columnhint").text(language["columnHint"]);
+    $("#outlinedepthhint").text(language["outlineDepthHint"]);
     //控制自动刷新选项是否显示
     if (!setting.showAutoBtn){
         $("#autoMode").attr("type", "hidden");
