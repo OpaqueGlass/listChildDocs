@@ -114,7 +114,7 @@ class MarkdownUrlUnorderListPrinter extends Printer{
         if (doc.name.indexOf(".sy") >= 0){
             docName = docName.substring(0, docName.length - 3);
         }
-        
+        docName = htmlTransferParser(docName);
         return `* ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
     noneString(emptyText){
@@ -139,6 +139,7 @@ class MarkdownDChainUnorderListPrinter extends Printer{
         if (doc.name.indexOf(".sy") >= 0){
             docName = docName.substring(0, docName.length - 3);
         }
+        // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
         return `* ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
     }
     noneString(emptyText){
@@ -212,11 +213,7 @@ function generateSuperBlock(originalText, nColumns, nDepth){
         splitInterval++;
     }
     if (splitInterval <= 0) splitInterval = 1;
-    // let newColumnDivideStr = "}}}\n{{{row\n";//分栏字符串
-    //TODO: 函数返回随机id，并作为分隔符的一部分
-    // if (setting.superBlockBeta){////回来搞成一个函数返回随机数吧
-    //     newColumnDivideStr = "{: id=\"20220903164645-opaqueg\" updated=\"20220903164701\"}\n\n";
-    // }
+    
     if (setting.divideColumnAtIndent){
         //缩进中折列 Mode1
         // for (let i = allBullets.length - splitIntervalRef, cColumn = 0; i > 0 && cColumn < nColumns - 1;
@@ -282,6 +279,21 @@ function generateSuperBlock(originalText, nColumns, nDepth){
         }
         
     }
+}
+
+/**
+ * 对常见的html转义符换回原符号
+ * @param {*} inputStr 
+ * @returns 
+ */
+function htmlTransferParser(inputStr){
+    if (inputStr == null || inputStr == "") return "";
+    let transfer = ["&lt;", "&gt;", "&nbsp;", "&quot;", "&amp;"];
+    let original = ["<",    ">",    " ",      `"`,     "&"];
+    for (let i = 0; i < transfer.length; i++){
+        inputStr = inputStr.replaceAll(transfer[i], original[i]);
+    }
+    return inputStr;
 }
 
 

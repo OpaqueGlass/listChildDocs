@@ -233,7 +233,6 @@ function getOneLevelOutline(outlines, nowDepth, distinguish){
         if (distinguish){
             outline.name = `@${outline.name}`;
         }
-        outline.name = outline.name.replace("&nbsp;", " ");//替换空格转义符
         result += myPrinter.align(nowDepth);
         result += myPrinter.oneDocLink(outline);
         if (outline.type === "outline" && outline.blocks != null){
@@ -263,6 +262,9 @@ function showOrHideSetting(showBtn){
     let display = showBtn ? "":"none";
     $("#printMode, #listcolumn, #listdepth, #outlinedepth").css("display", display);
     $("#depthhint, #columnhint, #outlinedepthhint").css("display", display);
+    if ((custom_attr.listDepth != 0 || setting.showEndDocOutline) && showBtn){//层级不为0时不显示大纲层级
+        $("#outlinedepth, #outlinedepthhint").css("display", "none");
+    }
     if (myPrinter.write2file == 1){//写入文档时重设挂件大小
         window.frameElement.style.height = showBtn ? setting.height_2file_setting : setting.height_2file;
     }
