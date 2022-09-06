@@ -263,7 +263,7 @@ function showOrHideSetting(showBtn){
     let display = showBtn ? "":"none";
     $("#printMode, #listcolumn, #listdepth, #outlinedepth").css("display", display);
     $("#depthhint, #columnhint, #outlinedepthhint").css("display", display);
-    if ((custom_attr.listDepth != 0 || setting.showEndDocOutline) && showBtn){//层级不为0时不显示大纲层级
+    if ((custom_attr.listDepth != 0 && !setting.showEndDocOutline) && showBtn){//层级不为0时不显示大纲层级
         $("#outlinedepth, #outlinedepthhint").css("display", "none");
     }
     if (myPrinter.write2file == 1){//写入文档时重设挂件大小
@@ -424,11 +424,11 @@ function __refreshAppearance(){
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1){
-        $("#refresh, #listdepth, #printMode, #listcolumn").addClass("button_dark");
+        $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth").addClass("button_dark");
         $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint").addClass("ordinaryText_dark");
         $(".childDocLinks").addClass("childDocLinks_dark");
     }else{
-        $("#refresh, #listdepth, #printMode, #listcolumn").removeClass("button_dark");
+        $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth").removeClass("button_dark");
         $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint").removeClass("ordinaryText_dark");
         $(".childDocLinks").removeClass("childDocLinks_dark");
     }
@@ -470,6 +470,7 @@ async function __init(){
     $("#depthhint").text(language["depthHint"]);
     $("#columnhint").text(language["columnHint"]);
     $("#outlinedepthhint").text(language["outlineDepthHint"]);
+    $("#outlinedepthhint").css("white-space", "nowrap");//提示文字禁止折行
     //控制自动刷新选项是否显示
     if (!setting.showAutoBtn){
         $("#autoMode").attr("type", "hidden");

@@ -12,7 +12,7 @@ let custom_attr = {//这里列出的是挂件的默认设置，只在创建时�
     listDepth: 1,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
     auto: false, //创建挂件时是否自动更新，请勿设定为true
     listColumn: 1,//子文档列表列数，过多的列数将导致显示问题
-    outlineDepth: 1,//大纲列出层级数，混合列出时此项无效
+    outlineDepth: 3,//大纲列出层级数，混合列出时此项只控制大纲部分
 };
 let setting = {//全局设置
     width_2file: "20em",//将列表写入文件时，此项控制挂件的宽
@@ -27,7 +27,7 @@ let setting = {//全局设置
     floatWindowEnable: true,//为true启用挂件内浮窗（beta）
     includeAttrName: ["custom-f"],//数组中的属性名将在更新目录列表块时一并写入无序列表对应的元素属性中，或许可以适配部分主题的无序列表转导图功能
     superBlockBeta: true,//使用玄学的超级块创建方式//如果出现问题，请设置为false（测试中）
-    showEndDocOutline: false, //列出终端文档的大纲？影响性能，建议禁用(设置为false)
+    showEndDocOutline: false, //列出终端文档的大纲？影响性能、反应极慢，建议禁用(设置为false)
     inheritAttrs: true, //刷新列表后重写属性
 };
 //全局设置
