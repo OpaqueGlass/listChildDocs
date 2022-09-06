@@ -224,7 +224,8 @@ async function getDocOutlineText(docId, nowDepth, distinguish){
  * @returns 本层级及其子层级大纲生成文本，请+=保存；
  */
 function getOneLevelOutline(outlines, nowDepth, distinguish){
-    if (outlines == null || outlines[0].depth >= custom_attr.outlineDepth) return "";
+    if (outlines == null || outlines == undefined || outlines.length <= 0
+        || outlines[0].depth >= custom_attr.outlineDepth) return "";
     let result = "";
     for (let outline of outlines){
         if (!isValidStr(outline.name)){//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
@@ -286,6 +287,7 @@ function setColumn(){
  */
 function printError(msgText, clear = true){
     if (clear) $(".linksContainer *").remove();
+    $("#linksContainer").css("column-count", "");//显示错误时不分栏
     $(`<ul><li class="linksListItem errorinfo">${language["error"]}` + msgText + `</li></ul>`).appendTo("#linksContainer");
     window.frameElement.style.height = "10em";
 }
