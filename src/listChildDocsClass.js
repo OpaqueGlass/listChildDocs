@@ -188,22 +188,8 @@ function generateSuperBlock(originalText, nColumns, nDepth){
         console.error("未能在文本中找到无序列表，超级块分列失败");
         return originalText;
     }
-    let divideIndex = new Array(firstBullets.length);//list划分位置（仅首层行）
-    let divideAllIndex = new Array(allBullets.length);//list划分位置（所有行）
-    let firstBulletIndex = new Array(firstBullets.length);//所有行中，是首层行下标
-    let cIsFirstBullet = 0;
-    //1层级无序列表下标
-    for (let i = 0; i < divideIndex.length; i++){
-        divideIndex[i] = originalText.indexOf(firstBullets[i]);
-    }
-    //所有层级无序列表下标
-    for (let i = 0; i < divideAllIndex.length; i++){
-        divideAllIndex[i] = originalText.indexOf(allBullets[i]);
-        if (firstBullets.indexOf(allBullets[i]) != -1){
-            firstBulletIndex[cIsFirstBullet++] = i;
-        }
-    }
     let result = originalText;
+    //分列间隔计算
     let splitInterval = Math.floor(firstBullets.length / nColumns);//仅计算首行，分列间隔
     let splitIntervalRef = Math.floor(allBullets.length / nColumns);//算上所有行，分列间隔
     if ((allBullets.length / nColumns).toString().match(/\./) != null){//均匀排布
@@ -213,9 +199,23 @@ function generateSuperBlock(originalText, nColumns, nDepth){
         splitInterval++;
     }
     if (splitInterval <= 0) splitInterval = 1;
-    
+    //缩进中折列 Mode1
     if (setting.divideColumnAtIndent){
-        //缩进中折列 Mode1
+        let divideIndex = new Array(firstBullets.length);//list划分位置（仅首层行）
+        let divideAllIndex = new Array(allBullets.length);//list划分位置（所有行）
+        let firstBulletIndex = new Array(firstBullets.length);//所有行中，是首层行下标
+        let cIsFirstBullet = 0;
+        //1层级无序列表下标
+        for (let i = 0; i < divideIndex.length; i++){
+            divideIndex[i] = originalText.indexOf(firstBullets[i]);
+        }
+        //所有层级无序列表下标
+        for (let i = 0; i < divideAllIndex.length; i++){
+            divideAllIndex[i] = originalText.indexOf(allBullets[i]);
+            if (firstBullets.indexOf(allBullets[i]) != -1){
+                firstBulletIndex[cIsFirstBullet++] = i;
+            }
+        }
         // for (let i = allBullets.length - splitIntervalRef, cColumn = 0; i > 0 && cColumn < nColumns - 1;
         //     i -= splitIntervalRef, cColumn++){
         for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length && cColumn < nColumns - 1;
@@ -234,8 +234,7 @@ function generateSuperBlock(originalText, nColumns, nDepth){
                 result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
             }
         }
-    }else{
-        //禁用缩进中截断Mode2（依据首层折断）
+    }else{//禁用缩进中截断Mode2（依据首层折断）
         //分列方式尽可能均匀
         let splitAtFirstIndex = new Array();
         //先按行分，从理应换行位置向后找不截断的换行位置，但在文档数超长时仍可能不均分
@@ -268,7 +267,7 @@ function generateSuperBlock(originalText, nColumns, nDepth){
         result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
     }
     
-    console.log(result);
+    // console.log(result);
     return result;
     //生成kramdown类型的块分隔（？）
     function getDivider(){
