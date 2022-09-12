@@ -27,7 +27,7 @@ let setting = {//全局设置
     floatWindowEnable: true,//为true启用挂件内浮窗（beta）
     includeAttrName: ["custom-f"],//数组中的属性名将在更新目录列表块时一并写入无序列表对应的元素属性中，或许可以适配部分主题的无序列表转导图功能
     superBlockBeta: true,//使用玄学的超级块创建方式//如果出现问题，请设置为false（测试中）
-    showEndDocOutline: false, //列出终端文档的大纲？影响性能、反应极慢，建议禁用(设置为false)
+    showEndDocOutline: false, //列出终端文档的大纲？影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
     inheritAttrs: true, //刷新列表后重写属性
 };
 //全局设置
@@ -62,6 +62,7 @@ let zh_CN = {
     depthHint: "层级",
     noOutline: "似乎没有文档大纲。",
     outlineDepthHint: "大纲层级",
+    working: "执行中……",
 };
 /*let en = {//先当他不存在
     refreshNeeded: "Can't find the child-doc-list block. Please click refresh button again.",

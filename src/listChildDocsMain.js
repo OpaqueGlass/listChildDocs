@@ -185,11 +185,11 @@ async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
     for (let doc of docs){
         insertData += myPrinter.align(nowDepth);
         insertData += myPrinter.oneDocLink(doc);
-        if (doc.subFileCount > 0 && (nowDepth+1) <= custom_attr.listDepth){
+        if (doc.subFileCount > 0 && (nowDepth+1) <= custom_attr.listDepth){//获取下一层级子文档
             insertData += myPrinter.beforeChildDocs(nowDepth);
             insertData = await getOneLevelText(notebook, doc.path, insertData, nowDepth + 1);
             insertData += myPrinter.afterChildDocs(nowDepth);
-        }else if (setting.showEndDocOutline){//终端节点列出大纲，由选项控制
+        }else if (setting.showEndDocOutline && custom_attr > 0){//终端文档列出大纲，由选项控制
             let outlines = await getDocOutlineAPI(doc.id);
             if (outlines != null){
                 insertData += myPrinter.beforeChildDocs(nowDepth);
@@ -204,7 +204,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
 /**
  * 生成文档大纲输出文本
  * @param {*} docId
- * @param {*} nowDepth 当前层级
+ * @param {*} nowDepth 当前层级（输出文本层级）
  * @param {*} distinguish 区分大纲和页面，如果同时列出文档且需要区分，为true
  * @return {*} 仅大纲的输出文本，如果有其他，请+=保存
  */
@@ -219,11 +219,12 @@ async function getDocOutlineText(docId, nowDepth, distinguish){
 /**
  * 生成本层级大纲文本
  * @param {*} outlines 大纲对象
- * @param {*} nowDepth 
+ * @param {*} nowDepth 当前层级（输出文本层级）
  * @param {*} distinguish 区分大纲和页面，如果同时列出文档且需要区分，为true
  * @returns 本层级及其子层级大纲生成文本，请+=保存；
  */
 function getOneLevelOutline(outlines, nowDepth, distinguish){
+    //大纲层级是由API返回值确定的，混合列出时不受“层级”listDepth控制
     if (outlines == null || outlines == undefined || outlines.length <= 0
         || outlines[0].depth >= custom_attr.outlineDepth) return "";
     let result = "";
@@ -304,6 +305,7 @@ async function __main(initmode = false){
     }else{
         return;
     }
+    $("#updateTime").text(language["working"]);
     // pushMsgAPI(language["startRefresh"], 4500);
     try{
         //获取挂件参数
