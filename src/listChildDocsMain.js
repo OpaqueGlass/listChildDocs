@@ -473,6 +473,8 @@ async function __init(){
     $("#columnhint").text(language["columnHint"]);
     $("#outlinedepthhint").text(language["outlineDepthHint"]);
     $("#outlinedepthhint").css("white-space", "nowrap");//提示文字禁止折行
+    //跟随软件字号设定
+    $("#linksContainer").css("font-size", window.top.siyuan.config.editor.fontSize + "px");
     //控制自动刷新选项是否显示
     if (!setting.showAutoBtn){
         $("#autoMode").attr("type", "hidden");
