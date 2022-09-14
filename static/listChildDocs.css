@@ -109,6 +109,12 @@ input:hover {
     padding: 4px 0px;
 }
 
+.iconpic {
+    width: 18px;
+    height: 18px;
+    vertical-align: bottom;
+}
+
 .childDocLinks,
 .refLinks {
     color: black;

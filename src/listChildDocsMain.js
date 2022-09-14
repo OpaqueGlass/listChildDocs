@@ -189,7 +189,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
             insertData += myPrinter.beforeChildDocs(nowDepth);
             insertData = await getOneLevelText(notebook, doc.path, insertData, nowDepth + 1);
             insertData += myPrinter.afterChildDocs(nowDepth);
-        }else if (setting.showEndDocOutline && custom_attr > 0){//终端文档列出大纲，由选项控制
+        }else if (setting.showEndDocOutline && custom_attr.outlineDepth > 0){//终端文档列出大纲，由选项控制
             let outlines = await getDocOutlineAPI(doc.id);
             if (outlines != null){
                 insertData += myPrinter.beforeChildDocs(nowDepth);

@@ -29,6 +29,7 @@ let setting = {//全局设置
     superBlockBeta: true,//使用玄学的超级块创建方式//如果出现问题，请设置为false（测试中）
     showEndDocOutline: false, //列出终端文档的大纲？影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
     inheritAttrs: true, //刷新列表后重写属性
+    customEmojiEnable: false, //文档使用自定义emoji时，写入自定义emoji图片
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用

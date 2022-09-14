@@ -71,7 +71,8 @@ class HtmlAlinkPrinter extends Printer{
         return "</ul>";
     }
     oneDocLink(doc){
-        return `<li class="linksListItem"><a class='childDocLinks' href="siyuan://blocks/${doc.id}">${emojiIconHandler(doc.icon, doc.subFileCount != 0)}${doc.name.replace(".sy", "")}</a></li>`;
+        let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+        return `<li class="linksListItem"><a class='childDocLinks' href="siyuan://blocks/${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</a></li>`;
     }
     //在所有输出文本写入之前
     beforeAll(){
@@ -91,7 +92,8 @@ class HtmlReflinkPrinter extends Printer{
         return `</ul>`;
     }
     oneDocLink(doc){
-        return `<li class="linksListItem"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiIconHandler(doc.icon, doc.subFileCount != 0)}${doc.name.replace(".sy", "")}</span></li>`;
+        let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+        return `<li class="linksListItem"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
     }
     //在所有输出文本写入之前
     beforeAll(){
@@ -115,7 +117,7 @@ class MarkdownUrlUnorderListPrinter extends Printer{
             docName = docName.substring(0, docName.length - 3);
         }
         docName = htmlTransferParser(docName);
-        return `* ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
+        return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
     noneString(emptyText){
         return "* " + emptyText;
@@ -140,7 +142,7 @@ class MarkdownDChainUnorderListPrinter extends Printer{
             docName = docName.substring(0, docName.length - 3);
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
-        return `* ${emojiIconHandler(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
+        return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
     }
     noneString(emptyText){
         return "* " + emptyText;
@@ -149,24 +151,6 @@ class MarkdownDChainUnorderListPrinter extends Printer{
         return generateSuperBlock(originalText, nColumns, nDepth);
     }
 } 
-
-/**
- * 接受并处理icon16进制字符串为Unicode字符串
- * @param {*} iconString 形如ffff-ffff-ffff-ffff 或 来自 files[x].icon
- * @param {*} hasChild 有无子文档
- * @returns 
- */
-let emojiIconHandler = function(iconString, hasChild = false){
-    if (!setting.emojiEnable) return "";//禁用emoji时
-    if (iconString == "")return hasChild?"📑":"📄";//无icon默认值
-    if (iconString == undefined || iconString == null) return "";//没有icon属性，不是文档类型，不返回emoji
-    let result = "";
-    iconString.split("-").forEach(element => {
-        result += String.fromCodePoint("0x"+element);
-    });
-    return result;
-}
-
 
 /**
  * 用于根据nColumns分列数拆分无序列表生成超级块（单行！）
@@ -280,8 +264,70 @@ function generateSuperBlock(originalText, nColumns, nDepth){
     }
 }
 
+
 /**
- * 对常见的html转义符换回原符号
+ * 在html中显示文档icon
+ * @param {*} iconString files[x].icon
+ * @param {*} hasChild 
+ * @returns 
+ */
+ function getEmojiHtmlStr(iconString, hasChild){
+    if (!setting.emojiEnable) return "";//禁用emoji时直接返回
+    if (iconString == undefined || iconString == null) return "";//没有icon属性，不是文档类型，不返回emoji
+    if (iconString == "")return hasChild?"📑":"📄";//无icon默认值
+    let result = iconString;
+    if (iconString.indexOf(".") != -1){
+        if (!setting.customEmojiEnable) return hasChild?"📑":"📄";//禁用自定义emoji时
+        result = `<img class="iconpic" src="/emojis/${iconString}"/>`;
+    }else{
+        result = emojiIconHandler(iconString, hasChild);
+    }
+    return result;
+}
+
+/**
+ * 在markdown中显示文档icon
+ * @param {*} iconString files[x].icon
+ * @param {*} hasChild 
+ * @returns 
+ */
+function getEmojiMarkdownStr(iconString, hasChild){
+    if (!setting.emojiEnable) return "";//禁用emoji时直接返回
+    if (iconString == undefined || iconString == null) return "";//没有icon属性，不是文档类型，不返回emoji
+    if (iconString == "")return hasChild?"📑":"📄";//无icon默认值
+    let result = iconString;
+    if (iconString.indexOf(".") != -1){
+        if (!setting.customEmojiEnable) return hasChild?"📑":"📄";//禁用自定义emoji时
+        result = `![doc-icon](emojis/${markdownEmojiPathEncoder(iconString)}){: style=\"width: ${window.top.siyuan.config.editor.fontSize + 4}px;\"}`;
+    }else{
+        result = emojiIconHandler(iconString, hasChild);
+    }
+    return result;
+}
+
+/**
+ * 接受并处理icon16进制字符串为Unicode字符串
+ * 不再处理（为空等）例外情况
+ * @param {*} iconString 形如ffff-ffff-ffff-ffff
+ * @param {*} hasChild 有无子文档
+ * @returns 
+ */
+let emojiIconHandler = function(iconString, hasChild = false){
+    //确定是emojiIcon 再调用，printer自己加判断
+    try{
+        let result = "";
+        iconString.split("-").forEach(element => {
+            result += String.fromCodePoint("0x"+element);
+        });
+    }catch(err){
+        console.error("emoji处理时发生错误", iconString, err);
+        return hasChild?"📑":"📄";
+    }
+    return result;
+}
+
+/**
+ * 对常见的html字符实体换回原符号
  * @param {*} inputStr 
  * @returns 
  */
@@ -289,6 +335,20 @@ function htmlTransferParser(inputStr){
     if (inputStr == null || inputStr == "") return "";
     let transfer = ["&lt;", "&gt;", "&nbsp;", "&quot;", "&amp;"];
     let original = ["<",    ">",    " ",      `"`,     "&"];
+    for (let i = 0; i < transfer.length; i++){
+        inputStr = inputStr.replaceAll(transfer[i], original[i]);
+    }
+    return inputStr;
+}
+
+/**
+ * 仅emoji使用，将emoji路径中的保留符进行转换
+ * @param {*} inputStr 
+ */
+function markdownEmojiPathEncoder(inputStr){
+    if (inputStr == null || inputStr == "") return "";
+    let transfer = ["(",   ")",   " "];
+    let original = ["%28", "%29", "&#32;"];
     for (let i = 0; i < transfer.length; i++){
         inputStr = inputStr.replaceAll(transfer[i], original[i]);
     }
