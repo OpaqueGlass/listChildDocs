@@ -1,5 +1,12 @@
 ## 更新日志
 
+### v0.0.6 (2022-9-15)
+
+- 修复：文档图标为自定义emoji时无法列出子文档的问题（[#10](https://github.com/OpaqueGlass/listChildDocs/issues/10)）；
+- 改进：支持写入自定义emoji图片；
+- 改进：执行刷新过程中显示提示词；
+- 改进：挂件内字号根据思源编辑器字号设定；
+
 ### v0.0.5 (2022-9-6)
 
 - 新增：支持列出所在文档大纲内容（[#8](https://github.com/OpaqueGlass/listChildDocs/issues/8)）；
