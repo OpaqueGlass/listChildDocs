@@ -319,11 +319,12 @@ let emojiIconHandler = function(iconString, hasChild = false){
         iconString.split("-").forEach(element => {
             result += String.fromCodePoint("0x"+element);
         });
+        return result;
     }catch(err){
         console.error("emoji处理时发生错误", iconString, err);
         return hasChild?"📑":"📄";
     }
-    return result;
+    
 }
 
 /**
