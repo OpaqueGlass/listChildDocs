@@ -1,5 +1,9 @@
 ## 更新日志
 
+### v0.0.7 (2022-9-17)
+
+- 修复：v0.0.6引入的自选emoji导入失败问题（[#11](https://github.com/OpaqueGlass/listChildDocs/issues/11)）；
+
 ### v0.0.6 (2022-9-15)
 
 - 修复：文档图标为自定义emoji时无法列出子文档的问题（[#10](https://github.com/OpaqueGlass/listChildDocs/issues/10)）；
