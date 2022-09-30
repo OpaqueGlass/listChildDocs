@@ -4,13 +4,28 @@
 
 #setting {
     background-image: url("./iconSetting.png");
-    background-size: 80%;
-    border: 0px;
-    width: 1.5em;
-    height: 1.5em;
 }
 
-button,
+button {
+    border: 0px;
+    font-weight: 300;
+    background-size: auto 1.5em;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 0.3em;
+    box-sizing: border-box;
+    /* color: white; */
+    /* padding: 15px 32px; */
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    min-width: 15px;
+    background-color: #f0f0f022;
+}
+
 select,
 input {
     border: 1px solid sandybrown;
