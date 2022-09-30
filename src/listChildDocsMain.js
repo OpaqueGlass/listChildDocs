@@ -349,6 +349,11 @@ async function __main(initmode = false){
                 $(".childDocLinks").addClass("childDocLinks_dark");
             }
         }
+        //issue #13 挂件自动高度
+        if (setting.autoHeight && myPrinter.write2file == 0){
+            console.log("挂件高度应当设为",$("body").outerHeight());
+            window.frameElement.style.height = $("body").outerHeight() + 35 + "px";
+        }
         // __refreshAppearance();
     }catch(err){
         console.error(err);
@@ -548,6 +553,6 @@ try {
     
 }catch(err){
     console.error(err);
-    printError(err.message,false);
+    // printError(err.message,false);
     console.warn("监视外观切换事件失败");
 }
