@@ -1,6 +1,6 @@
 ## list Child Docs列出子文档
 
-> 当前版本： v0.0.7 修复：上一版本引入的emoji问题；
+> 当前版本： v0.0.8 修复：在思源v2.2.1+版本出现错误提示Failed to execute 'observe'；外观：按钮图标变更；改进：挂件内列出时支持自动更改挂件高度；
 >
 
 > 用于思源笔记创建、更新子文档目录列表的挂件，依靠bugs运行。
@@ -8,7 +8,7 @@
 - 创建当前文档的子文档目录列表；
   - 创建当前文档大纲列表；
 
-- 子文档目录列表形式：
+- 子文档目录列表形式（无序列表）：
   - 挂件内——`siyuan://`子文档块超链接（安卓端可能无法打开[^3]）；
   - 挂件内——“引用块”（功能测试中）；
   - 文档中——`siyuan://`子文档块超链接；
@@ -50,6 +50,10 @@
 
 - `引用块`：（文档中）在挂件下方创建无序列表\*展示引用块；
 
+- `1.默认`：（挂件内）有序列表`siyuan://`超链接；
+
+- `1.挂件`：（挂件内）有序列表展示“引用块”
+
 7：大纲层级：列出大纲时，设定大纲的显示层级数；
 
 > 层级设置为0、并保存设置后，才会显示大纲层级设定（层级数为实际层级，和h1h2无关）
@@ -70,13 +74,14 @@
 - 启用/禁用 超级块分列（分栏）时在缩进位置折断：`divideColumnAtIndent`；
 - 启用/禁用 列出子文档时一并列出终端页面的大纲：`showEndDocOutline`；（影响体验，刷新极慢）
 - 启用/禁用 写入自定义emoji图片：`customEmojiEnable`；
+- 启用/禁用 挂件内展示时根据目录长度自动更改挂件高度： `autoHeight`；
 - ....其他设置；
 
 ### 使用举例
 
 有些主题支持将文档中的无序列表显示为导图/表格。理论上v0.0.5版本可以在刷新后保留相关属性设定，即刷新后仍然展示为导图/表格。
 
-注：分栏（分列）数>1时，不建议更改无序列表视图样式；
+注：如果视图更改为导图/表格，请不要使用分列，请将分列数设置为1。
 
 > 在此前的版本，刷新目录列表后将丢失自定义属性，现在相关属性将在刷新后重写，并将`custom-f`属性写入对应元素。
 
@@ -99,7 +104,7 @@
 - 关于写入自定义emoji图片：
   - 挂件以图片的方式写入的自定义emoji，有一些边距导致对齐效果不好；
   - 请避免图片路径包括特殊符号，例如`()%& `，如果包括，不能确定实际效果;
-  - 自定义emoji不再assets下，不是资源文件，会有网络图片角标（设置-编辑器-是否显示网络图片角标）；
+  - 自定义emoji不在assets下，不是资源文件，会有网络图片角标（设置-编辑器-是否显示网络图片角标）；
 
 
 
@@ -129,16 +134,18 @@
 1. jQuery （本项目中通过jQuery选择页面元素）；
 
 ```
- * jQuery JavaScript Library v3.6.0
- * https://jquery.com/
- *
- * Includes Sizzle.js
- * https://sizzlejs.com/
- *
- * Copyright OpenJS Foundation and other contributors
- * Released under the MIT license
- * https://jquery.org/license
+jQuery JavaScript Library v3.6.0  https://jquery.com/
+Copyright OpenJS Foundation and other contributors
+Released under the MIT license  https://jquery.org/license
 ```
+
+### 图标
+
+1. [刷新按钮图标](https://www.iconfinder.com/icons/5402417/refresh_rotate_sync_update_reload_repeat_icon)，作者：[amoghdesign](https://www.iconfinder.com/amoghdesign)，许可协议：[CC3.0 BY-NC](http://creativecommons.org/licenses/by-nc/3.0/)；
+
+2. [设置按钮图标](https://www.iconfinder.com/icons/5925600/control_options_settings_icon)，作者：[IconPai](https://www.iconfinder.com/iconpai)，许可说明：Free for commercial use (Include link to authors website；
+
+
 
 [^1]: 例外：安全模式下，写入文档时（模式为`url`或`引用块`），将不会自动刷新。
 [^2]: 通过监视页签变化获取当前文档是否更新，默认仅在windows启用，不支持ios、android系统。例外：安全模式下，写入文档时（模式为`url`或`引用块`），将不会自动刷新。

@@ -1,8 +1,15 @@
 ## 更新日志
 
+### v0.0.8 (2022-10-5)
+
+- 修复：在思源v2.2.1+版本出现错误提示Failed to execute 'observe'；[#15](https://github.com/OpaqueGlass/listChildDocs/issues/15)
+- 外观：更换按钮图标；[#14](https://github.com/OpaqueGlass/listChildDocs/issues/14)
+- 改进：挂件内列出时支持自动更改挂件高度；[#13](https://github.com/OpaqueGlass/listChildDocs/issues/13)
+- 新增：挂件内支持有序列表模式；[#17](https://github.com/OpaqueGlass/listChildDocs/issues/17)
+
 ### v0.0.7 (2022-9-17)
 
-- 修复：v0.0.6引入的自选emoji导入失败问题（[#11](https://github.com/OpaqueGlass/listChildDocs/issues/11)）；
+- 修复：v0.0.6引入的普通emoji插入失败问题（[#11](https://github.com/OpaqueGlass/listChildDocs/issues/11)）；
 
 ### v0.0.6 (2022-9-15)
 

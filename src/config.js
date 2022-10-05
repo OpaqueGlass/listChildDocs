@@ -30,7 +30,7 @@ let setting = {//全局设置
     showEndDocOutline: false, //列出终端文档的大纲？影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
     inheritAttrs: true, //刷新列表后重写属性
     customEmojiEnable: true, //文档使用自定义emoji时，写入自定义emoji图片
-    autoHeight: true, //在模式“默认”“挂件beta”下，使得挂件高度跟随目录长度自动调整
+    autoHeight: false, //在模式“默认”“挂件beta”下，使得挂件高度跟随目录长度自动调整
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用
