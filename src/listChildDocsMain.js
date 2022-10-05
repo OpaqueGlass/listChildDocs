@@ -546,13 +546,13 @@ document.getElementById("setting").onclick=function(){
 __init();
 
 try {
-    //用于监视深色模式变化
+    // TODO: 监视深色模式变化
     if (checkOs()){
         mutationObserver2.observe($(window.parent.document).find("#barThemeMode").get(0), {"attributes": true, "attributeFilter": ["aria-label"]});
     }
+    // window.top.addEventListener("change", ()=>{console.log("changed")});
     
 }catch(err){
     console.error(err);
-    // printError(err.message,false);
     console.warn("监视外观切换事件失败");
 }

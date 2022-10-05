@@ -66,7 +66,7 @@ input {
     width: 5em;
 }
 
-#savedepth {
+/* #savedepth {
     width: 3em;
     height: 1.5em;
     border: 1px solid sandybrown;
@@ -79,7 +79,7 @@ input {
 #listcolumn {
     border-style: dashed;
     border-color: purple;
-}
+} */
 
 /* #listcolumn:focus{
     border: 2px dashed purple

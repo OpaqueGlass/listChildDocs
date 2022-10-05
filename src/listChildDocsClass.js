@@ -104,6 +104,36 @@ class HtmlReflinkPrinter extends Printer{
         return `</ul></div>`;
     }
 }
+// 有序
+class HtmlAlinkOrderPrinter extends HtmlAlinkPrinter {
+    beforeChildDocs(nowDepth){
+        return "<ol>";
+    }
+    afterChildDocs(nowDepth){
+        return "</ol>";
+    }
+    beforeAll(){
+        return `<ol class="linksList" id="linksList">`;
+    }
+    afterAll(){
+        return `</ol>`;
+    }
+}
+class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
+    beforeChildDocs(nowDepth){
+        return `<ol>`;
+    }
+    afterChildDocs(nowDepth){
+        return `</ol>`;
+    }
+    beforeAll(){
+        return `<div id="refContainer"> <ol class="linksList" id="linksList">`;
+    }
+    afterAll(){
+        return `</ol></div>`;
+    }
+}
+// 无序文档URL
 class MarkdownUrlUnorderListPrinter extends Printer{
     write2file = 1;
     align(nowDepth){
@@ -126,6 +156,7 @@ class MarkdownUrlUnorderListPrinter extends Printer{
         return generateSuperBlock(originalText, nColumns, nDepth);
     }
 }
+// 无序文档引用块
 class MarkdownDChainUnorderListPrinter extends Printer{
     write2file = 1;
     //对齐、缩进
@@ -151,6 +182,28 @@ class MarkdownDChainUnorderListPrinter extends Printer{
         return generateSuperBlock(originalText, nColumns, nDepth);
     }
 } 
+// 有序文档URL
+class MarkdownUrlOrderListPrinter extends MarkdownUrlUnorderListPrinter{
+    oneDocLink(doc){
+        let docName = doc.name;
+        if (doc.name.indexOf(".sy") >= 0){
+            docName = docName.substring(0, docName.length - 3);
+        }
+        docName = htmlTransferParser(docName);
+        return `1. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
+    }
+}
+//有序文档引用块
+class MarkdownDChainOrderListPrinter extends MarkdownDChainUnorderListPrinter{
+    oneDocLink(doc){
+        let docName = doc.name;
+        if (doc.name.indexOf(".sy") >= 0){
+            docName = docName.substring(0, docName.length - 3);
+        }
+        // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
+        return `1. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
+    }
+} 
 
 /**
  * 用于根据nColumns分列数拆分无序列表生成超级块（单行！）
@@ -161,16 +214,22 @@ class MarkdownDChainUnorderListPrinter extends Printer{
  */
 function generateSuperBlock(originalText, nColumns, nDepth){
     if (nColumns <= 1) return originalText;
-    console.log(originalText)
+    // console.log(originalText);
     //定位合适的划分点
     let regex = /^\* .*/gm;//首层级
     let allBulletsRegex = /^ *\* .*/gm;//所有行
     let firstBullets = originalText.match(regex);//一层级
     let allBullets = originalText.match(allBulletsRegex);//所有行
-    //没有匹配时停止
+    //无序列表无匹配，换用有序列表匹配
     if (firstBullets == null || allBullets == null){
-        console.error("未能在文本中找到无序列表，超级块分列失败");
-        return originalText;
+        regex = /^[0-9]+\. .*/gm;//首层级
+        allBulletsRegex = /^ *[0-9]+\. .*/gm;//所有行
+        firstBullets = originalText.match(regex);//一层级
+        allBullets = originalText.match(allBulletsRegex);//所有行
+        if (firstBullets == null || allBullets == null){//有序列表、无序列表均匹配失败
+            console.error("未能在文本中找到有/无序列表，超级块分列失败");
+            return originalText;
+        }
     }
     let result = originalText;
     //分列间隔计算
@@ -251,7 +310,7 @@ function generateSuperBlock(originalText, nColumns, nDepth){
         result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
     }
     
-    // console.log(result);
+    console.log(result);
     return result;
     //生成kramdown类型的块分隔（？）
     function getDivider(){
@@ -357,7 +416,17 @@ function markdownEmojiPathEncoder(inputStr){
 }
 
 
-export default {Printer, HtmlAlinkPrinter, MarkdownDChainUnorderListPrinter, MarkdownUrlUnorderListPrinter, HtmlReflinkPrinter}//Priter子类在这里列出
+export default {
+    Printer,
+    HtmlAlinkPrinter,//无序<a>
+    MarkdownDChainUnorderListPrinter,//无序双链
+    MarkdownUrlUnorderListPrinter,//无序url
+    HtmlReflinkPrinter,//无序双链
+    HtmlReflinkOrderPrinter,//有序html双链
+    HtmlAlinkOrderPrinter,//有序<a>
+    MarkdownUrlOrderListPrinter,//有序url
+    MarkdownDChainOrderListPrinter//有序双链
+}//Priter子类在这里列出
 export {Printer};
 /** 附录：doc对象（由文档树api获得），示例如下
  * "path": "/20220807110638-uv5bqv8/20220810155329-xnskr8a.sy",//文档路径
