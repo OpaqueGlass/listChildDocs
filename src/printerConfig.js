@@ -7,8 +7,9 @@ let modeName = {//key应为数字，且由0递增。这里设置模式对应的�
     "3": language["inDulChain"],
     "4": language["inOWidget"],
     "5": language["inODefault"],
-    // "6": language["inOUrl"],
-    // "7": language["inODulChain"],
+    "6": language["inOUrl"],
+    "7": language["inODulChain"],
+    "8": "测试"
 };
 let printerList = {//key应为数字，且由0递增。
     "0": allPrinter.HtmlAlinkPrinter,//出错时将重置到此模式
@@ -17,7 +18,8 @@ let printerList = {//key应为数字，且由0递增。
     "3": allPrinter.MarkdownDChainUnorderListPrinter,//在文档中写入无序列表 引用块 
     "4": allPrinter.HtmlReflinkOrderPrinter, //挂件内，有序列表伪引用块
     "5": allPrinter.HtmlAlinkOrderPrinter, //挂件内，有序列表<a>
-    // "6": allPrinter.MarkdownUrlOrderListPrinter,//在文档中写入有序列表 siyuanUrl
-    // "7": allPrinter.MarkdownDChainOrderListPrinter,//在文档中写入有序列表 引用块
+    "6": allPrinter.MarkdownUrlOrderListPrinter,//在文档中写入有序列表 siyuanUrl
+    "7": allPrinter.MarkdownDChainOrderListPrinter,//在文档中写入有序列表 引用块
+    "8": allPrinter.MarkdownTestPrinter
 };//您可以在./listChildDocsClass.js中自定义输出格式Printer类，export，然后在此列出，并在modeName中起名
 export {modeName, printerList};

@@ -1,4 +1,4 @@
-import {Printer} from './listChildDocsClass.js';
+import { Printer } from './listChildDocsClass.js';
 import {
     queryAPI,
     getSubDocsAPI,
@@ -12,20 +12,20 @@ import {
     insertBlockAPI,
     checkOs,
     getDocOutlineAPI
-} from './API.js'; 
-import {custom_attr, language, setting} from './config.js';
-import {printerList, modeName} from "./printerConfig.js";
-import {openRefLink, showFloatWnd} from './ref-util.js'
+} from './API.js';
+import { custom_attr, language, setting } from './config.js';
+import { printerList, modeName } from "./printerConfig.js";
+import { openRefLink, showFloatWnd } from './ref-util.js'
 let thisDocId = "";
 let thisWidgetId = "";
 let mutex = 0;
 let myPrinter;
 let showSetting;
 //将Markdown文本写入文件(当前挂件之后的块)
-async function addText2File(markdownText, blockid = ""){
+async function addText2File(markdownText, blockid = "") {
     let attrData = {};
     //读取属性.blockid为null时不能去读
-    if (isValidStr(blockid) && setting.inheritAttrs){
+    if (isValidStr(blockid) && setting.inheritAttrs) {
         //判断是否是分列的目录块（是否是超级块）
         // let subLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
         let subDirectLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id = '${blockid}'`);
@@ -41,31 +41,31 @@ async function addText2File(markdownText, blockid = ""){
     }
     //创建/更新块
     let response;
-    if (isValidStr(blockid)){
+    if (isValidStr(blockid)) {
         response = await updateBlockAPI(markdownText, blockid);
-    }else{
+    } else {
         response = await insertBlockAPI(markdownText, thisWidgetId);
     }
-    if (response != null && isValidStr(response.id)){
+    if (response != null && isValidStr(response.id)) {
         //将子文档无序列表块id写入属性
         custom_attr['childListId'] = response.id;
-    }else if (response == null || response.id == ""){
+    } else if (response == null || response.id == "") {
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
-        console.log("更新失败，下次将创建新块", response ? response.id:undefined);
+        console.log("更新失败，下次将创建新块", response ? response.id : undefined);
         await setCustomAttr();//移除id属性后需要保存
         throw Error(language["refreshNeeded"]);
-    }else{
+    } else {
         console.error("插入/更新块失败", response.id);
         throw Error(language["insertBlockFailed"]);
     }
-    
+
     //重写属性
     //超级块重写属性特殊对待
-    if (custom_attr.listColumn > 1 && setting.inheritAttrs){
+    if (custom_attr.listColumn > 1 && setting.inheritAttrs) {
         //没有启用新的模式就不写超级块了，v0.0.4的超级块逻辑没适配
-        if (!setting.superBlockBeta){
-            await addblockAttrAPI({"memo": language["modifywarn"]}, blockid);
+        if (!setting.superBlockBeta) {
+            await addblockAttrAPI({ "memo": language["modifywarn"] }, blockid);
             return;
         }
         //方案1，由更新返回值获取超级块下无序列表块id
@@ -73,26 +73,26 @@ async function addText2File(markdownText, blockid = ""){
         //找超级块的直接子元素，且子元素是无序列表块（容器块）
         // console.log(response.data);
         // console.log("更新后，直接子元素", $(response.data));
-        $(response.data).children().filter(".list[data-subtype='u']").each(function(){domDataNodeId.push($(this).attr("data-node-id"));});
+        $(response.data).children().filter(".list[data-subtype='u']").each(function () { domDataNodeId.push($(this).attr("data-node-id")); });
         // $(`<div id="listChildDocs">${response.data}</div>`).find("div[data-type='NodeSuperBlock'] > .list[data-subtype='u']").each(function(){console.log($(this));domDataNodeId.push($(this).attr("data-node-id"));});
         console.assert(domDataNodeId.length >= 1, "无法在返回值中找到对应块，更新子块属性失败", domDataNodeId);
         let timeoutIncrease = 700;
         //为每个无序列表子块设定属性（其实memo设置的有点多了），延时是防止属性写入失败//上次的bug是循环内都延时5000==没延时
-        domDataNodeId.forEach(async function(currentValue){
-            setTimeout(async function(){await addblockAttrAPI(attrData, currentValue);console.log("设置子块属性", currentValue)}, timeoutIncrease+=700);
+        domDataNodeId.forEach(async function (currentValue) {
+            setTimeout(async function () { await addblockAttrAPI(attrData, currentValue); console.log("设置子块属性", currentValue) }, timeoutIncrease += 700);
         });
         //延时将指定的属性写入dom
         setTimeout(
-            ()=>{setAttrToDom(domDataNodeId, attrData);}
-        , 700 * domDataNodeId.length);
-    }else{
+            () => { setAttrToDom(domDataNodeId, attrData); }
+            , 700 * domDataNodeId.length);
+    } else {
         attrData["memo"] = language["modifywarn"];//为创建的块写入警告信息
         //对于非超级块，已经有id了，直接写入属性
         await addblockAttrAPI(attrData, blockid);
         setAttrToDom([blockid], attrData);
     }
-    
-    
+
+
 }
 
 /**
@@ -102,10 +102,10 @@ async function addText2File(markdownText, blockid = ""){
  * @param {*} attrs 要设置的属性
  * 
  */
-function setAttrToDom(queryBlockIds, attrs){
-    for (let queryBlockId of queryBlockIds){
-        for (let setAttrName of setting.includeAttrName){
-            if (setAttrName in attrs){
+function setAttrToDom(queryBlockIds, attrs) {
+    for (let queryBlockId of queryBlockIds) {
+        for (let setAttrName of setting.includeAttrName) {
+            if (setAttrName in attrs) {
                 $(window.parent.document).find(`div[data-node-id="${queryBlockId}"]`).attr(setAttrName, attrs[setAttrName]);
             }
         }
@@ -114,54 +114,56 @@ function setAttrToDom(queryBlockIds, attrs){
 
 
 //获取挂件属性custom-list-child-docs
-async function getCustomAttr(){
+async function getCustomAttr() {
     let response = await getblockAttrAPI(thisWidgetId);
     let attrObject = {};
-    if ('custom-list-child-docs' in response.data){
-        try{
+    if ('custom-list-child-docs' in response.data) {
+        try {
             attrObject = JSON.parse(response.data['custom-list-child-docs'].replaceAll("&quot;", "\""));
-        }catch(err){
+        } catch (err) {
             console.warn("解析挂件属性json失败，将按默认值新建配置记录", err.message);
-            return ;
+            return;
         }
         Object.assign(custom_attr, attrObject);
     }
-    if (!("id" in response.data)){
+    if (!("id" in response.data)) {
         throw Error(language["getAttrFailed"]);
     }
     console.log("请求到的属性", JSON.stringify(response.data));
 }
 
 //统一写入attr到挂件属性
-async function setCustomAttr(){
+async function setCustomAttr() {
     let attrString = JSON.stringify(custom_attr);
-    let response = await addblockAttrAPI({"custom-list-child-docs": attrString}, thisWidgetId);
-    if (response != 0){
+    let response = await addblockAttrAPI({ "custom-list-child-docs": attrString }, thisWidgetId);
+    if (response != 0) {
         throw Error(language["writeAttrFailed"]);
     }
     console.log("写入挂件属性", attrString);
 }
 
 //获取子文档层级目录输出文本
-async function getText(notebook, nowDocPath){
-    if (myPrinter == undefined){
+async function getText(notebook, nowDocPath) {
+    if (myPrinter == undefined) {
         console.error("输出类Printer错误", myPrinter);
         throw Error(language["wrongPrintMode"]);
     }
     let insertData = myPrinter.beforeAll();
     let rawData;
-    if (custom_attr.listDepth == 0){
-        rawData = await getDocOutlineText(thisDocId, 1, false);
-    }else{
-        rawData = await getOneLevelText(notebook, nowDocPath, "", 1);//层级从1开始
+    let rowCountStack = new Array();
+    rowCountStack.push(1);
+    if (custom_attr.listDepth == 0) {
+        rawData = await getDocOutlineText(thisDocId, 1, false, rowCountStack);
+    } else {
+        rawData = await getOneLevelText(notebook, nowDocPath, "", rowCountStack);//层级从1开始
     }
-    
-    if (rawData == ""){
-        if (custom_attr.listDepth > 0){
+
+    if (rawData == "") {
+        if (custom_attr.listDepth > 0) {
             rawData = myPrinter.noneString(language["noChildDoc"]);
-        }else{
+        } else {
             rawData = myPrinter.noneString(language["noOutline"]);
-        } 
+        }
     }
     insertData += rawData + myPrinter.afterAll();
     insertData = myPrinter.splitColumns(insertData, custom_attr["listColumn"], custom_attr["listDepth"]);
@@ -173,30 +175,35 @@ async function getText(notebook, nowDocPath){
  * @param {*} notebook 
  * @param {*} nowDocPath 
  * @param {*} insertData 
- * @param {*} nowDepth 
+ * @param {*} rowCountStack 
  * @returns 
  */
-async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
-    if (nowDepth > custom_attr.listDepth){
+async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) {
+    if (rowCountStack.length > custom_attr.listDepth) {
         return insertData;
     }
     let docs = await getSubDocsAPI(notebook, nowDocPath);
     //生成写入文本
-    for (let doc of docs){
-        insertData += myPrinter.align(nowDepth);
-        insertData += myPrinter.oneDocLink(doc);
-        if (doc.subFileCount > 0 && (nowDepth+1) <= custom_attr.listDepth){//获取下一层级子文档
-            insertData += myPrinter.beforeChildDocs(nowDepth);
-            insertData = await getOneLevelText(notebook, doc.path, insertData, nowDepth + 1);
-            insertData += myPrinter.afterChildDocs(nowDepth);
-        }else if (setting.showEndDocOutline && custom_attr.outlineDepth > 0){//终端文档列出大纲，由选项控制
+    for (let doc of docs) {
+        insertData += myPrinter.align(rowCountStack.length);
+        insertData += myPrinter.oneDocLink(doc, rowCountStack);
+        if (doc.subFileCount > 0 && (rowCountStack.length + 1) <= custom_attr.listDepth) {//获取下一层级子文档
+            insertData += myPrinter.beforeChildDocs(rowCountStack.length);
+            rowCountStack.push(1);
+            insertData = await getOneLevelText(notebook, doc.path, insertData, rowCountStack);
+            rowCountStack.pop();
+            insertData += myPrinter.afterChildDocs(rowCountStack.length);
+        } else if (setting.showEndDocOutline && custom_attr.outlineDepth > 0) {//终端文档列出大纲，由选项控制
             let outlines = await getDocOutlineAPI(doc.id);
-            if (outlines != null){
-                insertData += myPrinter.beforeChildDocs(nowDepth);
-                insertData += getOneLevelOutline(outlines, nowDepth + 1, true);
-                insertData += myPrinter.afterChildDocs(nowDepth);
+            if (outlines != null) {
+                insertData += myPrinter.beforeChildDocs(rowCountStack.length);
+                rowCountStack.push(1);
+                insertData += getOneLevelOutline(outlines, true, rowCountStack);
+                rowCountStack.pop();
+                insertData += myPrinter.afterChildDocs(rowCountStack.length);
             }
         }
+        rowCountStack[rowCountStack.length - 1]++;
     }
     return insertData;
 }
@@ -204,55 +211,60 @@ async function getOneLevelText(notebook, nowDocPath, insertData, nowDepth){
 /**
  * 生成文档大纲输出文本
  * @param {*} docId
- * @param {*} nowDepth 当前层级（输出文本层级）
  * @param {*} distinguish 区分大纲和页面，如果同时列出文档且需要区分，为true
+ * @param {*} rowCountStack 生成行数记录
  * @return {*} 仅大纲的输出文本，如果有其他，请+=保存
  */
-async function getDocOutlineText(docId, nowDepth, distinguish){
+async function getDocOutlineText(docId, distinguish, rowCountStack) {
     let outlines = await getDocOutlineAPI(docId);
-    if (outlines == null) {console.warn("获取大纲失败");return "";}
+    if (outlines == null) { console.warn("获取大纲失败"); return ""; }
     let result = "";
-    result += getOneLevelOutline(outlines, nowDepth, distinguish);
+    result += getOneLevelOutline(outlines, distinguish, rowCountStack);
     return result;
 }
 
 /**
  * 生成本层级大纲文本
  * @param {*} outlines 大纲对象
- * @param {*} nowDepth 当前层级（输出文本层级）
  * @param {*} distinguish 区分大纲和页面，如果同时列出文档且需要区分，为true
+ * @param {*} rowCountStack 生成行数记录
  * @returns 本层级及其子层级大纲生成文本，请+=保存；
  */
-function getOneLevelOutline(outlines, nowDepth, distinguish){
+function getOneLevelOutline(outlines, distinguish, rowCountStack) {
     //大纲层级是由API返回值确定的，混合列出时不受“层级”listDepth控制
     if (outlines == null || outlines == undefined || outlines.length <= 0
         || outlines[0].depth >= custom_attr.outlineDepth) return "";
     let result = "";
-    for (let outline of outlines){
-        if (!isValidStr(outline.name)){//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
+    for (let outline of outlines) {
+        if (!isValidStr(outline.name)) {//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
             outline.name = outline.content;
         }
-        if (distinguish){
+        if (distinguish) {
             outline.name = `@${outline.name}`;
         }
-        result += myPrinter.align(nowDepth);
+        result += myPrinter.align(rowCountStack.length);
         result += myPrinter.oneDocLink(outline);
-        if (outline.type === "outline" && outline.blocks != null){
+        if (outline.type === "outline" && outline.blocks != null) {
             result += myPrinter.beforeChildDocs();
-            result += getOneLevelOutline(outline.blocks, nowDepth + 1, distinguish);
+            rowCountStack.push(1);
+            result += getOneLevelOutline(outline.blocks, distinguish);
+            rowCountStack.pop();
             result += myPrinter.afterChildDocs();
-        }else if (outline.type == "NodeHeading" && outline.children != null){
+        } else if (outline.type == "NodeHeading" && outline.children != null) {
             result += myPrinter.beforeChildDocs();
-            result += getOneLevelOutline(outline.children, nowDepth + 1, distinguish);
+            rowCountStack.push(1);
+            result += getOneLevelOutline(outline.children, distinguish);
+            rowCountStack.pop();
             result += myPrinter.afterChildDocs();
-        }else if (outline.type != "outline" && outline.type != "NodeHeading"){
+        } else if (outline.type != "outline" && outline.type != "NodeHeading") {
             console.warn("未被处理的大纲情况");
         }
+        rowCountStack[rowCountStack.length - 1]++;
     }
     return result;
 }
 
-function debugPush(text,delay = 7000){
+function debugPush(text, delay = 7000) {
     pushMsgAPI(text, 7000);
 }
 
@@ -260,14 +272,14 @@ function debugPush(text,delay = 7000){
  * 显示/隐藏设置
  * @param {boolean} showBtn 显示设置？
  */
-function showOrHideSetting(showBtn){
-    let display = showBtn ? "":"none";
+function showOrHideSetting(showBtn) {
+    let display = showBtn ? "" : "none";
     $("#printMode, #listcolumn, #listdepth, #outlinedepth").css("display", display);
     $("#depthhint, #columnhint, #outlinedepthhint").css("display", display);
-    if ((custom_attr.listDepth != 0 && !setting.showEndDocOutline) && showBtn){//层级不为0时不显示大纲层级
+    if ((custom_attr.listDepth != 0 && !setting.showEndDocOutline) && showBtn) {//层级不为0时不显示大纲层级
         $("#outlinedepth, #outlinedepthhint").css("display", "none");
     }
-    if (myPrinter.write2file == 1){//写入文档时重设挂件大小
+    if (myPrinter.write2file == 1) {//写入文档时重设挂件大小
         window.frameElement.style.height = showBtn ? setting.height_2file_setting : setting.height_2file;
     }
 }
@@ -275,7 +287,7 @@ function showOrHideSetting(showBtn){
 /**
  * 控制挂件内css分列（分栏），在页面宽度不足时强制重设分列数
  */
-function setColumn(){
+function setColumn() {
     let nColumns = custom_attr.listColumn;
     if (window.screen.availWidth <= 768) nColumns = "";
     $("#linksContainer").css("column-count", nColumns);
@@ -286,7 +298,7 @@ function setColumn(){
  * @param {msgText} 错误信息
  * @param {boolean} clear 输出前是否清空 
  */
-function printError(msgText, clear = true){
+function printError(msgText, clear = true) {
     if (clear) $(".linksContainer *").remove();
     $("#linksContainer").css("column-count", "");//显示错误时不分栏
     $(`<ul><li class="linksListItem errorinfo">${language["error"]}` + msgText + `</li></ul>`).appendTo("#linksContainer");
@@ -299,23 +311,23 @@ function printError(msgText, clear = true){
  * @param {boolean} manual 手动刷新：手动刷新为true，才会执行保存属性的操作
  * 
  */
-async function __main(initmode = false){
+async function __main(initmode = false) {
     if (mutex == 0) {//并没有什么用的试图防止同时执行的信号量hhhh
         mutex = 1;
-    }else{
+    } else {
         return;
     }
     $("#updateTime").text(language["working"]);
     // pushMsgAPI(language["startRefresh"], 4500);
-    try{
+    try {
         //获取挂件参数
-        if (!initmode){
+        if (!initmode) {
             // await getCustomAttr();//决定不再支持
             await __refresh();
         }
         //以当前页面id查询当前页面所属笔记本和路径（优先使用docid，因为挂件刚创建时无法查询）
         let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisWidgetId ? thisWidgetId : thisDocId}'`);
-        if (queryResult == null || queryResult.length < 1){
+        if (queryResult == null || queryResult.length < 1) {
             throw Error(language["getPathFailed"]);
         }
         let notebook = queryResult[0].box;//笔记本名
@@ -326,18 +338,18 @@ async function __main(initmode = false){
         //清理原有内容
         $("#linksContainer *").remove();
         //写入子文档链接
-        if (myPrinter.write2file){
+        if (myPrinter.write2file) {
             //在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
-            if (initmode && (setting.safeMode || custom_attr.childListId == "")){
+            if (initmode && (setting.safeMode || custom_attr.childListId == "")) {
                 console.log("初次创建，不写入/更新块");
-            }else if (custom_attr.childListId == ""){
+            } else if (custom_attr.childListId == "") {
                 await addText2File(textString, custom_attr.childListId);
                 //如果需要创建块，自动保存一下设置
                 await __save();
-            }else{
+            } else {
                 await addText2File(textString, custom_attr.childListId);
             }
-        }else{
+        } else {
             $(textString).appendTo(".linksContainer");
             //挂一下事件，处理引用块点击和浮窗
             $("#refContainer .refLinks").click(openRefLink);
@@ -345,17 +357,17 @@ async function __main(initmode = false){
             //设定分列值
             setColumn();
             //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
-            if (window.top.siyuan.config.appearance.mode == 1){
+            if (window.top.siyuan.config.appearance.mode == 1) {
                 $(".childDocLinks").addClass("childDocLinks_dark");
             }
         }
         //issue #13 挂件自动高度
-        if (setting.autoHeight && myPrinter.write2file == 0){
-            console.log("挂件高度应当设为",$("body").outerHeight());
+        if (setting.autoHeight && myPrinter.write2file == 0) {
+            console.log("挂件高度应当设为", $("body").outerHeight());
             window.frameElement.style.height = $("body").outerHeight() + 35 + "px";
         }
         // __refreshAppearance();
-    }catch(err){
+    } catch (err) {
         console.error(err);
         printError(err.message);
     }
@@ -366,14 +378,14 @@ async function __main(initmode = false){
     mutex = 0;
 }
 //保存设置项
-async function __save(){
+async function __save() {
     //获取最新设置
     await __refresh();
     //写入挂件属性
-    try{
+    try {
         await setCustomAttr();
         $("#updateTime").text(language["saved"]);
-    }catch(err){
+    } catch (err) {
         console.error(err);
         printError(err.message);
     }
@@ -383,18 +395,18 @@ async function __save(){
  * 重新获取Printer
  * 调用前确定已经获得了printMode
  */
-function __refreshPrinter(){
+function __refreshPrinter() {
     //重新获取Printer
-    if (printerList[custom_attr.printMode] != undefined){
+    if (printerList[custom_attr.printMode] != undefined) {
         myPrinter = new printerList[custom_attr.printMode]();
-    }else{
+    } else {
         custom_attr.printMode = "0";
         myPrinter = new printerList[custom_attr.printMode]();
         printError(language["wrongPrintMode"]);
     }
 }
 //重新从html读取设定，读取id，更改自动模式//解耦，不再更改外观
-async function __refresh(){
+async function __refresh() {
     //获取id
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
@@ -408,10 +420,10 @@ async function __refresh(){
     custom_attr["outlineDepth"] = parseInt(document.getElementById("outlinedepth").value)
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
-    if (nowAutoMode != custom_attr["auto"]){
-        if (nowAutoMode){
+    if (nowAutoMode != custom_attr["auto"]) {
+        if (nowAutoMode) {
             __setObserver();
-        }else{
+        } else {
             mutationObserver.disconnect();
         }
         custom_attr["auto"] = nowAutoMode;
@@ -421,40 +433,40 @@ async function __refresh(){
     console.log("已刷新");
 }
 
-function __refreshAppearance(){
+function __refreshAppearance() {
     //重设窗口大小
-    if (myPrinter.write2file == 1){
+    if (myPrinter.write2file == 1) {
         window.frameElement.style.width = setting.width_2file;
         window.frameElement.style.height = setting.height_2file;
         showOrHideSetting(false);
         showSetting = false;
     }
     //设定深色颜色（外观）
-    if (window.top.siyuan.config.appearance.mode == 1){
+    if (window.top.siyuan.config.appearance.mode == 1) {
         $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth").addClass("button_dark");
         $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint").addClass("ordinaryText_dark");
         $(".childDocLinks").addClass("childDocLinks_dark");
-    }else{
+    } else {
         $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth").removeClass("button_dark");
         $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint").removeClass("ordinaryText_dark");
         $(".childDocLinks").removeClass("childDocLinks_dark");
     }
 }
 
-async function __init(){
+async function __init() {
     //获取id，用于在载入页面时获取挂件属性
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
     //载入挂件属性
-    try{
+    try {
         await getCustomAttr();
-    }catch(err){
+    } catch (err) {
         console.warn(err);
         printError(language["getAttrFailedAtInit"]);
         custom_attr.auto = false;//读取错误时关闭auto
     }
     //写入模式设定选择框的选项
-    for (let key of Object.keys(printerList)){
+    for (let key of Object.keys(printerList)) {
         $(`<option value=${key}>${modeName[key]}</option>`).appendTo("#printMode");
     }
     //用于载入页面，将挂件属性写到挂件中
@@ -481,14 +493,14 @@ async function __init(){
     //跟随软件字号设定
     $("#linksContainer").css("font-size", window.top.siyuan.config.editor.fontSize + "px");
     //控制自动刷新选项是否显示
-    if (!setting.showAutoBtn){
+    if (!setting.showAutoBtn) {
         $("#autoMode").attr("type", "hidden");
     }
     showSetting = setting.showSettingOnStartUp;
     showOrHideSetting(showSetting);
-    console.log("屏幕宽度"+ window.screen.availWidth);
+    console.log("屏幕宽度" + window.screen.availWidth);
     //初始化时设定列数
-    if (custom_attr.listColumn > 1){
+    if (custom_attr.listColumn > 1) {
         setColumn();
     }
     //自动更新
@@ -503,40 +515,40 @@ async function __init(){
     }
 }
 
-function __setObserver(){
-    try{
-    //排除操作系统：
-    if (!checkOs()){
-        return ;
-    }
-    //(思源主窗口)可见性变化时更新列表（导致在删除插件时仍然触发的错误）
-    // document.addEventListener('visibilitychange', __main);
-    //页签切换时更新列表
-    //获取当前文档用于前端展示的data-id
-    let dataId = $(window.parent.document).find(`div.protyle:has(div[data-node-id="${thisWidgetId}")`).attr("data-id");
-    //由dataId找所在文档的页签
-    let target = $(window.parent.document).find(`.layout-tab-bar .item[data-id=${dataId}]`);
-    console.assert(target.length == 1, "无法监听页签切换", target, dataId);
-    //不能观察class变化，class会在每次编辑、操作时变更
-    mutationObserver.observe(target[0], {"attributes": true, "attributeFilter": ["data-activetime"]});
-    }catch(err){
+function __setObserver() {
+    try {
+        //排除操作系统：
+        if (!checkOs()) {
+            return;
+        }
+        //(思源主窗口)可见性变化时更新列表（导致在删除插件时仍然触发的错误）
+        // document.addEventListener('visibilitychange', __main);
+        //页签切换时更新列表
+        //获取当前文档用于前端展示的data-id
+        let dataId = $(window.parent.document).find(`div.protyle:has(div[data-node-id="${thisWidgetId}")`).attr("data-id");
+        //由dataId找所在文档的页签
+        let target = $(window.parent.document).find(`.layout-tab-bar .item[data-id=${dataId}]`);
+        console.assert(target.length == 1, "无法监听页签切换", target, dataId);
+        //不能观察class变化，class会在每次编辑、操作时变更
+        mutationObserver.observe(target[0], { "attributes": true, "attributeFilter": ["data-activetime"] });
+    } catch (err) {
         console.error(err);
         // printError("监听点击页签事件失败", false);//监听页签将作为附加功能，不再向用户展示错误提示
         console.warn("监视点击页签事件失败" + err);
     }
 }
 
-let mutationObserver = new MutationObserver(()=>{__main(true)});//避免频繁刷新id
-let mutationObserver2 = new MutationObserver(()=>{setTimeout(__refreshAppearance, 1500);});
+let mutationObserver = new MutationObserver(() => { __main(true) });//避免频繁刷新id
+let mutationObserver2 = new MutationObserver(() => { setTimeout(__refreshAppearance, 1500); });
 let refreshBtnTimeout;
 let g_thisDocPath;
 //绑定按钮事件
-document.getElementById("refresh").onclick=async function(){clearTimeout(refreshBtnTimeout);refreshBtnTimeout = setTimeout(async function(){await __main(false)}, 300);};
-document.getElementById("refresh").ondblclick=async function(){clearTimeout(refreshBtnTimeout); await __save();};
-document.getElementById("setting").onclick=function(){
-    if (showSetting){//原来为显示，改为不再显示
+document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(false) }, 300); };
+document.getElementById("refresh").ondblclick = async function () { clearTimeout(refreshBtnTimeout); await __save(); };
+document.getElementById("setting").onclick = function () {
+    if (showSetting) {//原来为显示，改为不再显示
         showSetting = false;
-    }else{
+    } else {
         showSetting = true;
     }
     showOrHideSetting(showSetting);
@@ -546,13 +558,21 @@ document.getElementById("setting").onclick=function(){
 __init();
 
 try {
-    // TODO: 监视深色模式变化
-    if (checkOs()){
-        mutationObserver2.observe($(window.parent.document).find("#barThemeMode").get(0), {"attributes": true, "attributeFilter": ["aria-label"]});
+    // TODO 监视深色模式变化
+    if (checkOs()) {
+        let targetNode = null;
+        // v2.3.x -
+        if ($(window.parent.document).find("#barThemeMode").length >= 1) {
+            targetNode = $(window.parent.document).find("#barThemeMode").get(0);
+        } else {
+            // v2.4.1 + 
+            targetNode = $(window.parent.document).find("#barMode").get(0);
+        }
+        mutationObserver2.observe(targetNode, { "attributes": true, "attributeFilter": ["aria-label"] });
     }
     // window.top.addEventListener("change", ()=>{console.log("changed")});
-    
-}catch(err){
+
+} catch (err) {
     console.error(err);
     console.warn("监视外观切换事件失败");
 }
