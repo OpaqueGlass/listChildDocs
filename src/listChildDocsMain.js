@@ -153,7 +153,7 @@ async function getText(notebook, nowDocPath) {
     let rowCountStack = new Array();
     rowCountStack.push(1);
     if (custom_attr.listDepth == 0) {
-        rawData = await getDocOutlineText(thisDocId, 1, false, rowCountStack);
+        rawData = await getDocOutlineText(thisDocId, false, rowCountStack);
     } else {
         rawData = await getOneLevelText(notebook, nowDocPath, "", rowCountStack);//层级从1开始
     }
@@ -243,17 +243,17 @@ function getOneLevelOutline(outlines, distinguish, rowCountStack) {
             outline.name = `@${outline.name}`;
         }
         result += myPrinter.align(rowCountStack.length);
-        result += myPrinter.oneDocLink(outline);
+        result += myPrinter.oneDocLink(outline, rowCountStack);
         if (outline.type === "outline" && outline.blocks != null) {
             result += myPrinter.beforeChildDocs();
             rowCountStack.push(1);
-            result += getOneLevelOutline(outline.blocks, distinguish);
+            result += getOneLevelOutline(outline.blocks, distinguish, rowCountStack);
             rowCountStack.pop();
             result += myPrinter.afterChildDocs();
         } else if (outline.type == "NodeHeading" && outline.children != null) {
             result += myPrinter.beforeChildDocs();
             rowCountStack.push(1);
-            result += getOneLevelOutline(outline.children, distinguish);
+            result += getOneLevelOutline(outline.children, distinguish, rowCountStack);
             rowCountStack.pop();
             result += myPrinter.afterChildDocs();
         } else if (outline.type != "outline" && outline.type != "NodeHeading") {
