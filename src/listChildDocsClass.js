@@ -369,7 +369,13 @@ function getEmojiHtmlStr(iconString, hasChild) {
     // emoji地址判断逻辑为出现.，但请注意之后的补全
     if (iconString.indexOf(".") != -1) {
         if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
-        result = `<img class="iconpic" src="/emojis/${iconString}"/>`;
+        // emoji为网络地址时，不再补全/emojis路径
+        if (iconString.indexOf("://") != -1) {
+            result = `<img class="iconpic" src="${iconString}"/>`;
+        }else {
+            result = `<img class="iconpic" src="/emojis/${iconString}"/>`;
+        }
+        
     } else {
         result = emojiIconHandler(iconString, hasChild);
     }
@@ -389,7 +395,12 @@ function getEmojiMarkdownStr(iconString, hasChild) {
     let result = iconString;
     if (iconString.indexOf(".") != -1) {
         if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
-        result = `![doc-icon](emojis/${markdownEmojiPathEncoder(iconString)}){: style=\"width: ${window.top.siyuan.config.editor.fontSize + 4}px;\"}`;
+        // emoji为网络地址时，不再补全/emojis路径
+        if (iconString.indexOf("://") != -1) {
+            result = `![doc-icon](${markdownEmojiPathEncoder(iconString)}){: style=\"width: ${window.top.siyuan.config.editor.fontSize + 4}px;\"}`;
+        }else{
+            result = `![doc-icon](emojis/${markdownEmojiPathEncoder(iconString)}){: style=\"width: ${window.top.siyuan.config.editor.fontSize + 4}px;\"}`;
+        }
     } else {
         result = emojiIconHandler(iconString, hasChild);
     }
