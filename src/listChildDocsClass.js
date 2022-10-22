@@ -1,11 +1,13 @@
 import { setting } from './config.js';
 import { getUpdateString, generateBlockId } from "./API.js";
-//建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自此基类
-//警告doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
+//建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
+//警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
+//
 //其他情况请做判断
 class Printer {
     //写入到文件or写入到挂件
     //0写入到挂件（以HTML格式），1写入到当前文档（以Markdown格式）
+    static mode = -1;
     write2file = 1;
 
     /**
@@ -30,8 +32,8 @@ class Printer {
     afterChildDocs(nowDepth) { return ""; }
     /**输出当前文档链接
      * @param {doc} doc为listDocsByPath伪API输出格式
-     * 兼容性警告，目前这个参数也输入大纲对象，大纲对象情况较为复杂，请只读取doc.id doc.name属性，否则请另外判断
-     * 属性是否存在、是否合法
+     * 兼容性警告，目前这个参数也输入大纲对象，大纲对象情况较为复杂，
+     * 请只读取doc.id doc.name属性，否则请另外判断属性是否存在、是否合法
      * */
     oneDocLink(doc, rowCountStack) { return ""; }
     /**
@@ -62,28 +64,37 @@ class Printer {
      */
     splitColumns(originalText, nColumns, nDepth) { return originalText; }
 }
-class HtmlAlinkPrinter extends Printer {
-    write2file = 0;
-    beforeChildDocs(nowDepth) {
-        return "<ul>";
-    }
-    afterChildDocs(nowDepth) {
-        return "</ul>";
-    }
-    oneDocLink(doc, rowCountStack) {
-        let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
-        return `<li class="linksListItem"><a class='childDocLinks' href="siyuan://blocks/${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</a></li>`;
-    }
-    //在所有输出文本写入之前
-    beforeAll() {
-        return `<ul class="linksList" id="linksList">`;
-    }
-    //在所有输出文本写入之后
-    afterAll() {
-        return `</ul>`;
-    }
-}
-class HtmlReflinkPrinter extends Printer {
+/**
+ * 【旧版默认】默认模式：在挂件中插入超链接<a>
+ */
+// class OldDefaultPrinter extends Printer {
+//     static id = 0;
+//     write2file = 0;
+//     beforeChildDocs(nowDepth) {
+//         return "<ul>";
+//     }
+//     afterChildDocs(nowDepth) {
+//         return "</ul>";
+//     }
+//     oneDocLink(doc, rowCountStack) {
+//         let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+//         return `<li class="linksListItem"><a class='childDocLinks' href="siyuan://blocks/${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</a></li>`;
+//     }
+//     //在所有输出文本写入之前
+//     beforeAll() {
+//         return `<ul class="linksList" id="linksList">`;
+//     }
+//     //在所有输出文本写入之后
+//     afterAll() {
+//         return `</ul>`;
+//     }
+// }
+
+/**
+ * 新版默认
+ */
+ class DefaultPrinter extends Printer {
+    static id = 0;
     write2file = 0;
     beforeChildDocs(nowDepth) {
         return `<ul>`;
@@ -103,38 +114,38 @@ class HtmlReflinkPrinter extends Printer {
     afterAll() {
         return `</ul></div>`;
     }
-}
-// 有序
-class HtmlAlinkOrderPrinter extends HtmlAlinkPrinter {
+ }
+/**
+ * 挂件beta 挂件内创建<span class="reflinks">
+ */
+class HtmlReflinkPrinter extends Printer {
+    static id = 1;
+    write2file = 0;
     beforeChildDocs(nowDepth) {
-        return "<ol>";
+        return `<ul>`;
     }
     afterChildDocs(nowDepth) {
-        return "</ol>";
+        return `</ul>`;
     }
+    oneDocLink(doc, rowCountStack) {
+        let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+        return `<li class="linksListItem"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
+    }
+    //在所有输出文本写入之前
     beforeAll() {
-        return `<ol class="linksList" id="linksList">`;
+        return `<div id="refContainer"> <ul class="linksList floatWindow" id="linksList">`;
     }
+    //在所有输出文本写入之后
     afterAll() {
-        return `</ol>`;
+        return `</ul></div>`;
     }
 }
-class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
-    beforeChildDocs(nowDepth) {
-        return `<ol>`;
-    }
-    afterChildDocs(nowDepth) {
-        return `</ol>`;
-    }
-    beforeAll() {
-        return `<div id="refContainer"> <ol class="linksList" id="linksList">`;
-    }
-    afterAll() {
-        return `</ol></div>`;
-    }
-}
-// 无序文档URL
+
+/**
+ * url 文档中插入siyuan://
+ */
 class MarkdownUrlUnorderListPrinter extends Printer {
+    static id = 2;
     write2file = 1;
     align(nowDepth) {
         let spaces = "";
@@ -156,8 +167,11 @@ class MarkdownUrlUnorderListPrinter extends Printer {
         return generateSuperBlock(originalText, nColumns, nDepth);
     }
 }
-// 无序文档引用块
+/**
+ * 引用块 文档中插入((id引用块))
+ */
 class MarkdownDChainUnorderListPrinter extends Printer {
+    static id = 3;
     write2file = 1;
     //对齐、缩进
     align(nowDepth) {
@@ -182,8 +196,108 @@ class MarkdownDChainUnorderListPrinter extends Printer {
         return generateSuperBlock(originalText, nColumns, nDepth);
     }
 }
-// 有序文档URL
+
+/**
+ * 【旧版默认】1.默认 挂件内<a>有序列表
+ */
+// class HtmlAlinkOrderPrinter extends HtmlAlinkPrinter {
+//     static id = 5;
+//     beforeChildDocs(nowDepth) {
+//         return `<ol class="noListStyle">`;
+//     }
+//     afterChildDocs(nowDepth) {
+//         return "</ol>";
+//     }
+//     beforeAll() {
+//         return `<ol class="linksList noListStyle" id="linksList">`;
+//     }
+//     afterAll() {
+//         return `</ol>`;
+//     }
+//     oneDocLink(doc, rowCountStack) {
+//         let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+//         let spaces = "";
+//         for (let i = 0; i < (rowCountStack.length - 1); i++) {
+//             spaces += "　　";
+//         }
+//         let countStr = "";
+//         for (let num of rowCountStack) {
+//             countStr += num + ".";
+//         }
+//         return `<li class="linksListItem">${spaces}<span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${countStr} ${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
+//     }
+// }
+
+/**
+ * 1.挂件beta，挂件内beta
+ */
+class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
+    static id = 4;
+    beforeChildDocs(nowDepth) {
+        return `<ol class="noListStyle">`;
+    }
+    afterChildDocs(nowDepth) {
+        return `</ol>`;
+    }
+    beforeAll() {
+        return `<div id="refContainer"> <ol class="linksList noListStyle" id="linksList">`;
+    }
+    afterAll() {
+        return `</ol></div>`;
+    }
+    oneDocLink(doc, rowCountStack) {
+        // 生成空格
+        let spaces = "";
+        for (let i = 0; i < (rowCountStack.length - 1); i++) {
+            spaces += "　　";
+        }
+        // 生成序号
+        let countStr = "";
+        for (let num of rowCountStack) {
+            countStr += num + ".";
+        }
+        let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+        return `<li class="linksListItem">　${spaces}　${countStr}<span class="refLinks floatWindow childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
+    }
+}
+
+/**
+ * 1. 默认
+ */
+ class HtmlDefaultOrderPrinter extends HtmlReflinkPrinter {
+    static id = 5;
+    beforeChildDocs(nowDepth) {
+        return `<ol class="noListStyle">`;
+    }
+    afterChildDocs(nowDepth) {
+        return `</ol>`;
+    }
+    beforeAll() {
+        return `<div id="refContainer"> <ol class="linksList noListStyle" id="linksList">`;
+    }
+    afterAll() {
+        return `</ol></div>`;
+    }
+    oneDocLink(doc, rowCountStack) {
+        // 生成空格
+        let spaces = "";
+        for (let i = 0; i < (rowCountStack.length - 1); i++) {
+            spaces += "　　";
+        }
+        // 生成序号
+        let countStr = "";
+        for (let num of rowCountStack) {
+            countStr += num + ".";
+        }
+        let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+        return `<li class="linksListItem">　${spaces}　${countStr}<span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
+    }
+}
+/**
+ * 1. url 文档中创建siyuan://有序列表（Markdown有序列表）
+ */
 class MarkdownUrlOrderListPrinter extends MarkdownUrlUnorderListPrinter {
+    static id = 6;
     align(nowDepth) {
         let spaces = "";
         // 请注意：有序列表缩进为4个空格
@@ -199,8 +313,11 @@ class MarkdownUrlOrderListPrinter extends MarkdownUrlUnorderListPrinter {
         return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
 }
-//有序文档引用块
+/**
+ * 1.引用块 文档内有序列表引用块
+ */
 class MarkdownDChainOrderListPrinter extends MarkdownDChainUnorderListPrinter {
+    static id = 7;
     align(nowDepth) {
         let spaces = "";
         spaces += "    ".repeat(nowDepth - 1);
@@ -215,11 +332,17 @@ class MarkdownDChainOrderListPrinter extends MarkdownDChainUnorderListPrinter {
         return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
     }
 }
-
-class MarkdownTestPrinter extends MarkdownDChainUnorderListPrinter {
+/**
+ * 以1.2.1.的有序列表样式列出
+ */
+class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter {
+    static id = 8;
     align(nowDepth) {
         let spaces = "";
-        spaces += "    ".repeat(nowDepth - 1);
+        if (nowDepth >= 2) {
+            spaces += "    "; // 保证同属于一个有序列表
+            spaces += "　".repeat(nowDepth - 2);
+        }
         return spaces;
     }
     oneDocLink(doc, rowCountStack) {
@@ -232,9 +355,11 @@ class MarkdownTestPrinter extends MarkdownDChainUnorderListPrinter {
             countStr += num + ".";
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
-        return `${countStr} ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n\n`;
+        return `${countStr} ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
 }
+
+/* *****共用方法***** */
 
 /**
  * 用于根据nColumns分列数拆分无序列表生成超级块（单行！）
@@ -461,17 +586,17 @@ function markdownEmojiPathEncoder(inputStr) {
 
 export default {
     Printer,
-    HtmlAlinkPrinter,//无序<a>
+    DefaultPrinter,// 默认
     MarkdownDChainUnorderListPrinter,//无序双链
     MarkdownUrlUnorderListPrinter,//无序url
     HtmlReflinkPrinter,//无序双链
     HtmlReflinkOrderPrinter,//有序html双链
-    HtmlAlinkOrderPrinter,//有序<a>
+    HtmlDefaultOrderPrinter,//有序<a>
     MarkdownUrlOrderListPrinter,//有序url
     MarkdownDChainOrderListPrinter,//有序双链
-    MarkdownTestPrinter
+    MarkdownUrlStandardOrderListPrinter
 }//Priter子类在这里列出
-export { Printer };
+export { Printer, DefaultPrinter };
 /** 附录：doc对象（由文档树api获得），示例如下
  * "path": "/20220807110638-uv5bqv8/20220810155329-xnskr8a.sy",//文档路径
     "name": "test.sy",//文档名，包含.sy

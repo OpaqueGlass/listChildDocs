@@ -1,25 +1,16 @@
-import {language} from "./config.js";
 import allPrinter from "./listChildDocsClass.js"
-let modeName = {//key应为数字，且由0递增。这里设置模式对应的名字
-    "0": language["default"],
-    "1": language["widgetRefLink"],
-    "2": language["inUrl"],
-    "3": language["inDulChain"],
-    "4": language["inOWidget"],
-    "5": language["inODefault"],
-    "6": language["inOUrl"],
-    "7": language["inODulChain"],
-    "8": "测试"
-};
-let printerList = {//key应为数字，且由0递增。
-    "0": allPrinter.HtmlAlinkPrinter,//出错时将重置到此模式
-    "1": allPrinter.HtmlReflinkPrinter,//挂件内，伪引用块
-    "2": allPrinter.MarkdownUrlUnorderListPrinter,//在文档中写入无序列表 siyuanUrl
-    "3": allPrinter.MarkdownDChainUnorderListPrinter,//在文档中写入无序列表 引用块 
-    "4": allPrinter.HtmlReflinkOrderPrinter, //挂件内，有序列表伪引用块
-    "5": allPrinter.HtmlAlinkOrderPrinter, //挂件内，有序列表<a>
-    "6": allPrinter.MarkdownUrlOrderListPrinter,//在文档中写入有序列表 siyuanUrl
-    "7": allPrinter.MarkdownDChainOrderListPrinter,//在文档中写入有序列表 引用块
-    "8": allPrinter.MarkdownTestPrinter
-};//您可以在./listChildDocsClass.js中自定义输出格式Printer类，export，然后在此列出，并在modeName中起名
-export {modeName, printerList};
+// 模式设置，挂件内的设置将按顺序依次显示
+let printerList = [
+    allPrinter.DefaultPrinter,//0默认：出错时将重置到此模式
+    allPrinter.HtmlReflinkPrinter,//1挂件内，伪引用块
+    allPrinter.MarkdownUrlUnorderListPrinter,//2在文档中写入无序列表 siyuanUrl
+    allPrinter.MarkdownDChainUnorderListPrinter,//3在文档中写入无序列表 引用块 
+    allPrinter.MarkdownUrlOrderListPrinter,//6在文档中写入有序列表 siyuanUrl
+    allPrinter.MarkdownDChainOrderListPrinter,//7在文档中写入有序列表 引用块
+    allPrinter.MarkdownUrlStandardOrderListPrinter,//8文档中1.2.2.类型有序列表
+    allPrinter.HtmlReflinkOrderPrinter, //4挂件内，有序列表伪引用块
+    allPrinter.HtmlDefaultOrderPrinter, //5挂件内，有序列表<a>
+    
+];//您可以在./listChildDocsClass.js中自定义输出格式Printer类，export，然后在此列出，并在modeName中起名
+
+export { printerList };

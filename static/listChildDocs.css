@@ -120,6 +120,11 @@ input:hover {
     margin-top: 0px;
 }
 
+.noListStyle {
+    list-style-type: none;
+    padding-inline-start: 0%;
+}
+
 .linksListItem {
     padding: 4px 0px;
 }

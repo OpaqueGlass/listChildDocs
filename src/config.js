@@ -4,13 +4,14 @@
  * 请不要删除//双斜杠注释前的英文逗号,（如果有）
  * 为true 或者 false的设置项，只能填这两者
  * 有英文双引号的设置项，只更改英文双引号内的内容，不要删除英文双引号
+ * 显示模式设置请在‘printerConfig.js’中完成。
  *  */
 
 let custom_attr = {//这里列出的是挂件的默认设置，只在创建时写入到挂件中，挂件内属性custom-list-child-docs可覆盖此设置
-    printMode: "0",//默认格式和输出位置，具体参数见下方的printerList
+    printMode: "2",//默认格式和输出位置，参数见本文件最下方，或参考modeName（在本文件中搜索）
     childListId: "",//子文档列表块id，由挂件自动生成，对应的块将会被本挂件更新，请避免自行修改
-    listDepth: 1,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
-    auto: false, //创建挂件时是否自动更新，请勿设定为true
+    listDepth: 2,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
+    auto: false, //创建挂件时是否自动更新，如果您使用同步且目录列表插入文档，请勿设定为true
     listColumn: 1,//子文档列表列数，过多的列数将导致显示问题
     outlineDepth: 3,//大纲列出层级数，混合列出时此项只控制大纲部分
 };
@@ -46,18 +47,22 @@ let zh_CN = {
     modifywarn:　"此块由listChildDocs挂件创建，若刷新列表，您的更改将会被覆盖。",
     getAttrFailed: "读取挂件属性失败。",
     wrongPrintMode: "错误的输出模式设定，已恢复默认值，请刷新重试。",
-    inwidget: "挂件",
-    inUrl: "url",
-    inDulChain: "引用块",
-    inOUrl: "1.url",
-    inODulChain: "1.引用",
-    inOWidget: "1.挂件",
-    inODefault: "1.默认",
-    default: "默认",
+    // 模式提示词
+    modeName0: "默认",
+    modeName1: "挂件",
+    modeName2: "url",
+    modeName3: "引用块",
+    modeName5: "1.1.默认",
+    modeName4: "1.1.挂件",
+    modeName6: "1.url",
+    modeName7: "1.引用块",
+    modeName8: "1.1.url",
+    // 界面元素鼠标悬停提示词
     refreshBtn: "刷新",
     depthList: "子文档展示层级",
     modeList: "展示方式",
     autoBtn: "'半'自动刷新",
+    // 错误提示词
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
     startRefresh: "开始更新子文档列表---来自listChildDocs挂件的通知",
     widgetRefLink: "挂件beta",
@@ -97,3 +102,14 @@ let language = zh_CN;//当前使用的语言
 
 
 export {custom_attr, token, language, setting, includeOs};
+/* printerMode参数
+0 默认
+1 挂件beta
+2 url
+3 引用块
+4 1.挂件
+5 1.默认
+6 1.url
+7 1.引用块
+8 1.2.url
+*/

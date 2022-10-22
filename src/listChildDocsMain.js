@@ -1,4 +1,4 @@
-import { Printer } from './listChildDocsClass.js';
+import { DefaultPrinter } from './listChildDocsClass.js';
 import {
     queryAPI,
     getSubDocsAPI,
@@ -14,7 +14,7 @@ import {
     getDocOutlineAPI
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
-import { printerList, modeName } from "./printerConfig.js";
+import { printerList } from "./printerConfig.js";
 import { openRefLink, showFloatWnd } from './ref-util.js'
 let thisDocId = "";
 let thisWidgetId = "";
@@ -353,7 +353,7 @@ async function __main(initmode = false) {
             $(textString).appendTo(".linksContainer");
             //挂一下事件，处理引用块点击和浮窗
             $("#refContainer .refLinks").click(openRefLink);
-            if (setting["floatWindowEnable"]) $("#refContainer .refLinks").mouseover(showFloatWnd);
+            if (setting["floatWindowEnable"]) $("#refContainer .floatWindow").mouseover(showFloatWnd);
             //设定分列值
             setColumn();
             //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
@@ -397,13 +397,16 @@ async function __save() {
  */
 function __refreshPrinter() {
     //重新获取Printer
-    if (printerList[custom_attr.printMode] != undefined) {
-        myPrinter = new printerList[custom_attr.printMode]();
-    } else {
-        custom_attr.printMode = "0";
-        myPrinter = new printerList[custom_attr.printMode]();
-        printError(language["wrongPrintMode"]);
+    for (let printer of printerList) {
+        if (printer.id == custom_attr.printMode) {
+            myPrinter = new printer();
+            return;
+        }
     }
+    // 没有匹配项则重置为默认
+    custom_attr.printMode = "0";
+    myPrinter = new DefaultPrinter();
+    printError(language["wrongPrintMode"]);
 }
 //重新从html读取设定，读取id，更改自动模式//解耦，不再更改外观
 async function __refresh() {
@@ -411,7 +414,7 @@ async function __refresh() {
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
     //获取模式设定 刷新时，从html读取设定
-    custom_attr["printMode"] = document.getElementById("printMode").selectedIndex.toString();
+    custom_attr["printMode"] = document.getElementById("printMode").value;
     //获取下拉选择的展示深度
     custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").value);
     //重设分列
@@ -467,7 +470,7 @@ async function __init() {
     }
     //写入模式设定选择框的选项
     for (let key of Object.keys(printerList)) {
-        $(`<option value=${key}>${modeName[key]}</option>`).appendTo("#printMode");
+        $(`<option value="${printerList[key].id}">${language["modeName"+printerList[key].id.toString()]}</option>`).appendTo("#printMode");
     }
     //用于载入页面，将挂件属性写到挂件中
     // document.getElementById("listdepth").selectedIndex = custom_attr["listDepth"] - 1;
