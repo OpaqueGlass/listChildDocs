@@ -129,11 +129,11 @@ class HtmlReflinkPrinter extends Printer {
     }
     oneDocLink(doc, rowCountStack) {
         let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
-        return `<li class="linksListItem"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
+        return `<li class="linksListItem"><span class="refLinks childDocLinks floatWindow" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
     }
     //在所有输出文本写入之前
     beforeAll() {
-        return `<div id="refContainer"> <ul class="linksList floatWindow" id="linksList">`;
+        return `<div id="refContainer"> <ul class="linksList" id="linksList">`;
     }
     //在所有输出文本写入之后
     afterAll() {
