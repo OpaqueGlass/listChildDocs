@@ -475,7 +475,7 @@ async function __init() {
     //用于载入页面，将挂件属性写到挂件中
     // document.getElementById("listdepth").selectedIndex = custom_attr["listDepth"] - 1;
     document.getElementById("listdepth").value = custom_attr["listDepth"];
-    document.getElementById("printMode").selectedIndex = parseInt(custom_attr["printMode"]);
+    document.getElementById("printMode").value = parseInt(custom_attr["printMode"]);
     document.getElementById("autoMode").checked = custom_attr["auto"];
     document.getElementById("listcolumn").value = custom_attr["listColumn"];
     document.getElementById("outlinedepth").value = custom_attr["outlineDepth"];

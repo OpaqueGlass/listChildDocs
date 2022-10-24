@@ -333,7 +333,7 @@ class MarkdownDChainOrderListPrinter extends MarkdownDChainUnorderListPrinter {
     }
 }
 /**
- * 以1.2.1.的有序列表样式列出
+ * 以1.2.的有序列表样式列出
  */
 class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter {
     static id = 8;
@@ -341,7 +341,9 @@ class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter 
         let spaces = "";
         if (nowDepth >= 2) {
             spaces += "    "; // 保证同属于一个有序列表
-            spaces += "　".repeat(nowDepth - 2);
+            if (nowDepth > 2) {
+                spaces += "　　".repeat(nowDepth - 2);
+            }
         }
         return spaces;
     }
