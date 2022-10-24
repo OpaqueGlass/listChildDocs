@@ -20,7 +20,7 @@ let thisDocId = "";
 let thisWidgetId = "";
 let mutex = 0;
 let myPrinter;
-let showSetting;
+let g_showSetting;
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = "") {
     let attrData = {};
@@ -270,9 +270,10 @@ function debugPush(text, delay = 7000) {
 
 /**
  * 显示/隐藏设置
- * @param {boolean} showBtn 显示设置？
+ * @param {boolean} showBtn 显示设置？true显示false隐藏
  */
-function showOrHideSetting(showBtn) {
+function showSettingChanger(showBtn) {
+    g_showSetting = showBtn;
     let display = showBtn ? "" : "none";
     $("#printMode, #listcolumn, #listdepth, #outlinedepth").css("display", display);
     $("#depthhint, #columnhint, #outlinedepthhint").css("display", display);
@@ -381,6 +382,7 @@ async function __main(initmode = false) {
 async function __save() {
     //获取最新设置
     await __refresh();
+    showSettingChanger(false);
     //写入挂件属性
     try {
         await setCustomAttr();
@@ -441,8 +443,7 @@ function __refreshAppearance() {
     if (myPrinter.write2file == 1) {
         window.frameElement.style.width = setting.width_2file;
         window.frameElement.style.height = setting.height_2file;
-        showOrHideSetting(false);
-        showSetting = false;
+        showSettingChanger(false);
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1) {
@@ -499,8 +500,8 @@ async function __init() {
     if (!setting.showAutoBtn) {
         $("#autoMode").attr("type", "hidden");
     }
-    showSetting = setting.showSettingOnStartUp;
-    showOrHideSetting(showSetting);
+    g_showSetting = setting.showSettingOnStartUp;
+    showSettingChanger(g_showSetting);
     console.log("屏幕宽度" + window.screen.availWidth);
     //初始化时设定列数
     if (custom_attr.listColumn > 1) {
@@ -549,12 +550,7 @@ let g_thisDocPath;
 document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(false) }, 300); };
 document.getElementById("refresh").ondblclick = async function () { clearTimeout(refreshBtnTimeout); await __save(); };
 document.getElementById("setting").onclick = function () {
-    if (showSetting) {//原来为显示，改为不再显示
-        showSetting = false;
-    } else {
-        showSetting = true;
-    }
-    showOrHideSetting(showSetting);
+    showSettingChanger(!g_showSetting);
 };
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
 // setTimeout(__init, 300);
