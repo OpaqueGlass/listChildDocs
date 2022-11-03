@@ -61,6 +61,7 @@ let showFloatWnd = function(event){
         "clientX": 500,
         "clientY": 500,
         "bubbles": true,
+        "ctrlKey": window.top.siyuan.config.editor.floatWindowMode == 1 ? event.ctrlKey : false,
         "relatedTarget": window.frameElement
     });
     // if (Y < 100 || X < 100) { 
@@ -85,8 +86,10 @@ let showFloatWnd = function(event){
             linkId = "";
         }
     }, 5);
-    setTimeout( ()=> {虚拟链接.remove();},1000);
+    setTimeout( ()=> {虚拟链接.remove();}, 3000);
     setTimeout(()=>{clearInterval(interval);}, 1200);//移除重设定时器
+    // console.log("test", window.top.siyuan.blockPanels);
+    // 可以考虑由挂件移除blockPanel，但触发事件不好确定
     // } else (this.链接id = "")
 }
 

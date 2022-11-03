@@ -49,7 +49,7 @@ let zh_CN = {
     wrongPrintMode: "错误的输出模式设定，已恢复默认值，请刷新重试。",
     // 模式提示词
     modeName0: "默认",
-    modeName1: "挂件",
+    modeName1: "挂件beta",
     modeName2: "url",
     modeName3: "引用块",
     modeName5: "1.1.默认",
