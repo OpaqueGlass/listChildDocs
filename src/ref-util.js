@@ -61,7 +61,7 @@ let showFloatWnd = function(event){
         "clientX": 500,
         "clientY": 500,
         "bubbles": true,
-        "ctrlKey": window.top.siyuan.config.editor.floatWindowMode == 1 ? event.ctrlKey : false,
+        "ctrlKey": event.ctrlKey,
         "relatedTarget": window.frameElement
     });
     // if (Y < 100 || X < 100) { 
