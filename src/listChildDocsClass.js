@@ -468,7 +468,7 @@ function generateSuperBlock(originalText, nColumns, nDepth) {
         result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
     }
 
-    console.log(result);
+    // console.log(result);
     return result;
     //生成kramdown类型的块分隔（？）
     function getDivider() {
@@ -497,7 +497,7 @@ function getEmojiHtmlStr(iconString, hasChild) {
     if (iconString.indexOf(".") != -1) {
         if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
         // emoji为网络地址时，不再补全/emojis路径
-        if (iconString.indexOf("://") != -1) {
+        if (iconString.indexOf("http://") != -1 || iconString.indexOf("https://") != -1) {
             result = `<img class="iconpic" src="${iconString}"/>`;
         }else {
             result = `<img class="iconpic" src="/emojis/${iconString}"/>`;
@@ -523,7 +523,7 @@ function getEmojiMarkdownStr(iconString, hasChild) {
     if (iconString.indexOf(".") != -1) {
         if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
         // emoji为网络地址时，不再补全/emojis路径
-        if (iconString.indexOf("://") != -1) {
+        if (iconString.indexOf("http://") != -1 || iconString.indexOf("https://") != -1) {
             result = `![doc-icon](${markdownEmojiPathEncoder(iconString)}){: style=\"width: ${window.top.siyuan.config.editor.fontSize + 4}px;\"}`;
         }else{
             result = `![doc-icon](emojis/${markdownEmojiPathEncoder(iconString)}){: style=\"width: ${window.top.siyuan.config.editor.fontSize + 4}px;\"}`;
@@ -557,6 +557,8 @@ let emojiIconHandler = function (iconString, hasChild = false) {
 }
 
 /**
+ * html字符转义
+ * 目前仅emoji使用
  * 对常见的html字符实体换回原符号
  * @param {*} inputStr 
  * @returns 
@@ -572,6 +574,7 @@ function htmlTransferParser(inputStr) {
 }
 
 /**
+ * Markdown 字符转义
  * 仅emoji使用，将emoji路径中的保留符进行转换
  * @param {*} inputStr 
  */
