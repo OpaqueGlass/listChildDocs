@@ -1,5 +1,16 @@
 ## 更新日志
 
+
+### v0.0.9 (2022-11-8)
+
+- 新增：文档中支持有序列表模式；[#17](https://github.com/OpaqueGlass/listChildDocs/issues/17)
+  - 支持创建（以全角空格缩进的）多级序号的目录；
+- 改进：`默认`模式显示方式（采用`<span>`以解决浏览器、iOS设备`默认`模式无法点击的问题）；[#18](https://github.com/OpaqueGlass/listChildDocs/issues/18)
+- 改进：`挂件beta`模式浮窗触发方式跟随思源设置；[#19](https://github.com/OpaqueGlass/listChildDocs/issues/19)
+- 重构：`挂件beta`模式移除过时的方法；
+- 改进：网络emoji的判定，为[siyuan#5897](https://github.com/siyuan-note/siyuan/issues/5897)做准备；
+- 改进：放宽插入挂件时自动刷新限制：如果在挂件内显示目录，允许插入挂件后立刻进行自动刷新；
+
 ### v0.0.8 (2022-10-5)
 
 - 修复：在思源v2.2.1+版本出现错误提示Failed to execute 'observe'；[#15](https://github.com/OpaqueGlass/listChildDocs/issues/15)
