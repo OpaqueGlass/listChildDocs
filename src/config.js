@@ -52,7 +52,7 @@ let setting = {
     customEmojiEnable: true,
     // 在模式“默认”“挂件beta”下，使得挂件高度跟随目录长度自动调整
     autoHeight: false,
-    // 插入https:// 或 http:// 协议的emoji
+    // 开发者选项 插入https:// 或 http:// 协议的emoji，未完成功能
     webEmojiEnable: false
 };
 //全局设置

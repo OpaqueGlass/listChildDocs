@@ -498,6 +498,7 @@ function getEmojiHtmlStr(iconString, hasChild) {
         if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
         // emoji为网络地址时，不再补全/emojis路径
         if (iconString.indexOf("http://") != -1 || iconString.indexOf("https://") != -1) {
+            if (!setting.webEmojiEnable) return hasChild ? "📑" : "📄";//禁用网络emoji时
             result = `<img class="iconpic" src="${iconString}"/>`;
         }else {
             result = `<img class="iconpic" src="/emojis/${iconString}"/>`;
@@ -524,6 +525,7 @@ function getEmojiMarkdownStr(iconString, hasChild) {
         if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
         // emoji为网络地址时，不再补全/emojis路径
         if (iconString.indexOf("http://") != -1 || iconString.indexOf("https://") != -1) {
+            if (!setting.webEmojiEnable) return hasChild ? "📑" : "📄";//禁用网络emoji时
             result = `![doc-icon](${markdownEmojiPathEncoder(iconString)}){: style=\"width: ${window.top.siyuan.config.editor.fontSize + 4}px;\"}`;
         }else{
             result = `![doc-icon](emojis/${markdownEmojiPathEncoder(iconString)}){: style=\"width: ${window.top.siyuan.config.editor.fontSize + 4}px;\"}`;
