@@ -326,10 +326,13 @@ async function __main(initmode = false) {
             // await getCustomAttr();//决定不再支持
             await __refresh();
         }
-        //以当前页面id查询当前页面所属笔记本和路径（优先使用docid，因为挂件刚创建时无法查询）
-        let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisWidgetId ? thisWidgetId : thisDocId}'`);
+        //以当前页面id查询当前页面所属笔记本和路径（优先使用widegtId，因为docId可能获取的不准）
+        let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisWidgetId}'`);
         if (queryResult == null || queryResult.length < 1) {
-            throw Error(language["getPathFailed"]);
+            queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisDocId}'`);
+            if (queryResult == null || queryResult.length < 1) {
+                throw Error(language["getPathFailed"]);
+            }
         }
         let notebook = queryResult[0].box;//笔记本名
         let thisDocPath = queryResult[0].path;//当前文件路径(在笔记本下)
@@ -461,12 +464,15 @@ async function __init() {
     //获取id，用于在载入页面时获取挂件属性
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
+    // 记录是否是刚刚创建的挂件
+    let justCreate = false;
     //载入挂件属性
     try {
         await getCustomAttr();
     } catch (err) {
         console.warn(err);
         printError(language["getAttrFailedAtInit"]);
+        justCreate = true;
         // custom_attr.auto = false;//读取错误时关闭auto
     }
     //写入模式设定选择框的选项
@@ -511,6 +517,8 @@ async function __init() {
     if (custom_attr.auto) {
         //在更新/写入文档时截停操作（安全模式）
         if (setting.safeMode && myPrinter.write2file == 1) return;
+        // 挂件刚创建，且写入文档，禁止操作，因为widgetId未入库，无法创建；
+        if (justCreate && myPrinter.write2file == 1) return;
         //设定事件监听
         __setObserver();
         //尝试规避 找不到块创建位置的运行时错误

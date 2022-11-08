@@ -213,8 +213,13 @@ export async function getCurrentDocIdF(){
 
     //widgetId不存在，则使用老方法（存在bug：获取当前展示的页面id（可能不是挂件所在的id））
     if (!isValidStr(thisWidgetId)){
-        thisDocId = $(window.parent.document).find(".layout__wnd--active .protyle.fn__flex-1:not(.fn__none) .protyle-background").attr("data-node-id");
-        console.log("获取当前文档idBy方案C" + thisDocId);
+        try{
+            thisDocId = $(window.parent.document).find(".layout__wnd--active .protyle.fn__flex-1:not(.fn__none) .protyle-background").attr("data-node-id");
+            console.log("获取当前文档idBy方案C" + thisDocId);
+        }catch(err){
+            console.warn("获取当前文档id均失败");
+            return null;
+        }
         return thisDocId;
     }
     return null;
