@@ -467,7 +467,7 @@ async function __init() {
     } catch (err) {
         console.warn(err);
         printError(language["getAttrFailedAtInit"]);
-        custom_attr.auto = false;//读取错误时关闭auto
+        // custom_attr.auto = false;//读取错误时关闭auto
     }
     //写入模式设定选择框的选项
     for (let key of Object.keys(printerList)) {
