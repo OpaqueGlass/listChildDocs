@@ -280,6 +280,26 @@ export async function getKramdown(blockid){
 }
 
 /**
+ * 获取笔记本列表
+ * @returns {
+        "id": "20210817205410-2kvfpfn", 
+        "name": "测试笔记本",
+        "icon": "1f41b",
+        "sort": 0,
+        "closed": false
+      }
+ */
+export async function getNodebookList() {
+    let url = "/api/notebook/lsNotebooks";
+    let response = await postRequest({id: blockid}, url);
+    if (response.code == 0 && response.data != null && "notebooks" in response.data){
+        return response.data.notebooks;
+    }
+    return null;
+}
+
+
+/**
  * 获取当前更新时间字符串
  * @returns 
  */

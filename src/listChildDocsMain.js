@@ -20,7 +20,36 @@ let thisDocId = "";
 let thisWidgetId = "";
 let mutex = 0;
 let myPrinter;
+let myProvider;
 let g_showSetting;
+/** 生成、插入模式 */
+// TODO: 
+/*
+- 特殊的Printer调用方式？
+- 特殊的插入方式
+*/
+class DefaultContentProvider {
+    static modeId = 0;
+    // 大纲模式 TODO: 待考虑的功能实现方法
+    // 0无大纲，1纯大纲，2叶子文档加大纲
+    outlineMode = 0;
+    // 调用此方法输出内容，如果要加入一些其他的，应该修改这里
+    async generateOutputText() {
+
+    }
+}
+/**
+ * 大纲模式
+ */
+class OutlineProvider extends DefaultContentProvider {
+
+}
+/**
+ * 追加模式
+ */
+class AddProvider extends DefaultContentProvider {
+
+}
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = "") {
     let attrData = {};
@@ -152,6 +181,8 @@ async function getText(notebook, nowDocPath) {
     let rawData;
     let rowCountStack = new Array();
     rowCountStack.push(1);
+    // TODO: 单独处理加入父文档../
+    // TODO: 单独处理起始为笔记本，笔记本上级的情况
     if (custom_attr.listDepth == 0) {
         rawData = await getDocOutlineText(thisDocId, false, rowCountStack);
     } else {
@@ -193,7 +224,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) 
             insertData = await getOneLevelText(notebook, doc.path, insertData, rowCountStack);
             rowCountStack.pop();
             insertData += myPrinter.afterChildDocs(rowCountStack.length);
-        } else if (setting.showEndDocOutline && custom_attr.outlineDepth > 0) {//终端文档列出大纲，由选项控制
+        } else if (setting.showEndDocOutline && custom_attr.outlineDepth > 0) {//终端文档列出大纲，由选项控制 TODO: 更改为属性控制
             let outlines = await getDocOutlineAPI(doc.id);
             if (outlines != null) {
                 insertData += myPrinter.beforeChildDocs(rowCountStack.length);
@@ -326,24 +357,15 @@ async function __main(initmode = false) {
             // await getCustomAttr();//决定不再支持
             await __refresh();
         }
-        //以当前页面id查询当前页面所属笔记本和路径（优先使用widegtId，因为docId可能获取的不准）
-        let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisWidgetId}'`);
-        if (queryResult == null || queryResult.length < 1) {
-            queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisDocId}'`);
-            if (queryResult == null || queryResult.length < 1) {
-                throw Error(language["getPathFailed"]);
-            }
-        }
-        let notebook = queryResult[0].box;//笔记本名
-        let thisDocPath = queryResult[0].path;//当前文件路径(在笔记本下)
-        g_thisDocPath = notebook + thisDocPath;
+        // TODO: 重构为使用函数获取targetId和targetId文档所在的box笔记本路径
+        let [notebook, targetDocPath] = await getTargetId();
         //获取子文档层级文本
-        let textString = await getText(notebook, thisDocPath);
+        let textString = await getText(notebook, targetDocPath);
         //清理原有内容
         $("#linksContainer *").remove();
         //写入子文档链接
         if (myPrinter.write2file) {
-            //在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
+            // 在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
             if (initmode && (setting.safeMode || custom_attr.childListId == "")) {
                 console.log("初次创建，不写入/更新块");
             } else if (custom_attr.childListId == "") {
@@ -381,6 +403,60 @@ async function __main(initmode = false) {
     console.log("已更新子文档目录列表");
     mutex = 0;
 }
+
+/**
+ * 判定用户输入的子文档目录的目标id，将从该目标开始列出
+ */
+async function getTargetId() {
+    let userInputTargetId = custom_attr["targetId"];
+    // 若id未指定，以挂件所在位置为准
+    if (!isValidStr(userInputTargetId)) {
+        //以当前页面id查询当前页面所属笔记本和路径（优先使用widegtId，因为docId可能获取的不准）
+        let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisWidgetId}'`);
+        if (queryResult == null || queryResult.length < 1) {
+            queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisDocId}'`);
+            if (queryResult == null || queryResult.length < 1) {
+                throw Error(language["getPathFailed"]); 
+            }
+        }
+        $("#targetDocName").text("");
+        let notebook = queryResult[0].box;//笔记本名
+        g_targetDocPath = queryResult[0].path;// 块在笔记本下的路径
+        return [notebook, g_targetDocPath];
+    }
+    // 若id已指定：
+    // 若指定的是从笔记本上级列出
+    if (userInputTargetId === "/" || userInputTargetId === "\\") {
+        // TODO 做个类型区分？
+        return ["/", "/"];
+    }
+
+    // 这里判断用户输入的targetId具体是文档块还是笔记本
+    let targetQueryResult = await queryAPI(`SELECT box, path, type, content FROM blocks WHERE id = '${userInputTargetId}'`);
+    if (targetQueryResult == null || targetQueryResult == undefined) {
+        throw Error(language["getPathFailed"]); 
+    }else if (targetQueryResult.length < 1) {
+        throw Error(language["wrongTargetId"]); 
+    }
+    // 若id对应的是文档块
+    if (targetQueryResult[0].type === "d") {
+        $("#targetDocName").text(targetQueryResult[0].content);
+        return [targetQueryResult[0].box, targetQueryResult[0].path];
+    }
+    // 生成笔记本id数组
+    g_notebooksIDList = new Array();
+    g_notebooks.map((currentValue) => {
+        if (currentValue.closed == false) {
+            g_notebooksIDList.push(currentValue.id);
+        }
+    });
+    // 若id对应的是笔记本
+    if (g_notebooksIDList.indexOf(userInputTargetId) != -1) {
+        return [userInputTargetId, "/"];
+    }
+    throw new Error(language["wrongTargetId"]);
+}
+
 //保存设置项
 async function __save() {
     //获取最新设置
@@ -426,6 +502,8 @@ async function __refresh() {
     custom_attr["listColumn"] = parseInt(document.getElementById("listcolumn").value);
     //重设大纲层级
     custom_attr["outlineDepth"] = parseInt(document.getElementById("outlinedepth").value)
+    //获取targetId
+    custom_attr["targetId"] = $("#targetId").val();
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
     if (nowAutoMode != custom_attr["auto"]) {
@@ -486,6 +564,7 @@ async function __init() {
     document.getElementById("autoMode").checked = custom_attr["auto"];
     document.getElementById("listcolumn").value = custom_attr["listColumn"];
     document.getElementById("outlinedepth").value = custom_attr["outlineDepth"];
+    document.getElementById("targetId").value = custom_attr["targetId"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     __refreshAppearance();
@@ -553,7 +632,17 @@ function __setObserver() {
 let mutationObserver = new MutationObserver(() => { __main(true) });//避免频繁刷新id
 let mutationObserver2 = new MutationObserver(() => { setTimeout(__refreshAppearance, 1500); });
 let refreshBtnTimeout;
-let g_thisDocPath;
+
+let g_targetDocPath;
+let g_targetDocId;
+let g_targetMode;
+let g_notebooks = null;
+let g_notebooksIDList = null;
+try {
+    g_notebooks = window.top.siyuan.notebooks;
+}catch (err) {
+    console.error("获取笔记本方法过时，请@开发者修复此问题！")
+}
 //绑定按钮事件
 document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(false) }, 300); };
 document.getElementById("refresh").ondblclick = async function () { clearTimeout(refreshBtnTimeout); await __save(); };
