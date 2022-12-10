@@ -436,8 +436,15 @@ async function __main(initmode = false) {
             }
         } else {
             $(textString).appendTo(".linksContainer");
-            //挂一下事件，处理引用块点击和浮窗
-            $("#refContainer .refLinks").click(openRefLink);
+            // 处理响应范围，挂引用块点击事件
+            if (setting.extendClickArea) {
+                $(".linksListItem").click(openRefLink);
+                $(".linksListItem").addClass("itemMouseOverHighlight");
+            }else{
+                $("#refContainer .refLinks").click(openRefLink);
+            }
+            
+            //挂一下事件，处理引用块浮窗
             if (setting["floatWindowEnable"]) $("#refContainer .floatWindow").mouseover(showFloatWnd);
             //设定分列值
             setColumn();

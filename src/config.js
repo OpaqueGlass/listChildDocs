@@ -57,6 +57,8 @@ let setting = {
     webEmojiEnable: false,
     // 加入“../”（前往父文档）
     backToParent: false,
+    // 挂件内时，扩大点击响应范围为整行
+    extendClickArea: true,
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用

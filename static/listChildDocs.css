@@ -111,6 +111,7 @@ input:hover {
     display: block;
 }
 
+/* 按钮夜间样式 */
 .button_dark {
     background-color: darkslategray;
     color: white;
@@ -129,12 +130,14 @@ input:hover {
     padding: 4px 0px;
 }
 
+/* 挂件内自定义emoji样式 */
 .iconpic {
     width: 18px;
     height: 18px;
     vertical-align: bottom;
 }
 
+/* 链接文字样式 */
 .childDocLinks,
 .refLinks {
     color: black;
@@ -143,16 +146,24 @@ input:hover {
     border-bottom: 1px dashed rgba(0, 0, 0, .1);
 }
 
+/* 暗黑模式下，链接文字样式 */
 .childDocLinks_dark {
     color: #C9D1D9;
 }
 
+/* 链接文字悬停样式 */
 .childDocLinks:hover,
 .refLinks:hover {
     color: #1186d9;
     border-bottom: 1px dashed #4CB0F9;
 }
 
+/* 扩大点击范围为整行时，悬停样式 */
+.itemMouseOverHighlight:hover {
+    background-color: #1186d91f;
+}
+
+/* 错误提示文字样式 */
 .errorinfo {
     color: red;
     text-align: center;

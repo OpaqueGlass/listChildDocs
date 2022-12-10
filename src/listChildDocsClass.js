@@ -104,7 +104,7 @@ class Printer {
     }
     oneDocLink(doc, rowCountStack) {
         let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
-        return `<li class="linksListItem"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
+        return `<li class="linksListItem" data-id="${doc.id}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
     }
     //在所有输出文本写入之前
     beforeAll() {
@@ -129,7 +129,7 @@ class HtmlReflinkPrinter extends Printer {
     }
     oneDocLink(doc, rowCountStack) {
         let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
-        return `<li class="linksListItem"><span class="refLinks childDocLinks floatWindow" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
+        return `<li class="linksListItem" data-id="${doc.id}"><span class="refLinks childDocLinks floatWindow" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
     }
     //在所有输出文本写入之前
     beforeAll() {
@@ -263,7 +263,7 @@ class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
             countStr += num + ".";
         }
         let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
-        return `<li class="linksListItem">　${spaces}　${countStr}<span class="refLinks floatWindow childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
+        return `<li class="linksListItem" data-id="${doc.id}">　${spaces}　${countStr}<span class="refLinks floatWindow childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
     }
 }
 
@@ -296,7 +296,7 @@ class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
             countStr += num + ".";
         }
         let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
-        return `<li class="linksListItem">　${spaces}　${countStr}<span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
+        return `<li class="linksListItem" data-id="${doc.id}">　${spaces}　${countStr}<span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
     }
 }
 /**
