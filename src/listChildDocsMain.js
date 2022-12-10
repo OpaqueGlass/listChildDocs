@@ -11,7 +11,8 @@ import {
     updateBlockAPI,
     insertBlockAPI,
     checkOs,
-    getDocOutlineAPI
+    getDocOutlineAPI,
+    getNodebookList
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
 import { printerList } from "./printerConfig.js";
@@ -181,13 +182,21 @@ async function getText(notebook, nowDocPath) {
     let rawData;
     let rowCountStack = new Array();
     rowCountStack.push(1);
-    // TODO: 单独处理加入父文档../
-    // TODO: 单独处理起始为笔记本，笔记本上级的情况
-    if (custom_attr.listDepth == 0) {
-        rawData = await getDocOutlineText(thisDocId, false, rowCountStack);
-    } else {
-        rawData = await getOneLevelText(notebook, nowDocPath, "", rowCountStack);//层级从1开始
+    
+    // 单独处理起始为笔记本上级的情况
+    if (notebook === "/") {
+        rawData = await getTextFromNotebooks(rowCountStack);
+    }else{
+        // TODO: 单独处理加入父文档../
+
+        // 处理大纲和子文档两种情况，子文档情况兼容从笔记本级别列出
+        if (custom_attr.listDepth == 0) {
+            rawData = await getDocOutlineText(thisDocId, false, rowCountStack);
+        } else {
+            rawData = await getOneLevelText(notebook, nowDocPath, "", rowCountStack);//层级从1开始
+        }
     }
+    
 
     if (rawData == "") {
         if (custom_attr.listDepth > 0) {
@@ -202,12 +211,49 @@ async function getText(notebook, nowDocPath) {
 }
 
 /**
+ * 从笔记本上级列出子文档
+ * @param {*} notebook 
+ * @param {*} nowDocPath 
+ * @return 返回的内容非累加内容，覆盖返回
+ */
+async function getTextFromNotebooks(rowCountStack) {
+    let result = "";
+    // 防止没有获取到笔记本列表
+    if (g_notebooks == null) {
+        g_notebooks = await getNodebookList();
+    }
+    // 遍历笔记本
+    for (let i = 0; i < g_notebooks.length; i++) {
+        // 关闭的笔记本无法跳转，没有创建的意义
+        if (g_notebooks[i].closed == true) continue;
+        // 插入笔记本名和笔记本图标（本部分逻辑同getOneLevelText）
+        let tempVirtualDocObj = {
+            id: "",
+            name: g_notebooks[i].name,
+            icon: g_notebooks[i].icon
+        };
+        result += myPrinter.align(rowCountStack.length);
+        result += myPrinter.oneDocLink(tempVirtualDocObj, rowCountStack);
+        // 处理笔记本下级文档
+        if ((rowCountStack.length + 1) <= custom_attr.listDepth) {
+            result += myPrinter.beforeChildDocs(rowCountStack.length);
+            rowCountStack.push(1);
+            result = await getOneLevelText(g_notebooks[i].id, "/", result, rowCountStack);
+            rowCountStack.pop();
+            result += myPrinter.afterChildDocs(rowCountStack.length);
+        }
+        rowCountStack[rowCountStack.length - 1]++;
+    }
+    return result;
+}
+
+/**
  * 获取一层级子文档输出文本
  * @param {*} notebook 
  * @param {*} nowDocPath 
  * @param {*} insertData 
  * @param {*} rowCountStack 
- * @returns 
+ * @returns 返回的内容非累加内容，需=接收
  */
 async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) {
     if (rowCountStack.length > custom_attr.listDepth) {
@@ -244,7 +290,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) 
  * @param {*} docId
  * @param {*} distinguish 区分大纲和页面，如果同时列出文档且需要区分，为true
  * @param {*} rowCountStack 生成行数记录
- * @return {*} 仅大纲的输出文本，如果有其他，请+=保存
+ * @return {*} 仅大纲的输出文本，（返回内容为累加内容）如果有其他，请+=保存
  */
 async function getDocOutlineText(docId, distinguish, rowCountStack) {
     let outlines = await getDocOutlineAPI(docId);
@@ -306,8 +352,8 @@ function debugPush(text, delay = 7000) {
 function showSettingChanger(showBtn) {
     g_showSetting = showBtn;
     let display = showBtn ? "" : "none";
-    $("#printMode, #listcolumn, #listdepth, #outlinedepth").css("display", display);
-    $("#depthhint, #columnhint, #outlinedepthhint").css("display", display);
+    $("#printMode, #listcolumn, #listdepth, #outlinedepth, #targetId").css("display", display);
+    $("#depthhint, #columnhint, #outlinedepthhint, #targetIdhint, #targetDocName").css("display", display);
     if ((custom_attr.listDepth != 0 && !setting.showEndDocOutline) && showBtn) {//层级不为0时不显示大纲层级
         $("#outlinedepth, #outlinedepthhint").css("display", "none");
     }
@@ -357,7 +403,7 @@ async function __main(initmode = false) {
             // await getCustomAttr();//决定不再支持
             await __refresh();
         }
-        // TODO: 重构为使用函数获取targetId和targetId文档所在的box笔记本路径
+        // 获取targetId文档所在的box笔记本、笔记本下路径
         let [notebook, targetDocPath] = await getTargetId();
         //获取子文档层级文本
         let textString = await getText(notebook, targetDocPath);
@@ -386,6 +432,8 @@ async function __main(initmode = false) {
             if (window.top.siyuan.config.appearance.mode == 1) {
                 $(".childDocLinks").addClass("childDocLinks_dark");
             }
+            // TODO: ~~修复字体问题~~ 好像修复不了hhhh，字体跟随思源编辑器设定
+            // $("#linksContainer").css("font-family", window.top.siyuan.config.editor.fontFamily);
         }
         //issue #13 挂件自动高度
         if (setting.autoHeight && myPrinter.write2file == 0) {
@@ -409,6 +457,7 @@ async function __main(initmode = false) {
  */
 async function getTargetId() {
     let userInputTargetId = custom_attr["targetId"];
+    $("#targetDocName").text("");
     // 若id未指定，以挂件所在位置为准
     if (!isValidStr(userInputTargetId)) {
         //以当前页面id查询当前页面所属笔记本和路径（优先使用widegtId，因为docId可能获取的不准）
@@ -419,7 +468,6 @@ async function getTargetId() {
                 throw Error(language["getPathFailed"]); 
             }
         }
-        $("#targetDocName").text("");
         let notebook = queryResult[0].box;//笔记本名
         g_targetDocPath = queryResult[0].path;// 块在笔记本下的路径
         return [notebook, g_targetDocPath];
@@ -427,7 +475,7 @@ async function getTargetId() {
     // 若id已指定：
     // 若指定的是从笔记本上级列出
     if (userInputTargetId === "/" || userInputTargetId === "\\") {
-        // TODO 做个类型区分？
+        $("#targetDocName").text("/");
         return ["/", "/"];
     }
 
@@ -435,23 +483,29 @@ async function getTargetId() {
     let targetQueryResult = await queryAPI(`SELECT box, path, type, content FROM blocks WHERE id = '${userInputTargetId}'`);
     if (targetQueryResult == null || targetQueryResult == undefined) {
         throw Error(language["getPathFailed"]); 
-    }else if (targetQueryResult.length < 1) {
-        throw Error(language["wrongTargetId"]); 
     }
     // 若id对应的是文档块
-    if (targetQueryResult[0].type === "d") {
+    if (targetQueryResult.length > 0 && targetQueryResult[0].type === "d") {
         $("#targetDocName").text(targetQueryResult[0].content);
         return [targetQueryResult[0].box, targetQueryResult[0].path];
+    }else if (targetQueryResult.length > 0) {
+        throw Error(language["wrongTargetId"]); 
     }
     // 生成笔记本id数组
     g_notebooksIDList = new Array();
+    let notebookNameList = new Array();
+    if (g_notebooks == null) {
+        g_notebooks = await getNodebookList();
+    }
     g_notebooks.map((currentValue) => {
         if (currentValue.closed == false) {
             g_notebooksIDList.push(currentValue.id);
+            notebookNameList.push(currentValue.name);
         }
     });
     // 若id对应的是笔记本
     if (g_notebooksIDList.indexOf(userInputTargetId) != -1) {
+        $("#targetDocName").text(notebookNameList[g_notebooksIDList.indexOf(userInputTargetId)]);
         return [userInputTargetId, "/"];
     }
     throw new Error(language["wrongTargetId"]);
@@ -575,6 +629,7 @@ async function __init() {
     $("#autoMode").attr("title", language["autoBtn"]);
     $("#listcolumn").attr("title", language["columnBtn"]);
     $("#setting").attr("title", language["settingBtn"]);
+    $("#targetId").attr("title", language["targetIdTitle"]);
     $("#depthhint").text(language["depthHint"]);
     $("#columnhint").text(language["columnHint"]);
     $("#outlinedepthhint").text(language["outlineDepthHint"]);
@@ -621,11 +676,12 @@ function __setObserver() {
         let target = $(window.parent.document).find(`.layout-tab-bar .item[data-id=${dataId}]`);
         console.assert(target.length == 1, "无法监听页签切换", target, dataId);
         //不能观察class变化，class会在每次编辑、操作时变更
-        mutationObserver.observe(target[0], { "attributes": true, "attributeFilter": ["data-activetime"] });
+        if (target.length == 1){
+            mutationObserver.observe(target[0], { "attributes": true, "attributeFilter": ["data-activetime"] });
+        }
     } catch (err) {
-        console.error(err);
         // printError("监听点击页签事件失败", false);//监听页签将作为附加功能，不再向用户展示错误提示
-        console.warn("监视点击页签事件失败" + err);
+        console.error("监视点击页签事件失败" + err);
     }
 }
 
@@ -641,7 +697,7 @@ let g_notebooksIDList = null;
 try {
     g_notebooks = window.top.siyuan.notebooks;
 }catch (err) {
-    console.error("获取笔记本方法过时，请@开发者修复此问题！")
+    console.error("获取笔记本方法过时，请@开发者修复此问题！");
 }
 //绑定按钮事件
 document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(false) }, 300); };

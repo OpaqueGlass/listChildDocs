@@ -291,7 +291,7 @@ export async function getKramdown(blockid){
  */
 export async function getNodebookList() {
     let url = "/api/notebook/lsNotebooks";
-    let response = await postRequest({id: blockid}, url);
+    let response = await postRequest({}, url);
     if (response.code == 0 && response.data != null && "notebooks" in response.data){
         return response.data.notebooks;
     }

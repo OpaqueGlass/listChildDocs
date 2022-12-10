@@ -1,3 +1,5 @@
+import { isValidStr } from "./API.js";
+
 export {openRefLink, showFloatWnd};
 /**
  * 在点击<span data-type="block-ref">时打开思源块/文档
@@ -8,7 +10,9 @@ export {openRefLink, showFloatWnd};
  */
 let openRefLink = function(event){
     let 主界面= window.parent.document
-    let id = event.target.getAttribute("data-id")
+    let id = event.target.getAttribute("data-id");
+    // 处理笔记本等无法跳转的情况
+    if (!isValidStr(id)) return;
     let 虚拟链接 =  主界面.createElement("span")
     虚拟链接.setAttribute("data-type","block-ref")
     虚拟链接.setAttribute("data-id",id)
@@ -35,6 +39,8 @@ let showFloatWnd = function(event){
     let 挂件坐标 = 获取元素视图坐标(挂件自身元素);
     //所引用的对象的id
     let linkId = event.target.getAttribute("data-id") ? event.target.getAttribute("data-id"):blockId;
+    // 处理笔记本等无法跳转的情况
+    if (!isValidStr(linkId)) return;
     let 虚拟链接 = 思源主界面.createElement("span");
     虚拟链接.setAttribute("data-type", "block-ref");
     虚拟链接.setAttribute("data-id", linkId);

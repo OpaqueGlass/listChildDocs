@@ -85,6 +85,7 @@ let zh_CN = {
     depthList: "子文档展示层级",
     modeList: "展示方式",
     autoBtn: "'半'自动刷新",
+    targetIdTitle: "目标文档id",
     // 错误提示词
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
     startRefresh: "开始更新子文档列表---来自listChildDocs挂件的通知",
