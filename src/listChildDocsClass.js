@@ -1,5 +1,5 @@
 import { setting } from './config.js';
-import { getUpdateString, generateBlockId } from "./API.js";
+import { getUpdateString, generateBlockId, isValidStr } from "./API.js";
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //
@@ -158,6 +158,9 @@ class MarkdownUrlUnorderListPrinter extends Printer {
             docName = docName.substring(0, docName.length - 3);
         }
         docName = htmlTransferParser(docName);
+        if (!isValidStr(doc.id)) {
+            return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
+        }
         return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
     noneString(emptyText) {
@@ -185,6 +188,9 @@ class MarkdownDChainUnorderListPrinter extends Printer {
         let docName = doc.name;
         if (doc.name.indexOf(".sy") >= 0) {
             docName = docName.substring(0, docName.length - 3);
+        }
+        if (!isValidStr(doc.id)) {
+            return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
         return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
@@ -310,6 +316,9 @@ class MarkdownUrlOrderListPrinter extends MarkdownUrlUnorderListPrinter {
             docName = docName.substring(0, docName.length - 3);
         }
         docName = htmlTransferParser(docName);
+        if (!isValidStr(doc.id)) {
+            return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
+        }
         return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
 }
@@ -327,6 +336,9 @@ class MarkdownDChainOrderListPrinter extends MarkdownDChainUnorderListPrinter {
         let docName = doc.name;
         if (doc.name.indexOf(".sy") >= 0) {
             docName = docName.substring(0, docName.length - 3);
+        }
+        if (!isValidStr(doc.id)) {
+            return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
         return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
@@ -355,6 +367,9 @@ class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter 
         let countStr = "";
         for (let num of rowCountStack) {
             countStr += num + ".";
+        }
+        if (!isValidStr(doc.id)) {
+            return `${countStr} ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
         return `${countStr} ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
