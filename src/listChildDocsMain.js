@@ -283,7 +283,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) 
             insertData = await getOneLevelText(notebook, doc.path, insertData, rowCountStack);
             rowCountStack.pop();
             insertData += myPrinter.afterChildDocs(rowCountStack.length);
-        } else if (setting.showEndDocOutline && custom_attr.outlineDepth > 0) {//终端文档列出大纲，由选项控制 TODO: 更改为属性控制
+        } else if (custom_attr.endDocOutline && custom_attr.outlineDepth > 0) {//终端文档列出大纲，由选项控制 TODO: 更改为属性控制
             let outlines = await getDocOutlineAPI(doc.id);
             if (outlines != null) {
                 insertData += myPrinter.beforeChildDocs(rowCountStack.length);
@@ -330,7 +330,7 @@ function getOneLevelOutline(outlines, distinguish, rowCountStack) {
             outline.name = outline.content;
         }
         if (distinguish) {
-            outline.name = `@${outline.name}`;
+            outline.name = setting.outlineDistinguishingWords + outline.name;
         }
         result += myPrinter.align(rowCountStack.length);
         result += myPrinter.oneDocLink(outline, rowCountStack);
@@ -365,8 +365,8 @@ function debugPush(text, delay = 7000) {
 function showSettingChanger(showBtn) {
     g_showSetting = showBtn;
     let display = showBtn ? "" : "none";
-    $("#printMode, #listcolumn, #listdepth, #outlinedepth, #targetId").css("display", display);
-    $("#depthhint, #columnhint, #outlinedepthhint, #targetIdhint, #targetDocName").css("display", display);
+    $("#printMode, #listcolumn, #listdepth, #outlinedepth, #targetId, #endDocOutline").css("display", display);
+    $("#depthhint, #columnhint, #outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").css("display", display);
     if ((custom_attr.listDepth != 0 && !setting.showEndDocOutline) && showBtn) {//层级不为0时不显示大纲层级
         $("#outlinedepth, #outlinedepthhint").css("display", "none");
     }
@@ -578,6 +578,8 @@ async function __refresh() {
     custom_attr["outlineDepth"] = parseInt(document.getElementById("outlinedepth").value)
     //获取targetId
     custom_attr["targetId"] = $("#targetId").val();
+    //获取终端大纲设置
+    custom_attr["endDocOutline"] = document.getElementById("endDocOutline").checked;
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
     if (nowAutoMode != custom_attr["auto"]) {
@@ -603,11 +605,11 @@ function __refreshAppearance() {
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1) {
         $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth, #targetId").addClass("button_dark");
-        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint, #targetIdhint, #targetDocName").addClass("ordinaryText_dark");
+        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").addClass("ordinaryText_dark");
         $(".childDocLinks").addClass("childDocLinks_dark");
     } else {
         $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth").removeClass("button_dark");
-        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint").removeClass("ordinaryText_dark");
+        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").removeClass("ordinaryText_dark");
         $(".childDocLinks").removeClass("childDocLinks_dark");
     }
 }
@@ -639,6 +641,7 @@ async function __init() {
     document.getElementById("listcolumn").value = custom_attr["listColumn"];
     document.getElementById("outlinedepth").value = custom_attr["outlineDepth"];
     document.getElementById("targetId").value = custom_attr["targetId"];
+    document.getElementById("endDocOutline").checked = custom_attr["endDocOutline"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     __refreshAppearance();
@@ -653,7 +656,9 @@ async function __init() {
     $("#depthhint").text(language["depthHint"]);
     $("#columnhint").text(language["columnHint"]);
     $("#outlinedepthhint").text(language["outlineDepthHint"]);
-    $("#outlinedepthhint").css("white-space", "nowrap");//提示文字禁止折行
+    $("#outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").css("white-space", "nowrap");//提示文字禁止折行
+    $("#endDocOutlineHint").text(language["endDocOutlineHint"]);
+    $("#targetIdhint").text(language["targetIdhint"]);
     //跟随软件字号设定
     $("#linksContainer").css("font-size", window.top.siyuan.config.editor.fontSize + "px");
     //控制自动刷新选项是否显示

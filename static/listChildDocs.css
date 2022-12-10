@@ -49,7 +49,7 @@ input {
     color: white; */
 }
 
-#autoMode {
+#autoMode, #endDocOutline {
     width: 1em;
     height: 1em;
     margin-top: 0.25em;
