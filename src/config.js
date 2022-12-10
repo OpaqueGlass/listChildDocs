@@ -54,7 +54,9 @@ let setting = {
     // 在模式“默认”“挂件beta”下，使得挂件高度跟随目录长度自动调整
     autoHeight: false,
     // 开发者选项 插入https:// 或 http:// 协议的emoji，未完成功能
-    webEmojiEnable: false
+    webEmojiEnable: false,
+    // 加入“../”（前往父文档）
+    backToParent: false,
 };
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用

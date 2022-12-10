@@ -179,7 +179,7 @@ async function getText(notebook, nowDocPath) {
         throw Error(language["wrongPrintMode"]);
     }
     let insertData = myPrinter.beforeAll();
-    let rawData;
+    let rawData = "";
     let rowCountStack = new Array();
     rowCountStack.push(1);
     
@@ -187,13 +187,26 @@ async function getText(notebook, nowDocPath) {
     if (notebook === "/") {
         rawData = await getTextFromNotebooks(rowCountStack);
     }else{
-        // TODO: 单独处理加入父文档../
-
+        // 单独处理 返回父文档../
+        if (nowDocPath !== "/" && setting.backToParent && myPrinter.write2file == 0) {
+            let tempPathData = nowDocPath.split("/");
+            // 排除为笔记本、笔记本直接子文档的情况，split后首个为''
+            if (tempPathData.length > 2) {
+                let tempVirtualDocObj = {
+                    id: tempPathData[tempPathData.length - 2],
+                    name: "../",
+                    icon: "1f519"//图标🔙
+                };
+                rawData += myPrinter.align(rowCountStack.length);
+                rawData += myPrinter.oneDocLink(tempVirtualDocObj, rowCountStack);
+                rowCountStack[rowCountStack.length - 1]++;
+            }
+        }
         // 处理大纲和子文档两种情况，子文档情况兼容从笔记本级别列出
         if (custom_attr.listDepth == 0) {
             rawData = await getDocOutlineText(thisDocId, false, rowCountStack);
         } else {
-            rawData = await getOneLevelText(notebook, nowDocPath, "", rowCountStack);//层级从1开始
+            rawData = await getOneLevelText(notebook, nowDocPath, rawData, rowCountStack);//层级从1开始
         }
     }
     
@@ -582,8 +595,8 @@ function __refreshAppearance() {
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1) {
-        $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth").addClass("button_dark");
-        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint").addClass("ordinaryText_dark");
+        $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth, #targetId").addClass("button_dark");
+        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint, #targetIdhint, #targetDocName").addClass("ordinaryText_dark");
         $(".childDocLinks").addClass("childDocLinks_dark");
     } else {
         $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth").removeClass("button_dark");
