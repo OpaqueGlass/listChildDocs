@@ -130,6 +130,48 @@ let zh_CN = {
 let language = zh_CN;//当前使用的语言
 
 
+// 导入外部config.js 测试功能
+try {
+    let allCustomConfig = await import('/widgets/custom.js');
+    let customConfig = null;
+    let customConfigName = "listChildDocs";
+    if (allCustomConfig[customConfigName] != undefined) {
+        customConfig = allCustomConfig[customConfigName];
+    }else if (allCustomConfig.config != undefined && allCustomConfig.config[customConfigName] != undefined) {
+        customConfig = allCustomConfig.config[customConfigName];
+    }
+    // 导入token
+    if (allCustomConfig.token != undefined) {
+        token = allCustomConfig.token;
+    }else if (allCustomConfig.config != undefined && allCustomConfig.config.token != undefined) {
+        token = allCustomConfig.config.token;
+    }
+    
+    // 仅限于config.setting/config.defaultAttr下一级属性存在则替换，深层对象属性将完全覆盖
+    if (customConfig != null) {
+        if ("setting" in customConfig) {
+            for (let key in customConfig.setting) {
+                if (key in setting) {
+                    setting[key] = customConfig.setting[key];
+                }
+            }
+        }
+
+        if ("custom_attr" in customConfig) {
+            for (let key in customConfig.custom_attr) {
+                if (key in custom_attr) {
+                    custom_attr[key] = customConfig.custom_attr[key];
+                }
+            }
+        }
+        
+    }
+    
+}catch (err) {
+    console.warn("导入用户自定义设置时出现错误", err);
+}
+
+
 export {custom_attr, token, language, setting, includeOs};
 /* printerMode参数
 0 默认
