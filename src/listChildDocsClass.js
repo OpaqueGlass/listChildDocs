@@ -545,7 +545,6 @@ function getEmojiMarkdownStr(iconString, hasChild) {
         }else{
             // 移除扩展名
             let removeFileFormat = iconString.substring(0, iconString.lastIndexOf("."));
-            console.log(removeFileFormat);
             result = `:${removeFileFormat}:`;
         }
     } else {

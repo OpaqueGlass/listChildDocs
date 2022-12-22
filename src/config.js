@@ -15,7 +15,7 @@ let custom_attr = {//这里列出的是挂件的默认设置，只在创建时�
     listColumn: 1,//子文档列表列数，过多的列数将导致显示问题
     outlineDepth: 3,//大纲列出层级数，混合列出时此项只控制大纲部分
     targetId: "", //统计对象id，统计的目标应当为文档块或笔记本
-    endDocOutline: false, // 一并列出终端文档（叶子文档）大纲？
+    endDocOutline: false, // 一并列出叶子文档的大纲？（目录中包括最深层级文档的大纲？）影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
 };
 // 全局设置
 let setting = {
@@ -32,6 +32,9 @@ let setting = {
     // 安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块
     // 可以避免此挂件自行刷新导致可能的同步覆盖问题。
     safeMode: true,
+    // 安全模式PLUS
+    // 避免在历史预览界面、编辑器只读时执行文档更改操作(目前允许挂件设置保存，请注意只读情况下设置保存的风险)
+    safeModePlus: true,
     // 分列截断提示词（仅用于写入文档模式：url、引用块）
     divideIndentWord: "(续)",
     // 分列截断方式（仅用于写入文档模式：url、引用块
@@ -47,7 +50,7 @@ let setting = {
     // 使用玄学的超级块创建方式。如果出现问题，请设置为false（测试中）
     superBlockBeta: true,
     // 一并列出终端文档的大纲？（目录中包括最深层级文档的大纲？）影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
-    showEndDocOutline: false,
+    // showEndDocOutline: false, // v0.0.9及以下版本使用，现已移除，请使用custom_attr.endDocOutline和挂件内设置指定。
     // 混合列出时区分提示词
     outlineDistinguishingWords: "@",
     // 刷新列表后重写属性
@@ -56,10 +59,14 @@ let setting = {
     customEmojiEnable: true,
     // 在模式“默认”“挂件beta”下，使得挂件高度跟随目录长度自动调整
     autoHeight: false,
+    // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最小高度（单位px），若不限制，请设为undefined
+    height_2widget_min: 300,
+    // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最大高度（单位px），若不限制，请设为undefined
+    height_2widget_max: undefined,
     // 开发者选项 插入https:// 或 http:// 协议的emoji，未完成功能
     webEmojiEnable: false,
-    // 加入“../”（前往父文档）
-    backToParent: false,
+    // 在目录列表第一个加入“../”（前往父文档）（仅挂件内目录），此设定项的类型为字符串，"true"（启用）"false"（禁用）"auto"（仅窄屏设备展示）
+    backToParent: "auto",
     // 挂件内时，扩大点击响应范围为整行
     extendClickArea: true,
 };
@@ -108,31 +115,53 @@ let zh_CN = {
     targetIdhint: "目标文档id",
     working: "执行中……",
     wrongTargetId: "错误的目标id。目标id应为存在的文档块id、开启的笔记本id或/",
+    readonly: "工作在只读模式，禁止对文档的更改操作。如要关闭此安全检查，请修改自定义设置safeModePlus为false."
 };
-/*let en = {//先当他不存在
-    refreshNeeded: "Can't find the child-doc-list block. Please click refresh button again.",
-    insertBlockFailed: "Failed to create or update the unordered-list-block.",
-    writeAttrFailed: "Failed to write widget properties.",
-    getPathFailed: "Failed to query the path to which the current widget belongs.",
-    noChildDoc: "This document appears to have no child document.",
+let en_US = {//先当他不存在 We don't fully support English yet.
+    refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
+    insertBlockFailed: "Failed to create or update the directory-list-block, please try again later. ",
+    writeAttrFailed: "Failed to write widget properties, please try again later. ",
+    getPathFailed: "Failed to get the path of current document, please try again later. ",
+    noChildDoc: "There appears to be no child-docs.",
     error: "ERROR: ",
-    updateTime: "LastUpdate: ",
-    modifywarn:　"Created by listChildDocs widget. Manual changes will not be saved.",
-    getAttrFailed: "Failed to read widget properties.",
-    wrongPrintMode: "PrintMode is incorrect. The default value has been restored, please refresh again.",
-    inwidget: "Widget",
-    inUrl: "siyuan URL",
-    inDulChain: "Ref block",
-    default: "Default",
-    refreshBtn: "Click to refresh",
-    depthList: "The display depth of child-doc",
-    modeList: "Print mode",
-    autoBtn: "'Auto' refresh",
+    updateTime: "Last update: ",
+    modifywarn: "Created by listChildDocs widget. Your changes to this block will be overwritten when you refresh",
+    getAttrFailed: "Failed to get widget properties.",
+    wrongPrintMode: "Wrong output mode setting, default value restored, please refresh again.",
+    // 模式提示词
+    modeName0: "Default",
+    modeName1: "Widget beta",
+    modeName2: "siyuan url",
+    modeName3: "ref block",
+    modeName5: "1.1.Default",
+    modeName4: "1.1.Widget",
+    modeName6: "1.url",
+    modeName7: "1.ref block",
+    modeName8: "1.1.url",
+    // 界面元素鼠标悬停提示词
+    refreshBtn: "Refresh",
+    depthList: "Number of layers of sub-document display",
+    modeList: "Output mode",
+    autoBtn: "'Auto' Refresh",
+    targetIdTitle: "Target doc id",
+    // 错误提示词
     getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
-    startRefresh: "Refreshing child docs list. -- from listChildDocs widget",
-    widgetRefLink: "in Widget beta"
-};*/
-let language = zh_CN;//当前使用的语言
+    startRefresh: "Updating child-doc-directory... --- list child docs widget",
+    widgetRefLink: "Widget beta",
+    saved: "Settings have been saved",
+    columnBtn: "Number of columns",
+    settingBtn: "Show/hide settings",
+    columnHint: "Column",
+    depthHint: "Level",
+    noOutline: "There appears to be no doc-outline.",
+    outlineDepthHint: "Outline level",
+    endDocOutlineHint: "Leaf document outline",
+    targetIdhint: "Target document id",
+    working: "Running...",
+    wrongTargetId: "Wrong target doc id. The target id should be an existing document id, an open notebook id or /",
+    readonly: "Work in read-only mode. Changes to the document are prohibited. To turn off this security check, please modify the custom setting safeModePlus to false."
+};
+let language = zh_CN;//当前使用的语言 language in use
 
 
 // 导入外部config.js 测试功能

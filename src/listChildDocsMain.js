@@ -53,6 +53,9 @@ class AddProvider extends DefaultContentProvider {
 }
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = "") {
+    if (isSafelyUpdate() == false) {
+        throw new Error(language["readonly"]);
+    }
     let attrData = {};
     //读取属性.blockid为null时不能去读
     if (isValidStr(blockid) && setting.inheritAttrs) {
@@ -188,7 +191,9 @@ async function getText(notebook, nowDocPath) {
         rawData = await getTextFromNotebooks(rowCountStack);
     }else{
         // 单独处理 返回父文档../
-        if (nowDocPath !== "/" && setting.backToParent && myPrinter.write2file == 0) {
+        if (nowDocPath !== "/" &&
+          (setting.backToParent == "true" || (setting.backToParent == "auto" && window.screen.availWidth <= 768)) &&
+          myPrinter.write2file == 0) {
             let tempPathData = nowDocPath.split("/");
             // 排除为笔记本、笔记本直接子文档的情况，split后首个为''
             if (tempPathData.length > 2) {
@@ -243,7 +248,7 @@ async function getTextFromNotebooks(rowCountStack) {
         let tempVirtualDocObj = {
             id: "",
             name: g_notebooks[i].name,
-            icon: g_notebooks[i].icon
+            icon: g_notebooks[i].icon === "" ? "1f5c3" : g_notebooks[i].icon
         };
         result += myPrinter.align(rowCountStack.length);
         result += myPrinter.oneDocLink(tempVirtualDocObj, rowCountStack);
@@ -367,7 +372,7 @@ function showSettingChanger(showBtn) {
     let display = showBtn ? "" : "none";
     $("#printMode, #listcolumn, #listdepth, #outlinedepth, #targetId, #endDocOutline").css("display", display);
     $("#depthhint, #columnhint, #outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").css("display", display);
-    if ((custom_attr.listDepth != 0 && !setting.showEndDocOutline) && showBtn) {//层级不为0时不显示大纲层级
+    if ((custom_attr.listDepth != 0 && !custom_attr.endDocOutline) && showBtn) {//层级不为0时不显示大纲层级
         $("#outlinedepth, #outlinedepthhint").css("display", "none");
     }
     if (myPrinter.write2file == 1) {//写入文档时重设挂件大小
@@ -456,11 +461,7 @@ async function __main(initmode = false) {
             // $("#linksContainer").css("font-family", window.top.siyuan.config.editor.fontFamily);
         }
         //issue #13 挂件自动高度
-        if (setting.autoHeight && myPrinter.write2file == 0) {
-            console.log("挂件高度应当设为", $("body").outerHeight());
-            window.frameElement.style.height = $("body").outerHeight() + 35 + "px";
-        }
-        // __refreshAppearance();
+        __refreshAppearance();
     } catch (err) {
         console.error(err);
         printError(err.message);
@@ -491,6 +492,13 @@ async function getTargetId() {
         let notebook = queryResult[0].box;//笔记本名
         g_targetDocPath = queryResult[0].path;// 块在笔记本下的路径
         return [notebook, g_targetDocPath];
+    }
+
+    // 更新笔记本信息
+    try {
+        g_notebooks = window.top.siyuan.notebooks;
+    }catch (err) {
+        console.error("获取笔记本方法过时，请@开发者修复此问题！");
     }
     // 若id已指定：
     // 若指定的是从笔记本上级列出
@@ -531,8 +539,30 @@ async function getTargetId() {
     throw new Error(language["wrongTargetId"]);
 }
 
+/**
+ * 检查窗口状况，防止在历史预览页面刷新更改文档
+ * @return {boolean} true: 当前情况安全，允许执行刷新操作
+ */
+function isSafelyUpdate() {
+    if (setting.safeModePlus == false) return true;
+    // console.log($(window.top.document).find(".b3-dialog--open #historyContainer")); // 防止历史预览界面刷新
+    // 判定历史预览页面
+    if ($(window.top.document).find(".b3-dialog--open #historyContainer").length >= 1) {
+        return false;
+    }
+    // 判定只读模式
+    // console.log($(window.top.document).find(".protyle-wysiwyg").attr("contenteditable"));
+    if ($(window.top.document).find(".protyle-wysiwyg").attr("contenteditable") == "false") {
+        return false;
+    }
+    return true;
+}
+
 //保存设置项
 async function __save() {
+    if (isSafelyUpdate() == false) {
+        console.warn("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
+    }
     //获取最新设置
     await __refresh();
     showSettingChanger(false);
@@ -601,6 +631,14 @@ function __refreshAppearance() {
         window.frameElement.style.width = setting.width_2file;
         window.frameElement.style.height = setting.height_2file;
         showSettingChanger(false);
+    }
+    // 挂件内自动高度
+    if (setting.autoHeight && myPrinter.write2file == 0) {
+        console.log("挂件高度应当设为", $("body").outerHeight());
+        let tempHeight = $("body").outerHeight() + 35;
+        if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
+        if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
+        window.frameElement.style.height = tempHeight + "px";
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1) {
@@ -730,6 +768,17 @@ document.getElementById("refresh").ondblclick = async function () { clearTimeout
 document.getElementById("setting").onclick = function () {
     showSettingChanger(!g_showSetting);
 };
+// 监视Input变化，设置为显示大纲时，显示大纲层级选项
+document.getElementById("endDocOutline").addEventListener("change", function(e){
+    if (document.getElementById("endDocOutline").checked == true) {
+        $("#outlinedepthhint, #outlinedepth").css("display", "");
+    }
+});
+document.getElementById("listdepth").addEventListener("change", function(){
+    if ($("#listdepth").val() == 0) {
+        $("#outlinedepthhint, #outlinedepth").css("display", "");
+    }
+});
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
 // setTimeout(__init, 300);
 __init();
