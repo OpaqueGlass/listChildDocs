@@ -1,3 +1,6 @@
+/**
+ * 标注有UNSTABLE:的方法或代码行，通过jQuery定位界面元素实现，当protyle界面变化时，很可能需要更改
+ */
 import { DefaultPrinter } from './listChildDocsClass.js';
 import {
     queryAPI,
@@ -103,7 +106,7 @@ async function addText2File(markdownText, blockid = "") {
         }
         //方案1，由更新返回值获取超级块下无序列表块id
         let domDataNodeId = [];
-        //找超级块的直接子元素，且子元素是无序列表块（容器块）
+        // UNSTABLE: 找超级块的直接子元素，且子元素是无序列表块（容器块）
         // console.log(response.data);
         // console.log("更新后，直接子元素", $(response.data));
         $(response.data).children().filter(".list[data-subtype='u']").each(function () { domDataNodeId.push($(this).attr("data-node-id")); });
@@ -161,6 +164,12 @@ async function getCustomAttr() {
     }
     if (!("id" in response.data)) {
         throw Error(language["getAttrFailed"]);
+    }
+    // TODO: 移除临时设置项迁移
+    if (setting.showEndDocOutline === true) {
+        console.log("设置项迁移：叶子文档大纲");
+        custom_attr.endDocOutline = true;
+        setCustomAttr();
     }
     console.log("请求到的属性", JSON.stringify(response.data));
 }
@@ -288,7 +297,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) 
             insertData = await getOneLevelText(notebook, doc.path, insertData, rowCountStack);
             rowCountStack.pop();
             insertData += myPrinter.afterChildDocs(rowCountStack.length);
-        } else if (custom_attr.endDocOutline && custom_attr.outlineDepth > 0) {//终端文档列出大纲，由选项控制 TODO: 更改为属性控制
+        } else if (custom_attr.endDocOutline && custom_attr.outlineDepth > 0) {//终端文档列出大纲
             let outlines = await getDocOutlineAPI(doc.id);
             if (outlines != null) {
                 insertData += myPrinter.beforeChildDocs(rowCountStack.length);
@@ -422,7 +431,7 @@ async function __main(initmode = false) {
             await __refresh();
         }
         // 获取targetId文档所在的box笔记本、笔记本下路径
-        let [notebook, targetDocPath] = await getTargetId();
+        let [notebook, targetDocPath] = await getTargetBlockBoxPath();
         //获取子文档层级文本
         let textString = await getText(notebook, targetDocPath);
         //清理原有内容
@@ -475,8 +484,9 @@ async function __main(initmode = false) {
 
 /**
  * 判定用户输入的子文档目录的目标id，将从该目标开始列出
+ * @return box 块所在笔记本id, path 块在笔记本下路径
  */
-async function getTargetId() {
+async function getTargetBlockBoxPath() {
     let userInputTargetId = custom_attr["targetId"];
     $("#targetDocName").text("");
     // 若id未指定，以挂件所在位置为准
@@ -542,19 +552,41 @@ async function getTargetId() {
 /**
  * 检查窗口状况，防止在历史预览页面刷新更改文档
  * @return {boolean} true: 当前情况安全，允许执行刷新操作
+ * UNSTABLE: !此方法大量依赖jQuery定位页面元素
  */
 function isSafelyUpdate() {
     if (setting.safeModePlus == false) return true;
     // console.log($(window.top.document).find(".b3-dialog--open #historyContainer")); // 防止历史预览界面刷新
-    // 判定历史预览页面
-    if ($(window.top.document).find(".b3-dialog--open #historyContainer").length >= 1) {
-        return false;
+    try{
+        // 判定历史预览页面
+        if ($(window.top.document).find(".b3-dialog--open #historyContainer").length >= 1) {
+            return false;
+        }
+        // 旧方法：存在多个编辑窗口只判断第一个的问题；保留用于判断界面是否大改
+        // if ($(window.top.document).find(".protyle-wysiwyg").attr("contenteditable") == "false") {
+        //     return false;
+        // }
+        if ($(window.top.document).find(".protyle-wysiwyg").attr("contenteditable") == undefined) {
+            console.warn("界面更新，请@开发者重新适配");
+            return true;
+        }
+        // 判定文档已打开&只读模式【挂件所在文档在窗口中，且页面为编辑状态，则放行】
+        // 只读模式判定警告：若在闪卡页面，且后台开启了当前文档（编辑模式），只读不会拦截
+        // console.log($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false");
+        // console.log($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`));
+        let candidateThisDocEditor = $(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`);
+        if (!isValidStr(candidateThisDocEditor) || candidateThisDocEditor.length <= 0) {
+            console.warn("未在窗口中找到挂件所在的文档（挂件所在文档编辑器可能未打开），为防止后台更新，此操作已拦截。");
+            return false;
+        }
+        // 判定只读模式
+        if ($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false") {
+            return false;
+        }
+    }catch (err) {
+        console.warn("安全检查时出现错误，已放行刷新操作，错误为：", err);
     }
-    // 判定只读模式
-    // console.log($(window.top.document).find(".protyle-wysiwyg").attr("contenteditable"));
-    if ($(window.top.document).find(".protyle-wysiwyg").attr("contenteditable") == "false") {
-        return false;
-    }
+    
     return true;
 }
 
@@ -723,7 +755,7 @@ async function __init() {
         __main(true);//初始化模式
     }
 }
-
+// UNSTABLE: 此方法通过现实页面定位页签
 function __setObserver() {
     try {
         //排除操作系统：
@@ -733,7 +765,7 @@ function __setObserver() {
         //(思源主窗口)可见性变化时更新列表（导致在删除插件时仍然触发的错误）
         // document.addEventListener('visibilitychange', __main);
         //页签切换时更新列表
-        //获取当前文档用于前端展示的data-id
+        // 获取当前文档用于前端展示的data-id
         let dataId = $(window.parent.document).find(`div.protyle:has(div[data-node-id="${thisWidgetId}")`).attr("data-id");
         //由dataId找所在文档的页签
         let target = $(window.parent.document).find(`.layout-tab-bar .item[data-id=${dataId}]`);
@@ -784,7 +816,7 @@ document.getElementById("listdepth").addEventListener("change", function(){
 __init();
 
 try {
-    // TODO 监视深色模式变化
+    // UNSTABLE: 监视深色模式变化，依赖界面现实的外观模式按钮变化
     if (checkOs()) {
         let targetNode = null;
         // v2.3.x -

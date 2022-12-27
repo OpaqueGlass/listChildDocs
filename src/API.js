@@ -281,13 +281,13 @@ export async function getKramdown(blockid){
 
 /**
  * 获取笔记本列表
- * @returns {
+ * @returns 
         "id": "20210817205410-2kvfpfn", 
         "name": "测试笔记本",
         "icon": "1f41b",
         "sort": 0,
         "closed": false
-      }
+      
  */
 export async function getNodebookList() {
     let url = "/api/notebook/lsNotebooks";

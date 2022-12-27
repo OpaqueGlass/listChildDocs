@@ -25,48 +25,64 @@ let setting = {
     height_2file: "4em",
     // 将列表写入文件时，此项控制显示设置时挂件的高
     height_2file_setting: "7em",
+
     // 在挂件中显示自动刷新选项，设定true启用、false禁用【！自动刷新可能导致同步覆盖问题，详见README】
     showAutoBtn: true,
     // 在启动时显示所有设置项，设定true启用
     showSettingOnStartUp: false, 
+
     // 安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块
     // 可以避免此挂件自行刷新导致可能的同步覆盖问题。
     safeMode: true,
-    // 安全模式PLUS
+    // 安全模式PLUS【!可能因为思源版本更新而失效或导致bug，但部分情况下建议开启】
     // 避免在历史预览界面、编辑器只读时执行文档更改操作(目前允许挂件设置保存，请注意只读情况下设置保存的风险)
-    safeModePlus: true,
+    safeModePlus: false,
+
     // 分列截断提示词（仅用于写入文档模式：url、引用块）
     divideIndentWord: "(续)",
+
     // 分列截断方式（仅用于写入文档模式：url、引用块
     // 为true: 多层级时，在缩进处截断，使每列行数相同，但层级>=2时体验不佳; 
     // 为false，按照第一层级分列，每列行数不等
     divideColumnAtIndent: false,
-    // 为true则一并写入文档icon Emoji
-    emojiEnable: true,
+
     // 为true启用挂件内浮窗（挂件beta模式）
     floatWindowEnable: true,
+
     // 数组中的属性名将在更新目录列表块时一并写入无序列表对应的元素属性中，或许可以适配部分主题的无序列表转导图功能
     includeAttrName: ["custom-f"],
+
     // 使用玄学的超级块创建方式。如果出现问题，请设置为false（测试中）
     superBlockBeta: true,
+
     // 一并列出终端文档的大纲？（目录中包括最深层级文档的大纲？）影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
-    // showEndDocOutline: false, // v0.0.9及以下版本使用，现已移除，请使用custom_attr.endDocOutline和挂件内设置指定。
+    // v0.0.9及以下版本使用，现已停用，请使用custom_attr.endDocOutline和挂件内设置指定。
+    // 若设定为true，将在挂件加载时迁移“启用叶子文档大纲”到挂件属性中保存，此设置项迁移将在下一版本移除。
+    showEndDocOutline: false, 
     // 混合列出时区分提示词
     outlineDistinguishingWords: "@",
+
     // 刷新列表后重写属性
     inheritAttrs: true,
+
+    // 为true则一并写入文档icon Emoji
+    emojiEnable: true,
     // 文档使用自定义emoji时，写入自定义emoji图片
     customEmojiEnable: true,
+
     // 在模式“默认”“挂件beta”下，使得挂件高度跟随目录长度自动调整
     autoHeight: false,
     // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最小高度（单位px），若不限制，请设为undefined
     height_2widget_min: 300,
     // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最大高度（单位px），若不限制，请设为undefined
     height_2widget_max: undefined,
-    // 开发者选项 插入https:// 或 http:// 协议的emoji，未完成功能
+
+    // 未完成功能 插入https:// 或 http:// 协议的emoji，
     webEmojiEnable: false,
+
     // 在目录列表第一个加入“../”（前往父文档）（仅挂件内目录），此设定项的类型为字符串，"true"（启用）"false"（禁用）"auto"（仅窄屏设备展示）
     backToParent: "auto",
+
     // 挂件内时，扩大点击响应范围为整行
     extendClickArea: true,
 };
@@ -81,7 +97,7 @@ let zh_CN = {
     noChildDoc: "似乎没有子文档。",
     error: "错误：",
     updateTime: "更新时间：",
-    modifywarn:　"此块由listChildDocs挂件创建，若刷新列表，您的更改将会被覆盖。",
+    modifywarn: "此块由listChildDocs挂件创建，若刷新列表，您的更改将会被覆盖。", // 不想显示这个提示的话，改成空字符串""就行
     getAttrFailed: "读取挂件属性失败。",
     wrongPrintMode: "错误的输出模式设定，已恢复默认值，请刷新重试。",
     // 模式提示词
@@ -115,17 +131,17 @@ let zh_CN = {
     targetIdhint: "目标文档id",
     working: "执行中……",
     wrongTargetId: "错误的目标id。目标id应为存在的文档块id、开启的笔记本id或/",
-    readonly: "工作在只读模式，禁止对文档的更改操作。如要关闭此安全检查，请修改自定义设置safeModePlus为false."
+    readonly: "工作在只读模式，禁止对文档的更改操作。如要关闭此安全检查，请修改自定义设置safeModePlus为false。"
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
-    insertBlockFailed: "Failed to create or update the directory-list-block, please try again later. ",
+    insertBlockFailed: "Failed to create or update the child-docs list block, please try again later. ",
     writeAttrFailed: "Failed to write widget properties, please try again later. ",
     getPathFailed: "Failed to get the path of current document, please try again later. ",
     noChildDoc: "There appears to be no child-docs.",
     error: "ERROR: ",
     updateTime: "Last update: ",
-    modifywarn: "Created by listChildDocs widget. Your changes to this block will be overwritten when you refresh",
+    modifywarn: "Created by listChildDocs widget. Your changes to this block will be overwritten when you click refresh button in the widget",
     getAttrFailed: "Failed to get widget properties.",
     wrongPrintMode: "Wrong output mode setting, default value restored, please refresh again.",
     // 模式提示词
@@ -140,13 +156,13 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modeName8: "1.1.url",
     // 界面元素鼠标悬停提示词
     refreshBtn: "Refresh",
-    depthList: "Number of layers of sub-document display",
+    depthList: "Number of layers of child-docs display",
     modeList: "Output mode",
     autoBtn: "'Auto' Refresh",
     targetIdTitle: "Target doc id",
     // 错误提示词
     getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
-    startRefresh: "Updating child-doc-directory... --- list child docs widget",
+    startRefresh: "Updating child-doc-list ... --- list child docs widget",
     widgetRefLink: "Widget beta",
     saved: "Settings have been saved",
     columnBtn: "Number of columns",
@@ -159,12 +175,22 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     targetIdhint: "Target document id",
     working: "Running...",
     wrongTargetId: "Wrong target doc id. The target id should be an existing document id, an open notebook id or /",
-    readonly: "Work in read-only mode. Changes to the document are prohibited. To turn off this security check, please modify the custom setting safeModePlus to false."
+    readonly: "Work in read-only mode. Changes to the document are prohibited. To turn off this security check, please modify the custom setting 'safeModePlus' to false."
 };
-let language = zh_CN;//当前使用的语言 language in use
+let language = zh_CN; // 使用的语言 language in use
+// ~~若思源设定非中文，则显示英文~~
+// let siyuanLanguage;
+// try{
+//     siyuanLanguage = window.top.siyuan.config.lang;
+// }catch (err){
+//     console.warn("读取语言信息失败");
+// }
+// if (siyuanLanguage != zh_CN && siyuanLanguage != undefined) {
+//     language = en_US;
+// }
 
 
-// 导入外部config.js 测试功能
+// 导入外部config.js 测试功能，如果您不清楚，请避免修改此部分；
 try {
     let allCustomConfig = await import('/widgets/custom.js');
     let customConfig = null;
