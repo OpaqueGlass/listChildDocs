@@ -10,6 +10,7 @@ let printerList = [
     allPrinter.MarkdownUrlStandardOrderListPrinter,//8文档中1.2.2.类型有序列表
     allPrinter.HtmlReflinkOrderPrinter, //4挂件内，有序列表伪引用块
     allPrinter.HtmlDefaultOrderPrinter, //5挂件内，有序列表<a>
+    allPrinter.MarkdownTodoListPrinter, //9todo列表 存在问题：刷新导致任务打钩丢失
     
 ];//您可以在./listChildDocsClass.js中自定义输出格式Printer类，export，然后在此列出，并在config.js中为模式命名
 

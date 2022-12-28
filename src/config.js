@@ -24,7 +24,7 @@ let setting = {
     // 将列表写入文件时，此项控制挂件的高
     height_2file: "4em",
     // 将列表写入文件时，此项控制显示设置时挂件的高
-    height_2file_setting: "7em",
+    height_2file_setting: "9em",
 
     // 在挂件中显示自动刷新选项，设定true启用、false禁用【！自动刷新可能导致同步覆盖问题，详见README】
     showAutoBtn: true,
@@ -55,7 +55,7 @@ let setting = {
     // 使用玄学的超级块创建方式。如果出现问题，请设置为false（测试中）
     superBlockBeta: true,
 
-    // 一并列出终端文档的大纲？（目录中包括最深层级文档的大纲？）影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
+    // 【已废弃】一并列出终端文档的大纲？（目录中包括最深层级文档的大纲？）影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
     // v0.0.9及以下版本使用，现已停用，请使用custom_attr.endDocOutline和挂件内设置指定。
     // 若设定为true，将在挂件加载时迁移“启用叶子文档大纲”到挂件属性中保存，此设置项迁移将在下一版本移除。
     showEndDocOutline: false, 
@@ -110,6 +110,7 @@ let zh_CN = {
     modeName6: "1.url",
     modeName7: "1.引用块",
     modeName8: "1.1.url",
+    modeName9: "任务列表",
     // 界面元素鼠标悬停提示词
     refreshBtn: "刷新",
     depthList: "子文档展示层级",
@@ -144,7 +145,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modifywarn: "Created by listChildDocs widget. Your changes to this block will be overwritten when you click refresh button in the widget",
     getAttrFailed: "Failed to get widget properties.",
     wrongPrintMode: "Wrong output mode setting, default value restored, please refresh again.",
-    // 模式提示词
+    // 模式提示词 Mode Name
     modeName0: "Default",
     modeName1: "Widget beta",
     modeName2: "siyuan url",
@@ -154,13 +155,14 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modeName6: "1.url",
     modeName7: "1.ref block",
     modeName8: "1.1.url",
-    // 界面元素鼠标悬停提示词
+    modeName9: "todo list",
+    // 界面元素鼠标悬停提示词 hangover popup words
     refreshBtn: "Refresh",
     depthList: "Number of layers of child-docs display",
     modeList: "Output mode",
     autoBtn: "'Auto' Refresh",
     targetIdTitle: "Target doc id",
-    // 错误提示词
+    // 错误提示词error warn
     getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
     startRefresh: "Updating child-doc-list ... --- list child docs widget",
     widgetRefLink: "Widget beta",
@@ -177,7 +179,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     wrongTargetId: "Wrong target doc id. The target id should be an existing document id, an open notebook id or /",
     readonly: "Work in read-only mode. Changes to the document are prohibited. To turn off this security check, please modify the custom setting 'safeModePlus' to false."
 };
-let language = zh_CN; // 使用的语言 language in use
+let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~
 // let siyuanLanguage;
 // try{
@@ -238,9 +240,10 @@ export {custom_attr, token, language, setting, includeOs};
 1 挂件beta
 2 url
 3 引用块
-4 1.挂件
-5 1.默认
+4 1.1.挂件
+5 1.1.默认
 6 1.url
 7 1.引用块
-8 1.2.url
+8 1.1.url
+9 todo列表（任务列表）url
 */

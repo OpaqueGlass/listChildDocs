@@ -116,7 +116,7 @@ class Printer {
     }
  }
 /**
- * 挂件beta 挂件内创建<span class="reflinks">
+ * 挂件beta 挂件内创建<span class="reflinks"> 无序列表
  */
 class HtmlReflinkPrinter extends Printer {
     static id = 1;
@@ -142,7 +142,7 @@ class HtmlReflinkPrinter extends Printer {
 }
 
 /**
- * url 文档中插入siyuan://
+ * url 文档中插入siyuan:// 无序列表
  */
 class MarkdownUrlUnorderListPrinter extends Printer {
     static id = 2;
@@ -171,7 +171,7 @@ class MarkdownUrlUnorderListPrinter extends Printer {
     }
 }
 /**
- * 引用块 文档中插入((id引用块))
+ * 引用块 文档中插入((id引用块)) 无序列表
  */
 class MarkdownDChainUnorderListPrinter extends Printer {
     static id = 3;
@@ -235,7 +235,7 @@ class MarkdownDChainUnorderListPrinter extends Printer {
 // }
 
 /**
- * 1.挂件beta，挂件内beta
+ * 1.1. 挂件beta，挂件内beta 层级1.1.有序列表
  */
 class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
     static id = 4;
@@ -268,7 +268,7 @@ class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
 }
 
 /**
- * 1. 默认
+ * 1.1 默认
  */
  class HtmlDefaultOrderPrinter extends HtmlReflinkPrinter {
     static id = 5;
@@ -345,7 +345,7 @@ class MarkdownDChainOrderListPrinter extends MarkdownDChainUnorderListPrinter {
     }
 }
 /**
- * 以1.2.的有序列表样式列出
+ * 1.1.url 以1.1.的有序列表样式列出
  */
 class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter {
     static id = 8;
@@ -376,6 +376,23 @@ class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter 
     }
 }
 
+/**
+ * todo url 文档中TODO列表
+ */
+class MarkdownTodoListPrinter extends MarkdownUrlUnorderListPrinter {
+    static id = 9;
+    oneDocLink(doc, rowCountStack) {
+        let docName = doc.name;
+        if (doc.name.indexOf(".sy") >= 0) {
+            docName = docName.substring(0, docName.length - 3);
+        }
+        if (!isValidStr(doc.id)) {
+            return `* [ ] ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
+        }
+        // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
+        return `* [ ] ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
+    }
+}
 /* *****共用方法***** */
 
 /**
@@ -610,15 +627,16 @@ function markdownEmojiPathEncoder(inputStr) {
 
 export default {
     Printer,
-    DefaultPrinter,// 默认
-    MarkdownDChainUnorderListPrinter,//无序双链
-    MarkdownUrlUnorderListPrinter,//无序url
-    HtmlReflinkPrinter,//无序双链
-    HtmlReflinkOrderPrinter,//有序html双链
-    HtmlDefaultOrderPrinter,//有序<a>
-    MarkdownUrlOrderListPrinter,//有序url
-    MarkdownDChainOrderListPrinter,//有序双链
-    MarkdownUrlStandardOrderListPrinter
+    DefaultPrinter,// 【0】默认
+    MarkdownDChainUnorderListPrinter,//【1】挂件beta无序
+    MarkdownUrlUnorderListPrinter,//【2】url 无序
+    HtmlReflinkPrinter,//【3】双链 无序
+    HtmlReflinkOrderPrinter,//【4】1.1.挂件beta有序html双链
+    HtmlDefaultOrderPrinter,//【5】1.1.默认有序
+    MarkdownUrlOrderListPrinter,//【6】有序url
+    MarkdownDChainOrderListPrinter,//【7】有序双链
+    MarkdownUrlStandardOrderListPrinter,//【8】1.1.url
+    MarkdownTodoListPrinter, //【9】todo
 }//Priter子类在这里列出
 export { Printer, DefaultPrinter };
 /** 附录：doc对象（由文档树api获得），示例如下
