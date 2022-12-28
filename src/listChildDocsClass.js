@@ -457,13 +457,14 @@ function generateSuperBlock(originalText, nColumns, nDepth) {
         //     i -= splitIntervalRef, cColumn++){
         for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length && cColumn < nColumns - 1;
             i += splitIntervalRef, cColumn++) {
+                // console.log(`列count:${cColumn} 列总数: ${nColumns}`);
             // if (i == splitIntervalRef) i+= Math.floor(splitIntervalRef * 0.1 + 1);
             let splitAtIndex = result.indexOf(allBullets[i]);
             if (firstBulletIndex.indexOf(i) == -1) {//在缩进中截断折列
                 //console.log("判定层级数",result.slice(splitAtIndex).match(/ */)[0].length);
                 let continueIndentStr = "";//补偿缩进
                 for (let j = 0; j < result.slice(splitAtIndex).match(/ */)[0].length / 2; j++) {
-                    continueIndentStr += "  ".repeat(j) + `- ${setting.divideIndentWord}\n`;
+                    continueIndentStr += "  ".repeat(j) + `* ${setting.divideIndentWord}\n`;
                 }
                 //可以尝试加入原文档
                 result = result.slice(0, splitAtIndex) + `${getDivider()}${continueIndentStr}` + result.slice(splitAtIndex);
@@ -480,11 +481,15 @@ function generateSuperBlock(originalText, nColumns, nDepth) {
             for (let j = i; j < allBullets.length; j++) {//寻找合适的不截断换行位置（首层级）
                 let index = firstBullets.indexOf(allBullets[j]);
                 if (index != -1) {
-                    splitAtFirstIndex.push(index);
+                    // 去重
+                    if (splitAtFirstIndex.indexOf(index) == -1) {
+                        splitAtFirstIndex.push(index);
+                    }
                     break;
                 }
             }
         }
+        // console.log(splitAtFirstIndex);
         for (let index of splitAtFirstIndex) {
             let splitAtIndex = result.indexOf(firstBullets[index]);
             result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
