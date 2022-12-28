@@ -1,3 +1,8 @@
+/**
+ * ref-util.js
+ * 外部工具类，这里的代码来自于其他项目，详见代码注释或README.md
+ */
+
 import { isValidStr } from "./API.js";
 
 export {openRefLink, showFloatWnd};

@@ -1,3 +1,7 @@
+/**
+ * listChildDocsClass.js
+ * 用于生成子文档目录文本的Printer。
+ */
 import { setting } from './config.js';
 import { getUpdateString, generateBlockId, isValidStr } from "./API.js";
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
@@ -193,7 +197,7 @@ class MarkdownDChainUnorderListPrinter extends Printer {
             return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
-        return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
+        return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${markdownRefBlockDocNameEncoder(docName)}'))\n`;
     }
     noneString(emptyText) {
         return "* " + emptyText;
@@ -341,7 +345,7 @@ class MarkdownDChainOrderListPrinter extends MarkdownDChainUnorderListPrinter {
             return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
-        return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${docName}'))\n`;
+        return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${markdownRefBlockDocNameEncoder(docName)}'))\n`;
     }
 }
 /**
@@ -616,14 +620,27 @@ function htmlTransferParser(inputStr) {
  */
 function markdownEmojiPathEncoder(inputStr) {
     if (inputStr == null || inputStr == "") return "";
-    let transfer = ["(", ")", " "];
-    let original = ["%28", "%29", "&#32;"];
-    for (let i = 0; i < transfer.length; i++) {
-        inputStr = inputStr.replaceAll(transfer[i], original[i]);
+    let original = ["(", ")", " "];
+    let transfer = ["%28", "%29", "&#32;"];
+    for (let i = 0; i < original.length; i++) {
+        inputStr = inputStr.replaceAll(original[i], transfer[i]);
     }
     return inputStr;
 }
 
+/**
+ * Markdown字符转义
+ * 仅文档名&静态锚文本使用
+ */
+function markdownRefBlockDocNameEncoder(inputStr) {
+    if (inputStr == null || inputStr == "") return "";
+    let original = ["'"];
+    let transfer = ["&apos;"];
+    for (let i = 0; i < original.length; i++) {
+        inputStr = inputStr.replaceAll(original[i], transfer[i]);
+    }
+    return inputStr;
+}
 
 export default {
     Printer,

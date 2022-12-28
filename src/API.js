@@ -1,3 +1,7 @@
+/**
+ * API.js
+ * 用于发送思源api请求。
+ */
 import {token, includeOs} from "./config.js";
 //向思源api发送请求
 export async function postRequest(data, url){

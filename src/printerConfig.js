@@ -1,3 +1,7 @@
+/**
+ * printerConfig.js
+ * 挂件界面上显示的模式设置。
+ */
 import allPrinter from "./listChildDocsClass.js"
 // 模式设置，挂件内将依次显示以下模式：
 let printerList = [

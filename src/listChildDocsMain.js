@@ -1,4 +1,7 @@
 /**
+ * listChildDocsMain.js
+ * 挂件主体代码。
+ * 
  * 标注有UNSTABLE:的方法或代码行，通过jQuery定位界面元素实现，当protyle界面变化时，很可能需要更改
  */
 import { DefaultPrinter } from './listChildDocsClass.js';
@@ -171,7 +174,7 @@ async function getCustomAttr() {
         custom_attr.endDocOutline = true;
         setCustomAttr();
     }
-    console.log("请求到的属性", JSON.stringify(response.data));
+    // console.log("请求到的属性", JSON.stringify(response.data));
 }
 
 //统一写入attr到挂件属性
@@ -666,7 +669,7 @@ function __refreshAppearance() {
     }
     // 挂件内自动高度
     if (setting.autoHeight && myPrinter.write2file == 0) {
-        console.log("挂件高度应当设为", $("body").outerHeight());
+        // console.log("挂件高度应当设为", $("body").outerHeight());
         let tempHeight = $("body").outerHeight() + 35;
         if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
         if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
