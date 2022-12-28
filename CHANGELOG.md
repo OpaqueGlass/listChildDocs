@@ -1,5 +1,19 @@
 ## 更新日志
 
+### v0.1.0 (2022-12-28)
+
+- 新增：支持为其他文档、笔记本、所有已打开的笔记本创建子文档目录；[#22](https://github.com/OpaqueGlass/listChildDocs/issues/22)
+- 改进：改变文档中自定义emoji插入方式；[#23](https://github.com/OpaqueGlass/listChildDocs/issues/23)
+- 新增：（beta）支持从`widgets/custom.js`导入部分设置项；[#24](https://github.com/OpaqueGlass/listChildDocs/issues/24)
+- 改进：扩大挂件内子文档链接有效点击区域；[#25](https://github.com/OpaqueGlass/listChildDocs/issues/25)
+- 改进：叶子文档大纲转移为挂件独立属性；
+- 修复：引用块模式下，`'`未转义的问题；
+- 新增：文档中任务列表模式；【！已知问题：刷新将创建新列表导致任务进度勾选丢失】
+- `config.js`文件全局设置变更：
+  - 新增：`safeModePlus`检测挂件是否在只读模式下，拦截刷新文档内目录的操作；
+  - 停用（移除）：`showEndDocOutline`叶子文档大纲全局设定，此项保留用于设置迁移；
+  - 新增：`height_2widget_min` `height_2widget_max`自动高度启用时挂件最小、最大高度；
+  - 新增：`backToParent`在子文档列表中加入返回父文档的链接`../`；
 
 ### v0.0.9 (2022-11-8)
 

@@ -814,6 +814,13 @@ document.getElementById("listdepth").addEventListener("change", function(){
         $("#outlinedepthhint, #outlinedepth").css("display", "");
     }
 });
+// 挂件内及时响应分列变化
+document.getElementById("listcolumn").addEventListener("change", function(){
+    if (myPrinter.write2file == 0) {
+        custom_attr.listColumn = $("#listcolumn").val();
+        setColumn();
+    }
+});
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
 // setTimeout(__init, 300);
 __init();
