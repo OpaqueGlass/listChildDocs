@@ -3,7 +3,10 @@
  * 用于发送思源api请求。
  */
 import {token, includeOs} from "./config.js";
-//向思源api发送请求
+/**向思源api发送请求
+ * @param data 传递的信息（body）
+ * @param url 请求的地址
+ */
 export async function postRequest(data, url){
     let result;
     await fetch(url, {
@@ -27,6 +30,11 @@ export async function checkResponse4Result(response){
     }
 }
 
+/**
+ * 检查请求是否成功，返回0、-1
+ * @param {*} response 
+ * @returns 成功为0，失败为-1
+ */
 export async function checkResponse(response){
     if (response.code == 0){
         return 0;
@@ -35,7 +43,9 @@ export async function checkResponse(response){
     }
 }
 
-//SQL（api）
+/**SQL（api）
+ * @param sqlstmt SQL语句
+ */
 export async function queryAPI(sqlstmt){
     let url = "/api/query/sql";
     let response = await postRequest({stmt: sqlstmt},url);
@@ -45,14 +55,19 @@ export async function queryAPI(sqlstmt){
     return null;
 }
 
-//重建索引
+/**重建索引
+ * @param docpath 需要重建索引的文档路径
+ */
 export async function reindexDoc(docpath){
     let url = "/api/filetree/reindexTree";
     let response = await postRequest({path: docpath},url);
     return 0;
 }
 
-//列出子文件（api）
+/**列出子文件（api）
+ * @param notebookId 笔记本id
+ * @param path 需要列出子文件的路径
+ */
 export async function getSubDocsAPI(notebookId, path){
     let url = "/api/filetree/listDocsByPath";
     let response = await postRequest({notebook: notebookId, path: path}, url);
@@ -65,7 +80,7 @@ export async function getSubDocsAPI(notebookId, path){
 /**
  * 添加属性（API）
  * @param attrs 属性对象
- * @blockid 挂件id
+ * @param 挂件id
  * */
 export async function addblockAttrAPI(attrs, blockid){
     let url = "/api/attr/setBlockAttrs";
@@ -77,7 +92,10 @@ export async function addblockAttrAPI(attrs, blockid){
     return checkResponse(result);
 }
 
-//获取挂件块参数（API）
+/**获取挂件块参数（API）
+ * @param blockid
+ * @return response 请访问result.data获取对应的属性
+ */
 export async function getblockAttrAPI(blockid){
     let url = "/api/attr/getBlockAttrs";
     let response = await postRequest({id: blockid}, url);
@@ -115,9 +133,9 @@ export async function updateBlockAPI(text, blockid, textType = "markdown"){
 
 /**
  * 插入块（返回值有删减）
- * @param {*} text 文本
- * @param {*} blockid 创建的块将平级插入于该块之后
- * @param {*} textType 插入的文本类型，"markdown" or "dom"
+ * @param {string} text 文本
+ * @param {string} blockid 创建的块将平级插入于该块之后
+ * @param {string} textType 插入的文本类型，"markdown" or "dom"
  * @return 对象，为response.data[0].doOperations[0]的值，返回码为-1时也返回null
  */
 export async function insertBlockAPI(text, blockid, textType = "markdown"){
@@ -157,6 +175,59 @@ export async function getDocOutlineAPI(docid){
 }
 
 /**
+ * 插入为后置子块
+ * @param {*} text 子块文本
+ * @param {*} parentId 父块id
+ * @param {*} textType 默认为"markdown"
+ * @returns 
+ */
+export async function prependBlockAPI(text, parentId, textType = "markdown"){
+    let url = "/api/block/prependBlock";
+    let data = {"dataType": textType, "data": text, "parentID": parentId};
+    let response = await postRequest(data, url);
+    try{
+        if (response.code == 0 && response.data != null && isValidStr(response.data[0].doOperations[0].id)){
+            return response.data[0].doOperations[0];
+        }
+        if (response.code == -1){
+            console.warn("插入块失败", response.msg);
+            return null;
+        }
+    }catch(err){
+        console.error(err);
+        console.warn(response.msg);
+    }
+    return null;
+
+}
+/**
+ * 插入为前置子块
+ * @param {*} text 子块文本
+ * @param {*} parentId 父块id
+ * @param {*} textType 默认为markdown
+ * @returns 
+ */
+export async function appendBlockAPI(text, parentId, textType = "markdown"){
+    let url = "/api/block/appendBlock";
+    let data = {"dataType": textType, "data": text, "parentID": parentId};
+    let response = await postRequest(data, url);
+    try{
+        if (response.code == 0 && response.data != null && isValidStr(response.data[0].doOperations[0].id)){
+            return response.data[0].doOperations[0];
+        }
+        if (response.code == -1){
+            console.warn("插入块失败", response.msg);
+            return null;
+        }
+    }catch(err){
+        console.error(err);
+        console.warn(response.msg);
+    }
+    return null;
+
+}
+
+/**
  * 判断字符串是否为空
  * @param {*} s 
  * @returns 非空字符串true，空字符串false
@@ -170,8 +241,8 @@ export function isValidStr(s){
 
 /**
  * 推送普通消息
- * @param {*} msgText 推送的内容
- * @param {*} timeout 显示时间，单位毫秒
+ * @param {string} msgText 推送的内容
+ * @param {number} timeout 显示时间，单位毫秒
  * @return 0正常推送 -1 推送失败
  */
 export async function pushMsgAPI(msgText, timeout){
@@ -272,7 +343,7 @@ export function getCurrentWidgetId(){
 /**
  * 获取块kramdown源码
  * @param {*} blockid 
- * @returns 
+ * @returns kramdown文本
  */
 export async function getKramdown(blockid){
     let url = "/api/block/getBlockKramdown";

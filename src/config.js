@@ -88,7 +88,29 @@ let setting = {
 
     // 挂件内时，扩大点击响应范围为整行
     extendClickArea: true,
+
+    // 适配挂件插入辅助（addChildDocLinkHelper.js）（不建议一直开启，请开启此功能后几天关闭）
+    // 若开启helperSettings.checkEmptyDocInsertWidget，无需打开此功能
+    addChildDocLinkHelperEnable: false,
 };
+// 自动插入助手设置
+let helperSettings = {
+    // 文档中属性名称
+    attrName: "custom-add-cdl-helper",
+    // 模式为插入链接时，插入的内容模板
+    docLinkTemplate: "((%DOC_ID% '%DOC_NAME%'))",
+    // 插入在父文档结尾？
+    insertAtEnd: false,
+    // 自动插入模式
+    /* 可选模式：（以下列出中英文两种，设置其一即可）
+    插入挂件 add_list_child_docs 【插入挂件将不重复插入（通过属性或文档为空判断）】
+    插入链接 add_link 【根据插入内容模板，插入一行；由于目前无法实现删除文档时对应删除链接，不建议使用】
+    */
+    mode: "插入挂件",
+    // 插入挂件时，检查文档是否为空？
+    checkEmptyDocInsertWidget: true
+
+}
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用
 let token = "";//API鉴权token，可以不填的样子（在设置-关于中查看）
@@ -229,6 +251,14 @@ try {
                 }
             }
         }
+
+        if ("helperSettings" in customConfig) {
+            for (let key in customConfig.helperSettings) {
+                if (key in custom_attr) {
+                    helperSettings[key] = customConfig.helperSettings[key];
+                }
+            }
+        }
         
     }
     
@@ -237,7 +267,7 @@ try {
 }
 
 
-export {custom_attr, token, language, setting, includeOs};
+export {custom_attr, token, language, setting, includeOs, helperSettings};
 /* printerMode参数
 0 默认
 1 挂件beta

@@ -757,6 +757,17 @@ async function __init() {
         // setTimeout(()=>{ __main(true)}, 1000);
         __main(true);//初始化模式
     }
+    // 插入“addChildDocLinkHelper.js判断挂件是否存在”所需要的custom-addcdlhelper属性
+    if (!justCreate && setting.addChildDocLinkHelperEnable && isSafelyUpdate()) {
+        let thisDocAttr = await getblockAttrAPI(thisDocId);
+        if (thisDocAttr && thisDocAttr.data && "id" in thisDocAttr.data) {
+            if (!(setting.helperSettings.attrName in thisDocAttr.data)) {
+                let attr = {};
+                attr[setting.helperSettings.attrName] = "{}";
+                await addblockAttrAPI(attr, thisDocId);
+            }
+        }
+    }
 }
 // UNSTABLE: 此方法通过现实页面定位页签
 function __setObserver() {
