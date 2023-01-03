@@ -47,6 +47,7 @@ let CONSTANTS = {
     OBSERVER_RETRY_INTERVAL: 1000,
 }
 let g_observerRetryInterval;
+let g_observerStartupRefreshTimeout;
 /*
 目前支持g_mode取值为
 插入挂件 add_list_child_docs
@@ -70,6 +71,7 @@ mywebsocket.addEventListener("message", websocketEventHandler);
 /**
  * 页签变更触发器
  * 使用当前页面监视获得触发，不会和其他页面执行冲突。但无法处理多用户的情况。
+ * WARN: UNSTABLE: 依赖页签栏、窗口元素。
  */
 let g_tabbarElement;
 // 处理找不到Element的情况，interval重试寻找
@@ -79,20 +81,21 @@ let tabBarObserver = new MutationObserver((mutationList) =>{
         if (mutation.addedNodes.length > 0) {
             setTimeout(() => {tabChangeHandler(mutation.addedNodes)}, Math.round(Math.random() * CONSTANTS.OBSERVER_RANDOM_DELAY) + CONSTANTS.OBSERVER_RANDOM_DELAY_ADD);
         }
-        // TODO: 关闭页签时，检查是否没有tabBar了，如果没有，disconnect，然后setInterval重试
-        if (mutation.removedNodes.length > 0) {
-            if (!window.siyuan.layout.centerLayout.element.querySelector("[data-type='wnd'] ul.layout-tab-bar")) {
-                console.log("DISCONNECT");
-                g_observerRetryInterval = setInterval(observerRetry, CONSTANTS.OBSERVER_RETRY_INTERVAL);
-                tabBarObserver.disconnect();
-            }
-        }
+        // 由windowObserver代管。关闭页签后，tabBar移除重设，触发器锚定的元素丢失，不会触发
+        // if (mutation.removedNodes.length > 0) {
+        //     if (!window.siyuan.layout.centerLayout.element.querySelector("[data-type='wnd'] ul.layout-tab-bar")) {
+        //         console.log("DISCONNECT2");
+        //         g_observerRetryInterval = setInterval(observerRetry, CONSTANTS.OBSERVER_RETRY_INTERVAL);
+        //         tabBarObserver.disconnect();
+        //     }
+        // }
         
     }
 });
 
-// TODO: 处理分屏的情况
-// 维持程序
+/**处理分屏的情况：若页签栏刷新，则触发重设页签变更触发器
+ * WARN: 依赖窗口变化
+ * */ 
 let windowObserver = new MutationObserver((mutationList) => {
     for (let mutation of mutationList) {
         console.log("监视到窗口变化", mutation);
@@ -106,15 +109,19 @@ let windowObserver = new MutationObserver((mutationList) => {
     }
     
 });
-let g_test = window.siyuan.layout.centerLayout.element;
-windowObserver.observe(g_test, {childList: true});
+// 窗口变化监视器设定
+let g_centerLayoutElement = window.siyuan.layout.centerLayout.element;
+
 // 只有移除link为启用时才执行
 if (g_removeLink) {
     console.log("检查页签");
     clearInterval(g_observerRetryInterval);
     g_observerRetryInterval = setInterval(observerRetry, CONSTANTS.OBSERVER_RETRY_INTERVAL);
+    windowObserver.observe(g_centerLayoutElement, {childList: true});
 }
-
+/**
+ * 重试页签监听
+ */
 function observerRetry() {
     g_tabbarElement = window.siyuan.layout.centerLayout.element.querySelectorAll("[data-type='wnd'] ul.layout-tab-bar");
     console.log(g_tabbarElement);
@@ -122,6 +129,11 @@ function observerRetry() {
         console.log("重新监视页签变化");
         g_tabbarElement.forEach((element)=>{
             tabBarObserver.observe(element, {childList: true});
+            // 重启监听后立刻执行检查
+            if (element.children.length > 0) {
+                clearTimeout(g_observerRetryInterval);
+                g_observerStartupRefreshTimeout = setTimeout(() => {tabChangeHandler(element.children)}, Math.round(Math.random() * CONSTANTS.OBSERVER_RANDOM_DELAY) + CONSTANTS.OBSERVER_RANDOM_DELAY_ADD);
+            }
         });
         clearInterval(g_observerRetryInterval);
     }
@@ -156,13 +168,7 @@ function websocketEventHandler(msg) {
                     }
                 }
             }
-            // else if (wsmessage.cmd == "transactions") {
-            //     console.log(wsmessage)
-            // }
-            // else if (wsmessage.cmd == "removeDoc") {
-            //     console.log(wsmessage);
-            //     // TODO: 删除链接 
-            // }
+            // OR "transactions"  "removeDoc"
         }
     }catch(err) {
         console.error("helper执行时发生错误，已断开，如果可以，请向开发者反馈：", err);
@@ -302,13 +308,18 @@ async function addWidgetHandler(msgdata) {
 async function tabChangeHandler(addedNodes) {
     let openDocIds = [];
     // WARN: UNSTABLE: 获取打开Tab的对应文档id
-    addedNodes.forEach(element => {
+    // addedNodes.forEach(element => {
+    // 重启监听后立刻执行检查时，传入的addedNodes类型为HTMLCollections，不支持forEach
+    [].forEach.call(addedNodes, (element) => {
         let docDataId = element.getAttribute("data-id");
         // document.querySelector("div[data-id='7fadb0ac-e27d-4d2a-b910-0a8b5c185162']").querySelector(".protyle-background").getAttribute("data-node-id")
+        if (document.querySelector(`div[data-id="${docDataId}"]`) == null) return;
+        if (document.querySelector(`div[data-id="${docDataId}"]`).querySelector(".protyle-background") == null) return;
         let openDocId = document.querySelector(`div[data-id="${docDataId}"]`).querySelector(".protyle-background").getAttribute("data-node-id");
         openDocIds.push(openDocId);
     });
     console.log("刚开启的页签文档id", openDocIds);
+    if (openDocIds.length <= 0) return;
     for (let docId of openDocIds) {
         let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${docId}'`);
         if (queryResult == null || queryResult.length < 1) {
@@ -350,6 +361,7 @@ async function tabChangeHandler(addedNodes) {
         console.log("Remove Indexes", removeIndex);
         if (removeIndex.length == 0) {
             console.log("未发现文档被删除");
+            return;
         }
         let removedIds = [];
         for (let i = removeIndex.length - 1; i >= 0; i--) {
@@ -361,55 +373,6 @@ async function tabChangeHandler(addedNodes) {
     }
 
     return;
-    // 
-    if (!isValidStr(msgdata)) return;
-    let dividedPath = msgdata.path.split("/");
-    let parentDocId = dividedPath[dividedPath.length - 2];
-    let newDocId = msgdata.id;
-    // 笔记本根目录下文档不处理
-    if (parentDocId == "") return; 
-    // 获取新创建的文档名
-    let newDocName = "Untitled";
-    for (let i = 0; i < msgdata.files.length; i++) {
-        if (msgdata.files[i].path == msgdata.path) {
-            newDocName = msgdata.files[i].name.substring(0, msgdata.files[i].name.length - 3);
-            break;
-        }
-    }
-    // 处理插入文档的文本信息，进行关键词替换
-    let insertText;
-    insertText = g_docLinkTemplate.replaceAll("%DOC_ID%", msgdata.id)
-                    .replaceAll("%DOC_NAME%", newDocName);
-    console.log(insertText);
-
-    let addResponse = null;
-    if (g_insertAtEnd) {
-        addResponse = await appendBlockAPI(insertText, parentDocId);
-    }else{
-        addResponse = await prependBlockAPI(insertText, parentDocId);
-    }
-
-    let childDocLinkId = addResponse.id;
-    console.log("返回值", addResponse);
-    // TODO: 判断哪些文档被删除，移除对应的链接
-    // 生成链接信息
-    // let parentDocAttr = await getCustomAttr(parentDocId);
-    // console.log("获取到", parentDocAttr);
-    // let newDocInfoBlock = Object.assign({}, docInfoBlockTemplate);
-    // newDocInfoBlock.docId = newDocId;
-    // newDocInfoBlock.linkId = childDocLinkId;
-    // if (parentDocAttr && "docInfo" in parentDocAttr) {
-    //     parentDocAttr.docInfo.push(newDocInfoBlock);
-    // }else if (parentDocAttr){
-    //     parentDocAttr["docInfo"] = [newDocInfoBlock];
-    // }else{
-    //     parentDocAttr = {};
-    //     parentDocAttr["docInfo"] = [newDocInfoBlock];
-    // }
-    // console.log("写入", parentDocAttr);
-    // TODO: getBlockPath获取子文档数据，比对是否有不存在的子文档
-    // // 保存链接信息
-    // await saveCustomAttr(parentDocId, parentDocAttr);
 }
 // 在data.ids字段
 async function deleteHandler(msgdata) {
