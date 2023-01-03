@@ -108,7 +108,9 @@ let helperSettings = {
     */
     mode: "插入挂件",
     // 插入挂件时，检查文档是否为空？
-    checkEmptyDocInsertWidget: true
+    checkEmptyDocInsertWidget: true,
+    // 模式为插入链接时，当发现子文档被删除，移除对应的子文档链接？
+    removeLinkEnable: false,
 
 }
 //全局设置
@@ -243,18 +245,18 @@ try {
                 }
             }
         }
-
-        if ("custom_attr" in customConfig) {
-            for (let key in customConfig.custom_attr) {
-                if (key in custom_attr) {
-                    custom_attr[key] = customConfig.custom_attr[key];
+        // dev： 引入每一个，每一行都要改
+        if ("custom_attr" in customConfig) { //改1处
+            for (let key in customConfig.custom_attr) {//改1处
+                if (key in custom_attr) {//改1处
+                    custom_attr[key] = customConfig.custom_attr[key];//改2处
                 }
             }
         }
 
         if ("helperSettings" in customConfig) {
             for (let key in customConfig.helperSettings) {
-                if (key in custom_attr) {
+                if (key in helperSettings) {
                     helperSettings[key] = customConfig.helperSettings[key];
                 }
             }

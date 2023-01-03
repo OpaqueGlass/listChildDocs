@@ -329,16 +329,20 @@ export function getCurrentWidgetId(){
     
     return false;
 }
-// // 移除块
-// let removeBlockAPI = async function(blockid){
-//     let url = "/api/block/deleteBlock";
-//     let response = await postRequest({id: blockid}, url);
-//     if (response.code != 0 || response.data.length != 1 || response.data[0].doOperations.length != 1 ||
-//         !response.data[0].doOperations[0].id){
-//         return 0;
-//     }
-//     return -1;
-// }
+/**
+ * 删除块
+ * @param {*} blockid 
+ * @returns 
+ */
+export async function removeBlockAPI(blockid){
+    let url = "/api/block/deleteBlock";
+    let response = await postRequest({id: blockid}, url);
+    if (response.code != 0 || response.data.length != 1 || response.data[0].doOperations.length != 1 ||
+        !response.data[0].doOperations[0].id){
+        return 0;
+    }
+    return -1;
+}
 
 /**
  * 获取块kramdown源码

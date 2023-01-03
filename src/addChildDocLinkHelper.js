@@ -1,10 +1,13 @@
 /**
  * addChildDocLink.js 全局监视文件创建/删除操作，向父文档插入文本内容
- * 此代码文件是listChildDocs的一部分，若未经修改，不能单独作为代码片段插入。
+ * 此代码文件是listChildDocs的一部分，基于AGPL-3.0（https://www.gnu.org/licenses/agpl-3.0.txt）许可协议开源。
+ * THIS FILE IS A PART OF listChildDocs PROJECT, LICENSED UNDER AGPL-3.0 LICENSE (SEE AS https://www.gnu.org/licenses/agpl-3.0.txt).
+ * @author OpaqueGlass
  * 
  * 使用方法：
  * 设置-外观-代码片段-添加js片段： import("/widgets/listChildDocs/src/addChildDocLinkHelper.js");
  * 触发方式/触发条件：websocket message事件，cmd为"create" / "removeDoc"
+ * 依赖listChildDocs挂件的部分代码，若未经修改，不能单独作为代码片段插入。
  * 
  * 代码标记说明：
  * WARN: 警告，这些部分可能和其他js代码冲突，或导致性能问题；
@@ -19,7 +22,8 @@ import {
     isValidStr,
     appendBlockAPI,
     prependBlockAPI,
-    getKramdown
+    getKramdown,
+    removeBlockAPI
 } from './API.js';
 import {
     helperSettings
@@ -35,6 +39,14 @@ let g_docLinkTemplate = helperSettings.docLinkTemplate;
 let g_insertAtEnd = helperSettings.insertAtEnd;
 let g_mode = helperSettings.mode;
 let g_checkEmptyDocInsertWidget = helperSettings.checkEmptyDocInsertWidget;
+let g_removeLink = helperSettings.removeLinkEnable;
+let CONSTANTS = {
+    RANDOM_DELAY: 500,
+    OBSERVER_RANDOM_DELAY: 500,
+    OBSERVER_RANDOM_DELAY_ADD: 100,
+    OBSERVER_RETRY_INTERVAL: 1000,
+}
+let g_observerRetryInterval;
 /*
 目前支持g_mode取值为
 插入挂件 add_list_child_docs
@@ -53,33 +65,110 @@ const docInfoBlockTemplate = {
  * WARN: 编辑过程中会高频触发，可能导致卡顿；
  */
 let mywebsocket = window.siyuan.ws.ws;
-mywebsocket.addEventListener("message", (msg) => {
-    if (msg && msg.data){
-        let wsmessage = JSON.parse(msg.data);
-        if (wsmessage.cmd == "create") {
-            console.log(wsmessage);
-            switch (g_mode) {
-                case "插入挂件":
-                case "add_list_child_docs": {
-                    addWidgetHandler(wsmessage.data);
-                    break;
-                }
-                case "插入链接":
-                case "add_link": {
-                    createHandler(wsmessage.data);
-                    break;
-                }
-                default: {
-                    console.log("配置错误");
-                }
+mywebsocket.addEventListener("message", websocketEventHandler);
+
+/**
+ * 页签变更触发器
+ * 使用当前页面监视获得触发，不会和其他页面执行冲突。但无法处理多用户的情况。
+ */
+let g_tabbarElement;
+// 处理找不到Element的情况，interval重试寻找
+let tabBarObserver = new MutationObserver((mutationList) =>{
+    for (let mutation of mutationList) {
+        console.log("监视到页签变化", mutation);
+        if (mutation.addedNodes.length > 0) {
+            setTimeout(() => {tabChangeHandler(mutation.addedNodes)}, Math.round(Math.random() * CONSTANTS.OBSERVER_RANDOM_DELAY) + CONSTANTS.OBSERVER_RANDOM_DELAY_ADD);
+        }
+        // TODO: 关闭页签时，检查是否没有tabBar了，如果没有，disconnect，然后setInterval重试
+        if (mutation.removedNodes.length > 0) {
+            if (!window.siyuan.layout.centerLayout.element.querySelector("[data-type='wnd'] ul.layout-tab-bar")) {
+                console.log("DISCONNECT");
+                g_observerRetryInterval = setInterval(observerRetry, CONSTANTS.OBSERVER_RETRY_INTERVAL);
+                tabBarObserver.disconnect();
             }
         }
-        // else if (wsmessage.cmd == "removeDoc") {
-        //     console.log(wsmessage);
-        //     // TODO: 删除链接 
-        // }
+        
     }
 });
+
+// TODO: 处理分屏的情况
+// 维持程序
+let windowObserver = new MutationObserver((mutationList) => {
+    for (let mutation of mutationList) {
+        console.log("监视到窗口变化", mutation);
+        if (mutation.removedNodes.length > 0 || mutation.addedNodes.length > 0) {
+            console.log("DISCONNECT");
+            tabBarObserver.disconnect();
+            clearInterval(g_observerRetryInterval);
+            g_observerRetryInterval = setInterval(observerRetry, CONSTANTS.OBSERVER_RETRY_INTERVAL);
+        }
+        
+    }
+    
+});
+let g_test = window.siyuan.layout.centerLayout.element;
+windowObserver.observe(g_test, {childList: true});
+// 只有移除link为启用时才执行
+if (g_removeLink) {
+    console.log("检查页签");
+    clearInterval(g_observerRetryInterval);
+    g_observerRetryInterval = setInterval(observerRetry, CONSTANTS.OBSERVER_RETRY_INTERVAL);
+}
+
+function observerRetry() {
+    g_tabbarElement = window.siyuan.layout.centerLayout.element.querySelectorAll("[data-type='wnd'] ul.layout-tab-bar");
+    console.log(g_tabbarElement);
+    if (g_tabbarElement.length > 0) {
+        console.log("重新监视页签变化");
+        g_tabbarElement.forEach((element)=>{
+            tabBarObserver.observe(element, {childList: true});
+        });
+        clearInterval(g_observerRetryInterval);
+    }
+}
+/**
+ * websocket message事件处理函数
+ * 由于多个窗口的触发时间一致，这里通过随机延迟避开冲突。
+ * @param {*} msg 
+ */
+function websocketEventHandler(msg) {
+    try {
+        if (msg && msg.data){
+            let wsmessage = JSON.parse(msg.data);
+            if (wsmessage.cmd == "create") {
+                console.log(wsmessage);
+                let random = Math.round(Math.random() * CONSTANTS.RANDOM_DELAY) * 10; // *10是为了扩大随机数之间的差距
+                console.log("随机延迟", random);
+                switch (g_mode) {
+                    case "插入挂件":
+                    case "add_list_child_docs": {
+                        // 随机延迟，防止多个窗口中的代码片段同时执行导致重复插入
+                        setTimeout(() => {addWidgetHandler(wsmessage.data)}, random);
+                        break;
+                    }
+                    case "插入链接":
+                    case "add_link": {
+                        setTimeout(() => {createHandler(wsmessage.data)}, random);
+                        break;
+                    }
+                    default: {
+                        throw new Error("模式配置错误，请检查您的设置。");
+                    }
+                }
+            }
+            // else if (wsmessage.cmd == "transactions") {
+            //     console.log(wsmessage)
+            // }
+            // else if (wsmessage.cmd == "removeDoc") {
+            //     console.log(wsmessage);
+            //     // TODO: 删除链接 
+            // }
+        }
+    }catch(err) {
+        console.error("helper执行时发生错误，已断开，如果可以，请向开发者反馈：", err);
+        mywebsocket.removeEventListener("message", websocketEventHandler);
+    }
+}
 
 /**
  * 处理新建文档
@@ -100,12 +189,22 @@ async function createHandler(msgdata) {
             break;
         }
     }
+    // 确定未被插入，生成插入链接属性信息
+    let parentDocAttr = await getCustomAttr(parentDocId);
+    console.log("获取到父文档属性", parentDocAttr);
+    if (parentDocAttr && "docInfo" in parentDocAttr) {
+        for (let docInfoItem of parentDocAttr.docInfo) {
+            if (docInfoItem.docId == newDocId) {
+                console.log("其他实例已经添加");
+                return;
+            }
+        }
+    }
     // 处理插入文档的文本信息，进行关键词替换
     let insertText;
     insertText = g_docLinkTemplate.replaceAll("%DOC_ID%", msgdata.id)
                     .replaceAll("%DOC_NAME%", newDocName);
     console.log(insertText);
-
     let addResponse = null;
     if (g_insertAtEnd) {
         addResponse = await appendBlockAPI(insertText, parentDocId);
@@ -115,24 +214,21 @@ async function createHandler(msgdata) {
 
     let childDocLinkId = addResponse.id;
     console.log(`helper已自动插入链接(${childDocLinkId})到父文档(${parentDocId})`);
-    // DONE: 保存链接信息到文档属性，但暂时无法完成删除，写入这个属性没意义
-    // 生成链接信息
-    // let parentDocAttr = await getCustomAttr(parentDocId);
-    // console.log("获取到", parentDocAttr);
-    // let newDocInfoBlock = Object.assign({}, docInfoBlockTemplate);
-    // newDocInfoBlock.docId = newDocId;
-    // newDocInfoBlock.linkId = childDocLinkId;
-    // if (parentDocAttr && "docInfo" in parentDocAttr) {
-    //     parentDocAttr.docInfo.push(newDocInfoBlock);
-    // }else if (parentDocAttr){
-    //     parentDocAttr["docInfo"] = [newDocInfoBlock];
-    // }else{
-    //     parentDocAttr = {};
-    //     parentDocAttr["docInfo"] = [newDocInfoBlock];
-    // }
-    // console.log("写入", parentDocAttr);
-    // // 保存链接信息
-    // await saveCustomAttr(parentDocId, parentDocAttr);
+    let newDocInfoBlock = Object.assign({}, docInfoBlockTemplate);
+    newDocInfoBlock.docId = newDocId;
+    newDocInfoBlock.linkId = childDocLinkId;
+    if (parentDocAttr && "docInfo" in parentDocAttr) {
+        parentDocAttr.docInfo.push(newDocInfoBlock);
+    }else if (parentDocAttr){
+        parentDocAttr["docInfo"] = [newDocInfoBlock];
+    }else{
+        parentDocAttr = {};
+        parentDocAttr["docInfo"] = [newDocInfoBlock];
+    }
+
+    // 保存链接信息
+    console.log("写入", parentDocAttr);
+    await saveCustomAttr(parentDocId, parentDocAttr);
 }
 
 /**
@@ -199,10 +295,73 @@ async function addWidgetHandler(msgdata) {
 }
 
 /**
- * 比较器：比较原有子块和现有子块，做对应更改
+ * 处理页签节点变化
+ * 本部分只检查并执行删除链接，不检查新增
  */
-async function compareAddHandler(msgdata) {
-    // TODO: 发生删除后，不知道父文档是哪个，无法对应进行子文档动态对比；但可以在新建文档时执行
+// TODO: 打开页签时，刷新判断其下子文档变动，进行移除操作（对文档属性，检查其在子文档中是否存在）
+async function tabChangeHandler(addedNodes) {
+    let openDocIds = [];
+    // WARN: UNSTABLE: 获取打开Tab的对应文档id
+    addedNodes.forEach(element => {
+        let docDataId = element.getAttribute("data-id");
+        // document.querySelector("div[data-id='7fadb0ac-e27d-4d2a-b910-0a8b5c185162']").querySelector(".protyle-background").getAttribute("data-node-id")
+        let openDocId = document.querySelector(`div[data-id="${docDataId}"]`).querySelector(".protyle-background").getAttribute("data-node-id");
+        openDocIds.push(openDocId);
+    });
+    console.log("刚开启的页签文档id", openDocIds);
+    for (let docId of openDocIds) {
+        let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${docId}'`);
+        if (queryResult == null || queryResult.length < 1) {
+            console.warn("获取文档路径失败，该文件可能是刚创建"); 
+            return;
+        }
+        let subDocInfoList = await getSubDocsAPI(queryResult[0].box, queryResult[0].path);
+        console.log("API子文档信息", subDocInfoList);
+        if (subDocInfoList == null) {
+            console.warn("获取子文档无结果");
+            return;
+        }
+        // 读取属性，获取原来的内容
+        let docCustomAttr = await getCustomAttr(docId);
+        if (!docCustomAttr) {
+            console.log("属性为空");
+            return;
+        }
+        let docInfos = docCustomAttr.docInfo;
+        console.log("属性中的文件信息", docInfos);
+        // 需要从attr列表中移除的
+        let removeIndex = [];
+        // 需要加入到attr列表的（于API请求中的下标）
+        let existDocSubDocIndex = [];
+        docInfos.forEach(async (addedDocInfoBlock, index) => {
+            let currentDocExistFlag = false;
+            for (let [index, subDocInfo] of subDocInfoList.entries()) {
+                if (addedDocInfoBlock.docId == subDocInfo.id) {
+                    currentDocExistFlag = true;
+                    // existDocSubDocIndex.push(index);
+                    break;
+                }
+            }
+            if (!currentDocExistFlag) {
+                removeIndex.push(index);
+                await removeBlockAPI(addedDocInfoBlock.linkId);
+            }
+        });
+        console.log("Remove Indexes", removeIndex);
+        if (removeIndex.length == 0) {
+            console.log("未发现文档被删除");
+        }
+        let removedIds = [];
+        for (let i = removeIndex.length - 1; i >= 0; i--) {
+            removedIds.push(docInfos[i].docId);
+            docInfos.splice(removeIndex[i], 1);
+        }
+        console.log("移除不存在的文档后", docInfos);
+        await saveCustomAttr(docId, docCustomAttr);
+    }
+
+    return;
+    // 
     if (!isValidStr(msgdata)) return;
     let dividedPath = msgdata.path.split("/");
     let parentDocId = dividedPath[dividedPath.length - 2];
@@ -261,10 +420,13 @@ async function deleteHandler(msgdata) {
 
 
 async function getCustomAttr(parentDocId) {
-    let docAttrResponse = await getblockAttrAPI(parentDocId).data;
+    let docAttrResponse = await getblockAttrAPI(parentDocId);
+    docAttrResponse = docAttrResponse.data;
     if (docAttrResponse == undefined || !("id" in docAttrResponse) || !(g_attrName in docAttrResponse)) {
+        console.log("未获取到父文档属性");
         return null;
     }
+    
     return JSON.parse(docAttrResponse[g_attrName].replaceAll("&quot;", "\""));
 }
 
