@@ -77,6 +77,8 @@ async function addText2File(markdownText, blockid = "") {
         //避免重新写入id和updated信息
         delete attrData.id;
         delete attrData.updated;
+    }else if (setting.blockInitAttrs != undefined){
+        attrData = Object.assign({}, setting.blockInitAttrs);
     }
     //创建/更新块
     let response;
@@ -127,7 +129,7 @@ async function addText2File(markdownText, blockid = "") {
     } else {
         attrData["memo"] = language["modifywarn"];//为创建的块写入警告信息
         //对于非超级块，已经有id了，直接写入属性
-        await addblockAttrAPI(attrData, blockid);
+        await addblockAttrAPI(attrData, custom_attr["childListId"]);
         setAttrToDom([blockid], attrData);
     }
 

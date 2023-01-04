@@ -93,6 +93,13 @@ let setting = {
     // 适配挂件插入辅助（addChildDocLinkHelper.js）（不建议一直开启，请开启此功能后几天关闭）
     // 若开启helperSettings.checkEmptyDocInsertWidget，无需打开此功能
     addChildDocLinkHelperEnable: false,
+
+    // 首次创建目录块时插入的目录属性
+    // 请注意，您写入的属性如果是自定义属性，应当以"custom-"开头，示例 "custom-type": "map"
+    // 请不要写入"id"，"update"等块固有属性
+    blockInitAttrs: {
+        
+    }
 };
 // 自动插入助手设置
 let helperSettings = {
