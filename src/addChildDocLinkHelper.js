@@ -1,6 +1,6 @@
 /**
  * addChildDocLink.js 全局监视文件创建/删除操作，向父文档插入文本内容
- * 此代码文件是listChildDocs的一部分，基于AGPL-3.0（https://www.gnu.org/licenses/agpl-3.0.txt）许可协议开源。
+ * 此代码文件是listChildDocs的一部分，基于AGPL-3.0许可协议开源。（许可协议详见：https://www.gnu.org/licenses/agpl-3.0.txt，或本项目根目录/LICENSE文件）
  * THIS FILE IS A PART OF listChildDocs PROJECT, LICENSED UNDER AGPL-3.0 LICENSE (SEE AS https://www.gnu.org/licenses/agpl-3.0.txt).
  * @author OpaqueGlass
  * 
@@ -19,39 +19,44 @@ import {
     getSubDocsAPI,
     addblockAttrAPI,
     getblockAttrAPI,
-    isValidStr,
     appendBlockAPI,
     prependBlockAPI,
     getKramdown,
-    removeBlockAPI
+    removeBlockAPI,
+    updateBlockAPI
 } from './API.js';
 import {
-    helperSettings
-} from './config.js'
+    helperSettings,
+    language
+} from './config.js';
+import {
+    isSafelyUpdate,
+    isValidStr
+} from './common.js';
 /* 全局变量和快速自定义设置 */
 let g_attrName = helperSettings.attrName;
 let g_docLinkTemplate = helperSettings.docLinkTemplate;
-/* 插入挂件 `<iframe src=\"/widgets/listChildDocs\" data-src=\"/widgets/listChildDocs\" data-subtype=\"widget\" border=\"0\" frameborder=\"no\" framespacing=\"0\" allowfullscreen=\"true\"></iframe>`
-   插入双链 "((%DOC_ID% '%DOC_NAME%'))"
-   不建议修改为URL，URL文件名确定，新建文档时将固定插入为Untitled
-*/
 // 将文本内容插入到文档末尾？
 let g_insertAtEnd = helperSettings.insertAtEnd;
 let g_mode = helperSettings.mode;
 let g_checkEmptyDocInsertWidget = helperSettings.checkEmptyDocInsertWidget;
 let g_removeLink = helperSettings.removeLinkEnable;
+let g_renameLink = helperSettings.renameLinkEnable;
 let CONSTANTS = {
-    RANDOM_DELAY: 500,
-    OBSERVER_RANDOM_DELAY: 500,
-    OBSERVER_RANDOM_DELAY_ADD: 100,
-    OBSERVER_RETRY_INTERVAL: 1000,
+    RANDOM_DELAY: 300, // 插入挂件的延迟最大值，300（之后会乘以10）对应最大延迟3秒
+    OBSERVER_RANDOM_DELAY: 500, // 插入链接、引用块和自定义时，在OBSERVER_RANDOM_DELAY_ADD的基础上增加延时，单位毫秒
+    OBSERVER_RANDOM_DELAY_ADD: 100, // 插入链接、引用块和自定义时，延时最小值，单位毫秒
+    OBSERVER_RETRY_INTERVAL: 1000, // 找不到页签时，重试间隔
 }
 let g_observerRetryInterval;
 let g_observerStartupRefreshTimeout;
+let g_TIMER_LABLE_NAME_COMPARE = "acdlh子文件比对";
 /*
 目前支持g_mode取值为
 插入挂件 add_list_child_docs
 插入链接 add_link
+插入引用块 add_ref
+插入自定义 add_custom
 */
 // let g_insertToParentDoc = true;
 // let g_insertWidgetToParent = true;
@@ -61,12 +66,10 @@ const docInfoBlockTemplate = {
     docName: "", // 文档名
 }
 
-/**
- * 添加触发器，新建文件、删除文件行为发生时执行；
- * WARN: 编辑过程中会高频触发，可能导致卡顿；
- */
-let mywebsocket = window.siyuan.ws.ws;
-mywebsocket.addEventListener("message", websocketEventHandler);
+/* ********************  事件触发器（当发生事件时调用处理函数） ******************** */
+
+let g_mywebsocket = window.siyuan.ws.ws;
+
 
 /**
  * 页签变更触发器
@@ -77,19 +80,11 @@ let g_tabbarElement;
 // 处理找不到Element的情况，interval重试寻找
 let tabBarObserver = new MutationObserver((mutationList) =>{
     for (let mutation of mutationList) {
-        console.log("监视到页签变化", mutation);
-        if (mutation.addedNodes.length > 0) {
-            setTimeout(() => {tabChangeHandler(mutation.addedNodes)}, Math.round(Math.random() * CONSTANTS.OBSERVER_RANDOM_DELAY) + CONSTANTS.OBSERVER_RANDOM_DELAY_ADD);
-        }
-        // 由windowObserver代管。关闭页签后，tabBar移除重设，触发器锚定的元素丢失，不会触发
-        // if (mutation.removedNodes.length > 0) {
-        //     if (!window.siyuan.layout.centerLayout.element.querySelector("[data-type='wnd'] ul.layout-tab-bar")) {
-        //         console.log("DISCONNECT2");
-        //         g_observerRetryInterval = setInterval(observerRetry, CONSTANTS.OBSERVER_RETRY_INTERVAL);
-        //         tabBarObserver.disconnect();
-        //     }
+        // console.log("发现页签变化", mutation);
+        // if (mutation.addedNodes.length > 0) {
+        //     setTimeout(() => {tabChangeHandler(mutation.addedNodes)}, Math.round(Math.random() * CONSTANTS.OBSERVER_RANDOM_DELAY) + CONSTANTS.OBSERVER_RANDOM_DELAY_ADD);
         // }
-        
+        // 由windowObserver代管。关闭页签后，tabBar移除重设，触发器锚定的元素丢失，不会触发
     }
 });
 
@@ -98,10 +93,11 @@ let tabBarObserver = new MutationObserver((mutationList) =>{
  * */ 
 let windowObserver = new MutationObserver((mutationList) => {
     for (let mutation of mutationList) {
-        console.log("监视到窗口变化", mutation);
+        // console.log("发现窗口变化", mutation);
         if (mutation.removedNodes.length > 0 || mutation.addedNodes.length > 0) {
-            console.log("DISCONNECT");
-            tabBarObserver.disconnect();
+            // console.log("断开Observer");
+            // tabBarObserver.disconnect();
+            switchTabObserver.disconnect();
             clearInterval(g_observerRetryInterval);
             g_observerRetryInterval = setInterval(observerRetry, CONSTANTS.OBSERVER_RETRY_INTERVAL);
         }
@@ -109,12 +105,27 @@ let windowObserver = new MutationObserver((mutationList) => {
     }
     
 });
+
+let switchTabObserver = new MutationObserver(async (mutationList) => {
+    for (let mutation of mutationList) {
+        // console.log("发现页签切换", mutation);
+        setTimeout(async () => {
+            console.time(g_TIMER_LABLE_NAME_COMPARE);
+            try{
+                await tabChangeHandler([mutation.target])
+            }catch(err) {
+                console.error(err);
+            }
+            console.timeEnd(g_TIMER_LABLE_NAME_COMPARE);
+        }, Math.round(Math.random() * CONSTANTS.OBSERVER_RANDOM_DELAY) + CONSTANTS.OBSERVER_RANDOM_DELAY_ADD);
+    }
+});
+
 // 窗口变化监视器设定
 let g_centerLayoutElement = window.siyuan.layout.centerLayout.element;
 
 // 只有移除link为启用时才执行
-if (g_removeLink) {
-    console.log("检查页签");
+function startObserver() {
     clearInterval(g_observerRetryInterval);
     g_observerRetryInterval = setInterval(observerRetry, CONSTANTS.OBSERVER_RETRY_INTERVAL);
     windowObserver.observe(g_centerLayoutElement, {childList: true});
@@ -124,15 +135,23 @@ if (g_removeLink) {
  */
 function observerRetry() {
     g_tabbarElement = window.siyuan.layout.centerLayout.element.querySelectorAll("[data-type='wnd'] ul.layout-tab-bar");
-    console.log(g_tabbarElement);
     if (g_tabbarElement.length > 0) {
-        console.log("重新监视页签变化");
+        // console.log("重新监视页签变化");
         g_tabbarElement.forEach((element)=>{
-            tabBarObserver.observe(element, {childList: true});
+            // tabBarObserver.observe(element, {childList: true});
+            switchTabObserver.observe(element, {"attributes": true, "attributeFilter": ["data-activetime"], subtree: true});
             // 重启监听后立刻执行检查
             if (element.children.length > 0) {
-                clearTimeout(g_observerRetryInterval);
-                g_observerStartupRefreshTimeout = setTimeout(() => {tabChangeHandler(element.children)}, Math.round(Math.random() * CONSTANTS.OBSERVER_RANDOM_DELAY) + CONSTANTS.OBSERVER_RANDOM_DELAY_ADD);
+                // clearTimeout(g_observerStartupRefreshTimeout);
+                g_observerStartupRefreshTimeout = setTimeout(async () => {
+                    console.time(g_TIMER_LABLE_NAME_COMPARE);
+                    try{
+                        await tabChangeHandler(element.children);
+                    }catch (err) {
+                        console.error(err);
+                    }
+                    console.timeEnd(g_TIMER_LABLE_NAME_COMPARE);
+                }, Math.round(Math.random() * CONSTANTS.OBSERVER_RANDOM_DELAY) + CONSTANTS.OBSERVER_RANDOM_DELAY_ADD);
             }
         });
         clearInterval(g_observerRetryInterval);
@@ -150,31 +169,17 @@ function websocketEventHandler(msg) {
             if (wsmessage.cmd == "create") {
                 console.log(wsmessage);
                 let random = Math.round(Math.random() * CONSTANTS.RANDOM_DELAY) * 10; // *10是为了扩大随机数之间的差距
+                setTimeout(() => {addWidgetHandler(wsmessage.data)}, random);
                 console.log("随机延迟", random);
-                switch (g_mode) {
-                    case "插入挂件":
-                    case "add_list_child_docs": {
-                        // 随机延迟，防止多个窗口中的代码片段同时执行导致重复插入
-                        setTimeout(() => {addWidgetHandler(wsmessage.data)}, random);
-                        break;
-                    }
-                    case "插入链接":
-                    case "add_link": {
-                        setTimeout(() => {createHandler(wsmessage.data)}, random);
-                        break;
-                    }
-                    default: {
-                        throw new Error("模式配置错误，请检查您的设置。");
-                    }
-                }
             }
             // OR "transactions"  "removeDoc"
         }
     }catch(err) {
-        console.error("helper执行时发生错误，已断开，如果可以，请向开发者反馈：", err);
-        mywebsocket.removeEventListener("message", websocketEventHandler);
+        console.error(language["helperErrorHint"], err);
+        g_mywebsocket.removeEventListener("message", websocketEventHandler);
     }
 }
+/* ********************  事件处理（插入/移除执行函数）******************** */
 
 /**
  * 处理新建文档
@@ -185,6 +190,10 @@ async function createHandler(msgdata) {
     let dividedPath = msgdata.path.split("/");
     let parentDocId = dividedPath[dividedPath.length - 2];
     let newDocId = msgdata.id;
+    if (!isSafelyUpdate(parentDocId)) {
+        console.log("只读模式，已停止操作");
+        return;
+    }
     // 笔记本根目录下文档不处理
     if (parentDocId == "") return; 
     // 获取新创建的文档名
@@ -246,6 +255,10 @@ async function addWidgetHandler(msgdata) {
     let dividedPath = msgdata.path.split("/");
     let parentDocId = dividedPath[dividedPath.length - 2];
     let newDocId = msgdata.id;
+    if (!isSafelyUpdate(parentDocId)) {
+        console.log("只读模式，已停止操作");
+        return;
+    }
     if (parentDocId == "") return;
     if (g_checkEmptyDocInsertWidget) {
         // 检查父文档是否为空
@@ -304,9 +317,10 @@ async function addWidgetHandler(msgdata) {
  * 处理页签节点变化
  * 本部分只检查并执行删除链接，不检查新增
  */
-// TODO: 打开页签时，刷新判断其下子文档变动，进行移除操作（对文档属性，检查其在子文档中是否存在）
+// TODO: 打开页签时，刷新判断其下子文档变动，进行增加、移除操作（对文档属性，检查其在子文档中是否存在）
 async function tabChangeHandler(addedNodes) {
     let openDocIds = [];
+    let safelyUpdateFlag = true;
     // WARN: UNSTABLE: 获取打开Tab的对应文档id
     // addedNodes.forEach(element => {
     // 重启监听后立刻执行检查时，传入的addedNodes类型为HTMLCollections，不支持forEach
@@ -316,14 +330,22 @@ async function tabChangeHandler(addedNodes) {
         if (document.querySelector(`div[data-id="${docDataId}"]`) == null) return;
         if (document.querySelector(`div[data-id="${docDataId}"]`).querySelector(".protyle-background") == null) return;
         let openDocId = document.querySelector(`div[data-id="${docDataId}"]`).querySelector(".protyle-background").getAttribute("data-node-id");
+        if (!isSafelyUpdate(openDocId)) {
+            safelyUpdateFlag = false;
+            return;
+        }
         openDocIds.push(openDocId);
     });
+    if (!safelyUpdateFlag) {
+        console.log("只读模式，已停止操作");
+        return;
+    }
     console.log("刚开启的页签文档id", openDocIds);
     if (openDocIds.length <= 0) return;
     for (let docId of openDocIds) {
         let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${docId}'`);
         if (queryResult == null || queryResult.length < 1) {
-            console.warn("获取文档路径失败，该文件可能是刚创建"); 
+            console.warn("获取文档路径失败，文档可能刚创建"); 
             return;
         }
         let subDocInfoList = await getSubDocsAPI(queryResult[0].box, queryResult[0].path);
@@ -334,22 +356,35 @@ async function tabChangeHandler(addedNodes) {
         }
         // 读取属性，获取原来的内容
         let docCustomAttr = await getCustomAttr(docId);
-        if (!docCustomAttr) {
-            console.log("属性为空");
-            return;
+        if (!docCustomAttr || !("docInfo" in docCustomAttr)) {
+            console.log("属性为空", docCustomAttr);
+            docCustomAttr = {
+                "docInfo": []
+            };
         }
+        // 由于赋值的是引用，修改会同步。
         let docInfos = docCustomAttr.docInfo;
         console.log("属性中的文件信息", docInfos);
-        // 需要从attr列表中移除的
+        // 已经被删除的文档在属性列表中的下标(需要被移除的链接)
         let removeIndex = [];
-        // 需要加入到attr列表的（于API请求中的下标）
+        // 已经添加过链接的子文档在API请求列表中的下标
         let existDocSubDocIndex = [];
+        // 需要修改文件名的文档在两个列表中的下标
+        let renameNeededDocIndexBlockList = [];
+        let needUpdateAttrFlag = false;
         docInfos.forEach(async (addedDocInfoBlock, index) => {
             let currentDocExistFlag = false;
-            for (let [index, subDocInfo] of subDocInfoList.entries()) {
+            for (let [subDocIndex, subDocInfo] of subDocInfoList.entries()) {
                 if (addedDocInfoBlock.docId == subDocInfo.id) {
                     currentDocExistFlag = true;
-                    // existDocSubDocIndex.push(index);
+                    existDocSubDocIndex.push(subDocIndex);
+                    if (addedDocInfoBlock.docName != subDocInfo.name.substring(0, subDocInfo.name.length - 3)) {
+                        // renameIndexInfo 对象格式：
+                        renameNeededDocIndexBlockList.push({
+                            attrListIndex: index,
+                            subDocListIndex: subDocIndex
+                        });
+                    }
                     break;
                 }
             }
@@ -359,27 +394,81 @@ async function tabChangeHandler(addedNodes) {
             }
         });
         console.log("Remove Indexes", removeIndex);
-        if (removeIndex.length == 0) {
-            console.log("未发现文档被删除");
-            return;
+        // 重命名（依赖原有属性中文件列表的顺序，在执行此部分之前，不要增加/删除docInfos数组中的元素）
+        if (renameNeededDocIndexBlockList.length > 0 && g_renameLink) {
+            console.log("需要重命名的链接", renameNeededDocIndexBlockList);
+            for (let renameIndexInfo of renameNeededDocIndexBlockList) {
+                let docName = subDocInfoList[renameIndexInfo.subDocListIndex].name;
+                docName = docName.substring(0, docName.length - 3);
+                docInfos[renameIndexInfo.attrListIndex].docName = docName;
+                // 更新链接
+                let updateText;
+                updateText = g_docLinkTemplate.replaceAll("%DOC_ID%", subDocInfoList[renameIndexInfo.subDocListIndex].id)
+                                .replaceAll("%DOC_NAME%", docName);
+                updateText += `\n{: memo=\"${language["helperAddBlockMemo"]}\"}`;
+                let updateResponse = await updateBlockAPI(updateText, docInfos[renameIndexInfo.attrListIndex].linkId);
+                // 更新失败的块，移除
+                if (updateResponse == null) {
+                    console.warn(`对应文档${docInfos[renameIndexInfo.attrListIndex].docId}的子文档链接块${docInfos[renameIndexInfo.attrListIndex].linkId}更新失败，该块的记录将被移除，稍后重新创建。`);
+                    removeIndex.push(renameIndexInfo.attrListIndex);
+                    let removeInfoBlockIndex = existDocSubDocIndex.indexOf(renameIndexInfo.subDocListIndex);
+                    if (removeInfoBlockIndex != -1) {
+                        existDocSubDocIndex.splice(removeInfoBlockIndex, 1);
+                    }
+                }
+            }
+            needUpdateAttrFlag = true;
+        }else{
+            if (g_renameLink) console.log("未发现子文档文档名变化");
         }
-        let removedIds = [];
-        for (let i = removeIndex.length - 1; i >= 0; i--) {
-            removedIds.push(docInfos[i].docId);
-            docInfos.splice(removeIndex[i], 1);
+        // 删除
+        if (removeIndex.length > 0 && g_removeLink) {
+            let removedIds = [];
+            for (let i = removeIndex.length - 1; i >= 0; i--) {
+                removedIds.push(docInfos[i].docId);
+                docInfos.splice(removeIndex[i], 1);
+            }
+            needUpdateAttrFlag = true;
+        }else{
+            if (g_removeLink) console.log("未发现文档被删除");
         }
-        console.log("移除不存在的文档后", docInfos);
+
+        // 新增文档链接，这些文档链接直接插入到属性中文件列表，在此操作之后，不要删除docInfos中的元素
+        if (existDocSubDocIndex.length != subDocInfoList.length) {
+            for (let [index, subDocInfo] of subDocInfoList.entries()) {
+                if (existDocSubDocIndex.indexOf(index) == -1) {
+                    let newDocInfoBlock = Object.assign({}, docInfoBlockTemplate);
+                    newDocInfoBlock.docId = subDocInfo.id;
+                    newDocInfoBlock.docName = subDocInfo.name.substring(0, subDocInfo.name.length - 3);
+                    let insertText;
+                    insertText = g_docLinkTemplate.replaceAll("%DOC_ID%", newDocInfoBlock.docId)
+                                    .replaceAll("%DOC_NAME%", newDocInfoBlock.docName);
+                    insertText += `\n{: memo=\"${language["helperAddBlockMemo"]}\"}`;
+                    let addResponse;
+                    if (g_insertAtEnd) {
+                        addResponse = await appendBlockAPI(insertText, docId);
+                    }else{
+                        addResponse = await prependBlockAPI(insertText, docId);
+                    }
+                    let newLinkId = addResponse.id;
+                    newDocInfoBlock.linkId = newLinkId;
+                    docInfos.push(newDocInfoBlock);
+                    // console.log("插入新文档信息块", newDocInfoBlock);
+                }
+            }
+            needUpdateAttrFlag = true;
+        }else{
+            console.log("未发现新增文档");
+        }
+        if (!needUpdateAttrFlag) return;
+        console.log("修改后", docInfos);
         await saveCustomAttr(docId, docCustomAttr);
     }
 
     return;
 }
-// 在data.ids字段
-async function deleteHandler(msgdata) {
-    if (!isValidStr(msgdata)) return;
-    let deletDocsId = msgdata.ids;
-    // TODO: 删除后，不知道父文档是哪个，无法删除对应的链接
-}
+
+/* ******************** 工具方法 ******************** */
 
 
 async function getCustomAttr(parentDocId) {
@@ -399,3 +488,54 @@ async function saveCustomAttr(parentDocId, customAttr) {
     attr[g_attrName] = attrString;
     let response = await addblockAttrAPI(attr, parentDocId);
 }
+
+/* ******************** 模式切换 ******************** */
+
+console.log(`用户设定：插入到结尾？${g_insertAtEnd} 移除？${g_removeLink} 重命名？${g_renameLink}`);
+switch (g_mode) {
+    case "插入挂件": 
+    case "add_list_child_docs":{
+        if (!g_insertAtEnd) g_insertAtEnd = false;
+        /*
+         * 添加触发器，任意操作均触发，只在新建文件行为发生时执行；
+         * WARN: 编辑过程中会高频触发，可能导致卡顿；
+         */
+        g_mywebsocket.addEventListener("message", websocketEventHandler);
+        break;
+    }
+
+    case "插入链接":
+    case "add_link": {
+        g_docLinkTemplate = "[%DOC_NAME%](siyuan://blocks/%DOC_ID%)";
+        if (g_insertAtEnd == undefined || g_insertAtEnd == null) g_insertAtEnd = true;
+        if (g_removeLink == undefined || g_removeLink == null) g_removeLink = true;
+        if (g_renameLink == undefined || g_renameLink == null) g_renameLink = true;
+        startObserver();
+        break;
+    }
+
+    case "add_ref":
+    case "插入引用块": {
+        g_docLinkTemplate = "((%DOC_ID% '%DOC_NAME%'))";
+        if (g_insertAtEnd == undefined || g_insertAtEnd == null) g_insertAtEnd = true;
+        if (g_removeLink == undefined || g_removeLink == null) g_removeLink = true;
+        if (g_renameLink == undefined || g_renameLink == null) g_renameLink = false;
+        startObserver();
+        break;
+    }
+    
+    case "add_custom": 
+    case "插入自定义": {
+        if (g_insertAtEnd == undefined || g_insertAtEnd == null) g_insertAtEnd = true;
+        if (g_removeLink == undefined || g_removeLink == null) g_removeLink = false;
+        if (g_renameLink == undefined || g_renameLink == null) g_renameLink = false;
+        startObserver();
+        break;
+    }
+
+    default: {
+        console.error("不支持的模式，请检查模式设置是否正确 / Unsupported mode, check your input please.");
+    }
+}
+
+console.log(`未设定值修改为默认后：插入到结尾？${g_insertAtEnd} 移除？${g_removeLink} 重命名？${g_renameLink}`);

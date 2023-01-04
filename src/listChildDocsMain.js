@@ -10,7 +10,6 @@ import {
     getSubDocsAPI,
     addblockAttrAPI,
     getblockAttrAPI,
-    isValidStr,
     pushMsgAPI,
     getCurrentDocIdF,
     getCurrentWidgetId,
@@ -22,7 +21,8 @@ import {
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
 import { printerList } from "./printerConfig.js";
-import { openRefLink, showFloatWnd } from './ref-util.js'
+import { openRefLink, showFloatWnd } from './ref-util.js';
+import { isSafelyUpdate, isValidStr } from './common.js';
 let thisDocId = "";
 let thisWidgetId = "";
 let mutex = 0;
@@ -59,7 +59,7 @@ class AddProvider extends DefaultContentProvider {
 }
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = "") {
-    if (isSafelyUpdate() == false) {
+    if (isSafelyUpdate(thisDocId) == false) {
         throw new Error(language["readonly"]);
     }
     let attrData = {};
@@ -552,50 +552,9 @@ async function getTargetBlockBoxPath() {
     throw new Error(language["wrongTargetId"]);
 }
 
-/**
- * 检查窗口状况，防止在历史预览页面刷新更改文档
- * @return {boolean} true: 当前情况安全，允许执行刷新操作
- * UNSTABLE: !此方法大量依赖jQuery定位页面元素
- */
-function isSafelyUpdate() {
-    if (setting.safeModePlus == false) return true;
-    // console.log($(window.top.document).find(".b3-dialog--open #historyContainer")); // 防止历史预览界面刷新
-    try{
-        // 判定历史预览页面
-        if ($(window.top.document).find(".b3-dialog--open #historyContainer").length >= 1) {
-            return false;
-        }
-        // 旧方法：存在多个编辑窗口只判断第一个的问题；保留用于判断界面是否大改
-        // if ($(window.top.document).find(".protyle-wysiwyg").attr("contenteditable") == "false") {
-        //     return false;
-        // }
-        if ($(window.top.document).find(".protyle-wysiwyg").attr("contenteditable") == undefined) {
-            console.warn("界面更新，请@开发者重新适配");
-            return true;
-        }
-        // 判定文档已打开&只读模式【挂件所在文档在窗口中，且页面为编辑状态，则放行】
-        // 只读模式判定警告：若在闪卡页面，且后台开启了当前文档（编辑模式），只读不会拦截
-        // console.log($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false");
-        // console.log($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`));
-        let candidateThisDocEditor = $(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`);
-        if (!isValidStr(candidateThisDocEditor) || candidateThisDocEditor.length <= 0) {
-            console.warn("未在窗口中找到挂件所在的文档（挂件所在文档编辑器可能未打开），为防止后台更新，此操作已拦截。");
-            return false;
-        }
-        // 判定只读模式
-        if ($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false") {
-            return false;
-        }
-    }catch (err) {
-        console.warn("安全检查时出现错误，已放行刷新操作，错误为：", err);
-    }
-    
-    return true;
-}
-
 //保存设置项
 async function __save() {
-    if (isSafelyUpdate() == false) {
+    if (isSafelyUpdate(thisDocId) == false) {
         console.warn("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
     }
     //获取最新设置
@@ -758,7 +717,7 @@ async function __init() {
         __main(true);//初始化模式
     }
     // 插入“addChildDocLinkHelper.js判断挂件是否存在”所需要的custom-addcdlhelper属性
-    if (!justCreate && setting.addChildDocLinkHelperEnable && isSafelyUpdate()) {
+    if (!justCreate && setting.addChildDocLinkHelperEnable && isSafelyUpdate(thisDocId)) {
         let thisDocAttr = await getblockAttrAPI(thisDocId);
         if (thisDocAttr && thisDocAttr.data && "id" in thisDocAttr.data) {
             if (!(setting.helperSettings.attrName in thisDocAttr.data)) {

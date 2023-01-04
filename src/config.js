@@ -39,6 +39,7 @@ let setting = {
     safeMode: true,
     // 安全模式PLUS【!可能因为思源版本更新而失效或导致bug，但部分情况下建议开启】
     // 避免在历史预览界面、编辑器只读时执行文档更改操作(目前允许挂件设置保存，请注意只读情况下设置保存的风险)
+    // 【如果您使用自动插入助手，请启用此功能】
     safeModePlus: false,
 
     // 分列截断提示词（仅用于写入文档模式：url、引用块）
@@ -99,19 +100,24 @@ let helperSettings = {
     attrName: "custom-add-cdl-helper",
     // 模式为插入链接时，插入的内容模板
     docLinkTemplate: "((%DOC_ID% '%DOC_NAME%'))",
-    // 插入在父文档结尾？
-    insertAtEnd: false,
     // 自动插入模式
     /* 可选模式：（以下列出中英文两种，设置其一即可）
     插入挂件 add_list_child_docs 【插入挂件将不重复插入（通过属性或文档为空判断）】
-    插入链接 add_link 【根据插入内容模板，插入一行；由于目前无法实现删除文档时对应删除链接，不建议使用】
+    插入链接 add_link
+    插入引用块 add_ref
+    插入自定义 add_custom 根据docLinkTemplate，插入自定义的内容
     */
     mode: "插入挂件",
-    // 插入挂件时，检查文档是否为空？
+    // 若设置为undefined，则采用对应模式的默认设置
+    // 插入在父文档结尾？
+    insertAtEnd: undefined,
+    // 插入挂件时，检查文档是否为空？设置为false，将通过文档的属性判断是否插入过。
     checkEmptyDocInsertWidget: true,
     // 模式为插入链接时，当发现子文档被删除，移除对应的子文档链接？
     removeLinkEnable: false,
-
+    // 模式为插入链接时，当发现子文档文件名变化时，重写对应的子文档链接？
+    renameLinkEnable: false,
+    // helper和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
 }
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用
@@ -159,7 +165,11 @@ let zh_CN = {
     targetIdhint: "目标文档id",
     working: "执行中……",
     wrongTargetId: "错误的目标id。目标id应为存在的文档块id、开启的笔记本id或/",
-    readonly: "工作在只读模式，禁止对文档的更改操作。如要关闭此安全检查，请修改自定义设置safeModePlus为false。"
+    readonly: "工作在只读模式，禁止对文档的更改操作。如要关闭此安全检查，请修改自定义设置safeModePlus为false。",
+    // 自动插入助手提示
+    helperAddBlockMemo: "自动插入的子文档链接块：在此块下的编辑将在文档变化时被覆盖",
+    queryFilePathFailed: "获取文档路径失败，文档可能刚创建",
+    helperErrorHint: "helper执行时发生错误，如果可以，请向开发者反馈："
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
@@ -204,7 +214,11 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     targetIdhint: "Target document id",
     working: "Running...",
     wrongTargetId: "Wrong target doc id. The target id should be an existing document id, an open notebook id or /",
-    readonly: "Work in read-only mode. Changes to the document are prohibited. To turn off this security check, please modify the custom setting 'safeModePlus' to false."
+    readonly: "Work in read-only mode. Changes to the document are prohibited. To turn off this security check, please modify the custom setting 'safeModePlus' to false.",
+    // addChildDocLinkHelper hint text
+    helperAddBlockMemo: "Child-doc link block: the edits under this block will be overwritten when the child-docs changes.",
+    queryFilePathFailed: "Failed to get the document path, the document may have just been created.",
+    helperErrorHint: "An error occured during helper execution. If it's convenient for you, please give feedback to the developer."
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~

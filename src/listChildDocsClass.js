@@ -3,7 +3,7 @@
  * 用于生成子文档目录文本的Printer。
  */
 import { setting } from './config.js';
-import { getUpdateString, generateBlockId, isValidStr } from "./API.js";
+import { getUpdateString, generateBlockId, isValidStr } from "./common.js";
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //

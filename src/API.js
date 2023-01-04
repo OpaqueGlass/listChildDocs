@@ -3,6 +3,7 @@
  * 用于发送思源api请求。
  */
 import {token, includeOs} from "./config.js";
+import { isValidStr } from "./common.js";
 /**向思源api发送请求
  * @param data 传递的信息（body）
  * @param url 请求的地址
@@ -228,18 +229,6 @@ export async function appendBlockAPI(text, parentId, textType = "markdown"){
 }
 
 /**
- * 判断字符串是否为空
- * @param {*} s 
- * @returns 非空字符串true，空字符串false
- */
-export function isValidStr(s){
-    if (s == undefined || s == null || s === '') {
-		return false;
-	}
-	return true;
-}
-
-/**
  * 推送普通消息
  * @param {string} msgText 推送的内容
  * @param {number} timeout 显示时间，单位毫秒
@@ -375,32 +364,4 @@ export async function getNodebookList() {
         return response.data.notebooks;
     }
     return null;
-}
-
-
-/**
- * 获取当前更新时间字符串
- * @returns 
- */
-export function getUpdateString(){
-    let nowDate = new Date();
-    let timeStr = nowDate.toJSON().replaceAll("-","").substring(0, 8) + nowDate.toLocaleTimeString().replaceAll(":", "");
-    return timeStr;
-}
-
-/**
- * 生成一个随机的块id
- * @returns 
- */
-export function generateBlockId(){
-    let timeStr = getUpdateString();
-    let alphabet = new Array();
-    for (let i = 48; i <= 57; i++) alphabet.push(String.fromCharCode(i));
-    for (let i = 97; i <= 122; i++) alphabet.push(String.fromCharCode(i));
-    let randomStr = "";
-    for (let i = 0; i < 7; i++){
-        randomStr += alphabet[Math.floor(Math.random() * alphabet.length)];
-    }
-    let result = timeStr + "-" + randomStr;
-    return result;
 }
