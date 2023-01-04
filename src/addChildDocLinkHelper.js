@@ -51,6 +51,7 @@ let CONSTANTS = {
 let g_observerRetryInterval;
 let g_observerStartupRefreshTimeout;
 let g_TIMER_LABLE_NAME_COMPARE = "acdlh子文件比对";
+let g_insertWidgetPath = helperSettings.widgetPath;
 /*
 目前支持g_mode取值为
 插入挂件 add_list_child_docs
@@ -255,7 +256,7 @@ async function addWidgetHandler(msgdata) {
     let dividedPath = msgdata.path.split("/");
     let parentDocId = dividedPath[dividedPath.length - 2];
     let newDocId = msgdata.id;
-    if (!isSafelyUpdate(parentDocId)) {
+    if (!isSafelyUpdate(parentDocId, {"targetDoc": false})) {
         console.log("只读模式，已停止操作");
         return;
     }
@@ -292,25 +293,30 @@ async function addWidgetHandler(msgdata) {
             return;
         }
     }
+    let addedWidgetIds = [];
     // 若未插入/文档为空，则插入挂件
-    let insertText = `<iframe src=\"/widgets/listChildDocs\" data-src=\"/widgets/listChildDocs\" data-subtype=\"widget\" border=\"0\" frameborder=\"no\" framespacing=\"0\" allowfullscreen=\"true\"></iframe>`;
-    let addResponse;
-    if (g_insertAtEnd) {
-        addResponse = await appendBlockAPI(insertText, parentDocId);
-    }else{
-        addResponse = await prependBlockAPI(insertText, parentDocId);
+    for (let widgetPath of g_insertWidgetPath) {
+        let insertText = `<iframe src=\"${widgetPath}\" data-src=\"${widgetPath}\" data-subtype=\"widget\" border=\"0\" frameborder=\"no\" framespacing=\"0\" allowfullscreen=\"true\"></iframe>`;
+        let addResponse;
+        if (g_insertAtEnd) {
+            addResponse = await appendBlockAPI(insertText, parentDocId);
+        }else{
+            addResponse = await prependBlockAPI(insertText, parentDocId);
+        }
+        if (addResponse == null) {
+            console.warn(`helper插入挂件失败`, widgetPath);
+        }else{
+            addedWidgetIds.push(addResponse.id);
+        }
     }
-    if (addResponse == null) {
-        console.warn("helper插入挂件失败");
-        return;
-    }
+    
     // 写入文档属性
     if (!g_checkEmptyDocInsertWidget) {
         let attr = {};
         attr[g_attrName] = "{}";
         await addblockAttrAPI(attr, parentDocId);
     }
-    console.log(`helper已自动插入挂件块${addResponse.id}，于父文档${parentDocId}`);
+    console.log(`helper已自动插入挂件块${addedWidgetIds}，于父文档${parentDocId}`);
 }
 
 /**

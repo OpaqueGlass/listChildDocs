@@ -115,16 +115,17 @@ let helperSettings = {
     插入自定义 add_custom 根据docLinkTemplate，插入自定义的内容
     */
     mode: "插入挂件",
-    // 若设置为undefined，则采用对应模式的默认设置
-    // 插入在父文档结尾？
+    // 插入在父文档结尾？若设置为undefined，则采用对应模式的默认设置
     insertAtEnd: undefined,
-    // 插入挂件时，检查文档是否为空？设置为false，将通过文档的属性判断是否插入过。
+    // 插入挂件时，检查文档是否为空？设置为false，将通过文档的属性判断是否插入过。若设置为undefined，则采用对应模式的默认设置
     checkEmptyDocInsertWidget: true,
-    // 模式为插入链接时，当发现子文档被删除，移除对应的子文档链接？
+    // 模式为插入链接时，当发现子文档被删除，移除对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
     removeLinkEnable: false,
-    // 模式为插入链接时，当发现子文档文件名变化时，重写对应的子文档链接？
+    // 模式为插入链接时，当发现子文档文件名变化时，重写对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
     renameLinkEnable: false,
     // helper和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
+    // 插入挂件时，要插入的挂件路径信息
+    widgetPath: ["widgets/listChildDocs"],
 }
 //全局设置
 let includeOs = ["windows"];//监视页签变化自动刷新功能将在列出的操作系统上启用
