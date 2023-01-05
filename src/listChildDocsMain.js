@@ -425,7 +425,7 @@ function printError(msgText, clear = true) {
  * @param {boolean} manual 手动刷新：手动刷新为true，才会执行保存属性的操作
  * 
  */
-async function __main(initmode = false) {
+async function __main(initmode = false, justCreate = false) {
     if (mutex == 0) {//并没有什么用的试图防止同时执行的信号量hhhh
         mutex = 1;
     } else {
@@ -448,7 +448,7 @@ async function __main(initmode = false) {
         //写入子文档链接
         if (myPrinter.write2file) {
             // 在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
-            if (initmode && (setting.safeMode || custom_attr.childListId == "")) {
+            if (justCreate && (setting.safeMode || custom_attr.childListId == "")) {
                 console.log("初次创建，不写入/更新块");
             } else if (custom_attr.childListId == "") {
                 await addText2File(textString, custom_attr.childListId);
@@ -736,7 +736,7 @@ async function __init() {
         __setObserver();
         //尝试规避 找不到块创建位置的运行时错误
         // setTimeout(()=>{ __main(true)}, 1000);
-        __main(true);//初始化模式
+        __main(true, justCreate);//初始化模式
     }
     // 插入“addChildDocLinkHelper.js判断挂件是否存在”所需要的custom-addcdlhelper属性
     if (!justCreate && setting.addChildDocLinkHelperEnable && isSafelyUpdate(thisDocId)) {
