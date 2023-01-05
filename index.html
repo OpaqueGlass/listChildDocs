@@ -13,14 +13,14 @@
 <body>
     <div class="app">
         <div class="upperbardiv">
-            <p class="upperbar">
+            <p class="upperbar" id="outerSetting">
                 <button id="refresh" title="refresh"></button>
                 <button id="setting"></button>
                 <input type="checkbox" name="auto" value="0" id="autoMode" title="AutoRefresh?">
                 
                 <span id="updateTime"></span>
             </p>
-            <p>
+            <p id="innerSetting">
                 <span id="depthhint"></span>
                 <input id="listdepth" type="number" name="depth" title="showDepth" min="0" value="1">
                 <span id="columnhint"></span>
@@ -33,6 +33,9 @@
                 <span id="targetDocName"></span><br/>
                 <span id="endDocOutlineHint"></span>
                 <input type="checkbox" name="endDocOutline" value="0" id="endDocOutline" title="endDocOutline">
+                <br/>
+                <span id="hideRefreshBtnHint"></span>
+                <input type="checkbox" name="hideRefreshBtn" value="0" id="hideRefreshBtn" title="hideRefreshBtn">
             </p>
         </div>
         <div class="linksContainer" id="linksContainer">

@@ -41,7 +41,7 @@ export function isSafelyUpdate(thisDocId, customConfig = null) {
         let anyDocEditable = window.top.document.querySelector(".protyle-wysiwyg").getAttribute("contenteditable");
         if (anyDocEditable == undefined || anyDocEditable == null) {
             console.warn("界面更新，请@开发者重新适配");
-            return true;
+            return false;
         }
         if (anyDocEditable == "false" && config.anyDoc) {
             console.warn("存在一个文档为只读状态");
@@ -65,7 +65,7 @@ export function isSafelyUpdate(thisDocId, customConfig = null) {
             return false;
         }
     }catch (err) {
-        console.warn("安全检查时出现错误，已放行刷新操作，错误为：", err);
+        console.warn(`安全检查时出现错误，已放行刷新操作？${config.allowWhenError}，错误为：`, err);
         return config.allowWhenError;
     }
     

@@ -40,7 +40,7 @@ let setting = {
     // 安全模式PLUS【!可能因为思源版本更新而失效或导致bug，但部分情况下建议开启】
     // 避免在历史预览界面、编辑器只读时执行文档更改操作(目前允许挂件设置保存，请注意只读情况下设置保存的风险)
     // 【如果您使用自动插入助手，请启用此功能】
-    safeModePlus: false,
+    safeModePlus: true,
 
     // 分列截断提示词（仅用于写入文档模式：url、引用块）
     divideIndentWord: "(续)",
@@ -171,9 +171,10 @@ let zh_CN = {
     outlineDepthHint: "大纲层级",
     endDocOutlineHint: "叶子文档大纲",
     targetIdhint: "目标文档id",
+    hideRefreshBtnHint: "隐藏刷新按钮",
     working: "执行中……",
     wrongTargetId: "错误的目标id。目标id应为存在的文档块id、开启的笔记本id或/",
-    readonly: "工作在只读模式，禁止对文档的更改操作。如要关闭此安全检查，请修改自定义设置safeModePlus为false。",
+    readonly: "工作在只读模式，禁止对文档的更改操作。如果当前不是只读模式，麻烦向开发者反馈此问题。如要关闭此安全检查，请修改自定义设置safeModePlus为false。",
     // 自动插入助手提示
     helperAddBlockMemo: "自动插入的子文档链接块：在此块下的编辑将在文档变化时被覆盖",
     queryFilePathFailed: "获取文档路径失败，文档可能刚创建",
@@ -220,9 +221,10 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     outlineDepthHint: "Outline level",
     endDocOutlineHint: "Leaf document outline",
     targetIdhint: "Target document id",
+    hideRefreshBtnHint: "Hide refresh button",
     working: "Running...",
     wrongTargetId: "Wrong target doc id. The target id should be an existing document id, an open notebook id or /",
-    readonly: "Work in read-only mode. Changes to the document are prohibited. To turn off this security check, please modify the custom setting 'safeModePlus' to false.",
+    readonly: "Work in read-only mode. Changes to the document are prohibited. If it is not read-only mode, please give feedback to the developer. To turn off this security check, please modify the custom setting 'safeModePlus' to false.",
     // addChildDocLinkHelper hint text
     helperAddBlockMemo: "Child-doc link block: the edits under this block will be overwritten when the child-docs changes.",
     queryFilePathFailed: "Failed to get the document path, the document may have just been created.",

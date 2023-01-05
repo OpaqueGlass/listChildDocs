@@ -384,8 +384,7 @@ function debugPush(text, delay = 7000) {
 function showSettingChanger(showBtn) {
     g_showSetting = showBtn;
     let display = showBtn ? "" : "none";
-    $("#printMode, #listcolumn, #listdepth, #outlinedepth, #targetId, #endDocOutline").css("display", display);
-    $("#depthhint, #columnhint, #outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").css("display", display);
+    $("#innerSetting > *").css("display", display);
     if ((custom_attr.listDepth != 0 && !custom_attr.endDocOutline) && showBtn) {//层级不为0时不显示大纲层级
         $("#outlinedepth, #outlinedepthhint").css("display", "none");
     }
@@ -606,6 +605,10 @@ async function __refresh() {
     custom_attr["targetId"] = $("#targetId").val();
     //获取终端大纲设置
     custom_attr["endDocOutline"] = document.getElementById("endDocOutline").checked;
+    custom_attr["hideRefreshBtn"] = document.getElementById("hideRefreshBtn").checked;
+    if (custom_attr.hideRefreshBtn == false) {
+        delete custom_attr.hideRefreshBtn;
+    }
     //更换触发模式
     let nowAutoMode = document.getElementById("autoMode").checked;
     if (nowAutoMode != custom_attr["auto"]) {
@@ -667,6 +670,16 @@ async function __init() {
     for (let key of Object.keys(printerList)) {
         $(`<option value="${printerList[key].id}">${language["modeName"+printerList[key].id.toString()]}</option>`).appendTo("#printMode");
     }
+    // UI更改
+    if ("hideRefreshBtn" in custom_attr && custom_attr.hideRefreshBtn == true) {
+        $("#refresh").remove();
+        $(`<button id="refresh" title="refresh"></button>`).prependTo("#innerSetting");
+        $("#refresh").css("margin-left", "0.5em");
+    }else if ("hideRefreshBtn" in custom_attr && custom_attr.hideRefreshBtn == false) {
+        delete custom_attr.hideRefreshBtn;
+    }
+    document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(false) }, 300); };
+    document.getElementById("refresh").ondblclick = async function () { clearTimeout(refreshBtnTimeout); await __save(); };
     //用于载入页面，将挂件属性写到挂件中
     // document.getElementById("listdepth").selectedIndex = custom_attr["listDepth"] - 1;
     document.getElementById("listdepth").value = custom_attr["listDepth"];
@@ -676,6 +689,7 @@ async function __init() {
     document.getElementById("outlinedepth").value = custom_attr["outlineDepth"];
     document.getElementById("targetId").value = custom_attr["targetId"];
     document.getElementById("endDocOutline").checked = custom_attr["endDocOutline"];
+    document.getElementById("hideRefreshBtn").checked = custom_attr["hideRefreshBtn"];
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     __refreshAppearance();
@@ -693,6 +707,7 @@ async function __init() {
     $("#outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").css("white-space", "nowrap");//提示文字禁止折行
     $("#endDocOutlineHint").text(language["endDocOutlineHint"]);
     $("#targetIdhint").text(language["targetIdhint"]);
+    $("#hideRefreshBtnHint").text(language["hideRefreshBtnHint"]);
     //跟随软件字号设定
     $("#linksContainer").css("font-size", window.top.siyuan.config.editor.fontSize + "px");
     //控制自动刷新选项是否显示
@@ -770,8 +785,7 @@ try {
     console.error("获取笔记本方法过时，请@开发者修复此问题！");
 }
 //绑定按钮事件
-document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(false) }, 300); };
-document.getElementById("refresh").ondblclick = async function () { clearTimeout(refreshBtnTimeout); await __save(); };
+// 刷新按钮绑定事件移动到Init
 document.getElementById("setting").onclick = function () {
     showSettingChanger(!g_showSetting);
 };
