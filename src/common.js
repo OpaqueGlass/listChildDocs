@@ -111,3 +111,18 @@ export function generateBlockId(){
     let result = timeStr + "-" + randomStr;
     return result;
 }
+
+/**
+ * 转换块属性对象为{: }格式IAL字符串
+ * @param {*} attrData 其属性值应当为String类型
+ * @returns 
+ */
+export function transfromAttrToIAL(attrData) {
+    let result = "{:";
+    for (let key in attrData) {
+        result += ` ${key}=\"${attrData[key]}\"`;
+    }
+    result += "}";
+    if (result == "{:}") return null;
+    return result;
+}

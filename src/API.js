@@ -2,7 +2,7 @@
  * API.js
  * 用于发送思源api请求。
  */
-import {token, includeOs} from "./config.js";
+import {token, setting} from "./config.js";
 import { isValidStr } from "./common.js";
 /**向思源api发送请求
  * @param data 传递的信息（body）
@@ -308,7 +308,7 @@ export function getCurrentWidgetId(){
  */
  export function checkOs(){
     try{
-        if (includeOs.indexOf(window.top.siyuan.config.system.os.toLowerCase()) != -1){
+        if (setting.includeOs.indexOf(window.top.siyuan.config.system.os.toLowerCase()) != -1){
             return true;
         }
     }catch(err){

@@ -22,7 +22,7 @@ import {
 import { custom_attr, language, setting } from './config.js';
 import { printerList } from "./printerConfig.js";
 import { openRefLink, showFloatWnd } from './ref-util.js';
-import { isSafelyUpdate, isValidStr } from './common.js';
+import { isSafelyUpdate, isValidStr, transfromAttrToIAL } from './common.js';
 let thisDocId = "";
 let thisWidgetId = "";
 let mutex = 0;
@@ -80,6 +80,11 @@ async function addText2File(markdownText, blockid = "") {
     }else if (setting.blockInitAttrs != undefined){
         attrData = Object.assign({}, setting.blockInitAttrs);
     }
+    // 补充属性，属性以IAL的形式写入
+    let blockAttrString = transfromAttrToIAL(attrData);
+    if (blockAttrString != null) {
+        markdownText += "\n" + blockAttrString;
+    }
     //创建/更新块
     let response;
     if (isValidStr(blockid)) {
@@ -127,9 +132,9 @@ async function addText2File(markdownText, blockid = "") {
             () => { setAttrToDom(domDataNodeId, attrData); }
             , 700 * domDataNodeId.length);
     } else {
-        attrData["memo"] = language["modifywarn"];//为创建的块写入警告信息
-        //对于非超级块，已经有id了，直接写入属性
-        await addblockAttrAPI(attrData, custom_attr["childListId"]);
+        // attrData["memo"] = language["modifywarn"];//为创建的块写入警告信息
+        // //对于非超级块，已经有id了，直接写入属性
+        // await addblockAttrAPI(attrData, custom_attr["childListId"]);
         setAttrToDom([blockid], attrData);
     }
 
