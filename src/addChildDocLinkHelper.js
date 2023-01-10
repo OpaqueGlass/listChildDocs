@@ -27,7 +27,8 @@ import {
 } from './API.js';
 import {
     helperSettings,
-    language
+    language,
+    setting
 } from './config.js';
 import {
     isSafelyUpdate,
@@ -506,7 +507,7 @@ switch (g_mode) {
          * 添加触发器，任意操作均触发，只在新建文件行为发生时执行；
          * WARN: 编辑过程中会高频触发，可能导致卡顿；
          */
-        g_mywebsocket.addEventListener("message", websocketEventHandler);
+        if (setting.safeModePlus) g_mywebsocket.addEventListener("message", websocketEventHandler);
         break;
     }
 
@@ -516,7 +517,7 @@ switch (g_mode) {
         if (g_insertAtEnd == undefined || g_insertAtEnd == null) g_insertAtEnd = true;
         if (g_removeLink == undefined || g_removeLink == null) g_removeLink = true;
         if (g_renameLink == undefined || g_renameLink == null) g_renameLink = true;
-        startObserver();
+        if (setting.safeModePlus) startObserver();
         break;
     }
 
@@ -526,7 +527,7 @@ switch (g_mode) {
         if (g_insertAtEnd == undefined || g_insertAtEnd == null) g_insertAtEnd = true;
         if (g_removeLink == undefined || g_removeLink == null) g_removeLink = true;
         if (g_renameLink == undefined || g_renameLink == null) g_renameLink = false;
-        startObserver();
+        if (setting.safeModePlus) startObserver();
         break;
     }
     
@@ -535,13 +536,17 @@ switch (g_mode) {
         if (g_insertAtEnd == undefined || g_insertAtEnd == null) g_insertAtEnd = true;
         if (g_removeLink == undefined || g_removeLink == null) g_removeLink = false;
         if (g_renameLink == undefined || g_renameLink == null) g_renameLink = false;
-        startObserver();
+        if (setting.safeModePlus) startObserver();
         break;
     }
 
     default: {
         console.error("不支持的模式，请检查模式设置是否正确 / Unsupported mode, check your input please.");
     }
+}
+
+if (!setting.safeModePlus){
+    console.warn("自动插入助手只在开启只读安全模式（safeModePlus）的前提下运行");
 }
 
 console.log(`未设定值修改为默认后：插入到结尾？${g_insertAtEnd} 移除？${g_removeLink} 重命名？${g_renameLink}`);

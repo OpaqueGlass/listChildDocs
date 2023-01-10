@@ -111,7 +111,7 @@ let setting = {
 let helperSettings = {
     // 文档中属性名称
     attrName: "custom-add-cdl-helper",
-    // 模式为插入链接时，插入的内容模板
+    // 模式为插入自定义时，插入的内容模板
     docLinkTemplate: "((%DOC_ID% '%DOC_NAME%'))",
     // 自动插入模式
     /* 可选模式：（以下列出中英文两种，设置其一即可）
@@ -125,9 +125,9 @@ let helperSettings = {
     insertAtEnd: undefined,
     // 插入挂件时，检查文档是否为空？设置为false，将通过文档的属性判断是否插入过。若设置为undefined，则采用对应模式的默认设置
     checkEmptyDocInsertWidget: true,
-    // 模式为插入链接时，当发现子文档被删除，移除对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
+    // 模式为插入链接/引用块/自定义时，当发现子文档被删除，移除对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
     removeLinkEnable: false,
-    // 模式为插入链接时，当发现子文档文件名变化时，重写对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
+    // 模式为插入链接/引用块/自定义时，当发现子文档文件名变化时，重写对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
     renameLinkEnable: false,
     // helper和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
     // 插入挂件时，要插入的挂件路径信息
