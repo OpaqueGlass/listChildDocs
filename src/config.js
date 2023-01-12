@@ -114,16 +114,16 @@ let helperSettings = {
     // 模式为插入自定义时，插入的内容模板
     docLinkTemplate: "((%DOC_ID% '%DOC_NAME%'))",
     // 自动插入模式
-    /* 可选模式：（以下列出中英文两种，设置其一即可）
-    插入挂件 add_list_child_docs 【插入挂件将不重复插入（通过属性或文档为空判断）】
-    插入链接 add_link
-    插入引用块 add_ref
-    插入自定义 add_custom 根据docLinkTemplate，插入自定义的内容
+    /* 【请只使用“插入挂件”模式。其他模式可能存在问题，请勿使用。】
+    插入挂件 【插入挂件将不重复插入（通过属性或文档为空判断）】
+    插入链接【不建议使用】
+    插入引用块【不建议使用】
+    插入自定义【不建议使用】 根据docLinkTemplate，插入自定义的内容
     */
     mode: "插入挂件",
     // 插入在父文档结尾？若设置为undefined，则采用对应模式的默认设置
     insertAtEnd: undefined,
-    // 插入挂件时，检查文档是否为空？设置为false，将通过文档的属性判断是否插入过。若设置为undefined，则采用对应模式的默认设置
+    // 插入挂件时，检查文档是否为空？设置为false，将通过文档的属性判断是否插入过。
     checkEmptyDocInsertWidget: true,
     // 模式为插入链接/引用块/自定义时，当发现子文档被删除，移除对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
     removeLinkEnable: false,

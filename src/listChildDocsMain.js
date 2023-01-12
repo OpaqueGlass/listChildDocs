@@ -388,7 +388,7 @@ function debugPush(text, delay = 7000) {
  */
 function showSettingChanger(showBtn) {
     g_showSetting = showBtn;
-    let display = showBtn ? "" : "none";
+    let display = showBtn ? "inline" : "none";
     $("#innerSetting > *").css("display", display);
     if ((custom_attr.listDepth != 0 && !custom_attr.endDocOutline) && showBtn) {//层级不为0时不显示大纲层级
         $("#outlinedepth, #outlinedepthhint").css("display", "none");
@@ -646,12 +646,12 @@ function __refreshAppearance() {
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1) {
-        $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth, #targetId").addClass("button_dark");
-        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").addClass("ordinaryText_dark");
+        $(".upperbardiv input[type!='checkbox'], .upperbardiv select").addClass("button_dark");
+        $(".upperbardiv span").addClass("ordinaryText_dark");
         $(".childDocLinks").addClass("childDocLinks_dark");
     } else {
-        $("#refresh, #listdepth, #printMode, #listcolumn, #outlinedepth").removeClass("button_dark");
-        $("#updateTime, #linksContainer, #columnhint, #depthhint, #outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").removeClass("ordinaryText_dark");
+        $(".upperbardiv input[type!='checkbox'], .upperbardiv select").removeClass("button_dark");
+        $(".upperbardiv span").removeClass("ordinaryText_dark");
         $(".childDocLinks").removeClass("childDocLinks_dark");
     }
 }

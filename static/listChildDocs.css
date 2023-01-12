@@ -66,6 +66,10 @@ input[type="checkbox"] {
     width: 5em;
 }
 
+#innerSetting > *{
+    display: none;
+}
+
 /* #savedepth {
     width: 3em;
     height: 1.5em;
