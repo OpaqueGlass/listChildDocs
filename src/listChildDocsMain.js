@@ -17,7 +17,8 @@ import {
     insertBlockAPI,
     checkOs,
     getDocOutlineAPI,
-    getNodebookList
+    getNodebookList,
+    getKramdown
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
 import { printerList } from "./printerConfig.js";
@@ -172,6 +173,33 @@ async function getCustomAttr() {
         }
         Object.assign(custom_attr, attrObject);
     }
+    console.debug("获取属性", response.data);
+    // Resize设定默认宽高
+    if (!("custom-resize-flag" in response.data) && isValidStr(setting.saveDefaultWidgetStyle) && ("id" in response.data)) {
+        // 写属性
+        let data = {};
+        data["custom-resize-flag"] = "listChildDocs: do not delete.请不要删去此属性，否则挂件将在下次加载时重新将挂件默认宽高写入文档中";
+        let response = await addblockAttrAPI(data, thisWidgetId);
+        // 获取kramdown
+        let widgetKramdown = await getKramdown(thisWidgetId);
+        // 重写Kramdown
+        let newWidgetKramdown = "";
+        console.debug("getKramdown", widgetKramdown);
+        if (widgetKramdown.includes("/widgets/listChildDocs")) {
+            if (widgetKramdown.includes("style=")) {
+                newWidgetKramdown = widgetKramdown.replace(new RegExp(`style=".*"`, ""), `style="${setting.saveDefaultWidgetStyle}"`);
+            }else{
+                newWidgetKramdown = widgetKramdown.replace(new RegExp("><\/iframe>", ""), ` style="${setting.saveDefaultWidgetStyle}"><\/iframe>`);
+            }
+            console.log("【挂件更新自身样式信息】!", newWidgetKramdown);
+            await updateBlockAPI(newWidgetKramdown, thisWidgetId);
+        }else{
+            console.log(widgetKramdown);
+            console.warn("当前id不对应listChildDocs挂件，不设定挂件样式", thisWidgetId);
+        }
+        throw new Error(language["saveDefaultStyleFailed"]);
+    }
+
     if (!("id" in response.data)) {
         throw Error(language["getAttrFailed"]);
     }

@@ -83,6 +83,10 @@ let setting = {
     // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最大高度（单位px），若不限制，请设为undefined
     height_2widget_max: undefined,
 
+    // issue#30【在插入挂件时表现不稳定，可能在第二次打开时设定、保存样式】挂件保存1次自身的显示样式，设置为undefined以禁用
+    // 示例 "width: 2000px; height: 303px;"
+    saveDefaultWidgetStyle: undefined,
+
     // 未完成功能 插入https:// 或 http:// 协议的emoji，
     webEmojiEnable: false,
 
@@ -180,6 +184,7 @@ let zh_CN = {
     working: "执行中……",
     wrongTargetId: "错误的目标id。目标id应为存在的文档块id、开启的笔记本id或/",
     readonly: "工作在只读模式，禁止对文档的更改操作。如果当前不是只读模式，麻烦向开发者反馈此问题。如要关闭此安全检查，请修改自定义设置safeModePlus为false。",
+    saveDefaultStyleFailed: "保存默认挂件样式设定失败，如反复出现此问题，请禁用saveDefaultWidgetStyle。",
     // 自动插入助手提示
     helperAddBlockMemo: "自动插入的子文档链接块：在此块下的编辑将在文档变化时被覆盖",
     queryFilePathFailed: "获取文档路径失败，文档可能刚创建",
@@ -230,6 +235,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     working: "Running...",
     wrongTargetId: "Wrong target doc id. The target id should be an existing document id, an open notebook id or /",
     readonly: "Work in read-only mode. Changes to the document are prohibited. If it is not read-only mode, please give feedback to the developer. To turn off this security check, please modify the custom setting 'safeModePlus' to false.",
+    saveDefaultStyleFailed: "Failed to save default pendant style settings. If this problem occurs repeatedly, please disable saveDefaultWidgetStyle.",
     // addChildDocLinkHelper hint text
     helperAddBlockMemo: "Child-doc link block: the edits under this block will be overwritten when the child-docs changes.",
     queryFilePathFailed: "Failed to get the document path, the document may have just been created.",
