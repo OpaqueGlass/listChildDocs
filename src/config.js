@@ -94,6 +94,8 @@ let setting = {
     overwriteIndependentSettings: false,
     // 载入挂件后移除独立设置
     removeIndependentSettings: false,
+    // 重载/移除设置时一并删除文档中的原目录列表块
+    deleteChildListBlockWhileReset: true,
     // 独立设置重载或移除白名单
     // 在这里列出的文档下的挂件，不会执行独立设置重载或移除
     // 示例["20220815001720-4xjvir0"]

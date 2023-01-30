@@ -18,7 +18,8 @@ import {
     checkOs,
     getDocOutlineAPI,
     getNodebookList,
-    getKramdown
+    getKramdown,
+    removeBlockAPI
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
 import { printerList } from "./printerConfig.js";
@@ -178,6 +179,14 @@ async function getCustomAttr() {
         console.info("移除挂件独立配置", thisWidgetId);
         await addblockAttrAPI({ "custom-list-child-docs": "" }, thisWidgetId);
         attrResetFlag = true;
+    }
+
+    if (attrResetFlag && "id" in response.data && setting.deleteChildListBlockWhileReset) {
+        let oldAttrObject = JSON.parse(response.data['custom-list-child-docs'].replaceAll("&quot;", "\""));
+        if (isValidStr(oldAttrObject.childListId)) {
+            console.info("移除原内容块", oldAttrObject.childListId);
+            await removeBlockAPI(oldAttrObject.childListId);
+        }
     }
 
     if ('custom-list-child-docs' in response.data && !attrResetFlag) {
