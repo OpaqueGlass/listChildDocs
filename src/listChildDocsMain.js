@@ -166,36 +166,55 @@ async function getCustomAttr() {
     let response = await getblockAttrAPI(thisWidgetId);
     let attrObject = {};
     let attrResetFlag = false;
-
+    let parseErrorFlag = false;
+    let deleteBlockFlag = false;
+    // 解析挂件设置
+    if ('custom-list-child-docs' in response.data) {
+        try {
+            attrObject = JSON.parse(response.data['custom-list-child-docs'].replaceAll("&quot;", "\""));
+        }catch(err) {
+            console.warn("解析挂件属性json失败", err.message);
+            parseErrorFlag = true;
+        }
+    }
+    // 处理设置重设/移除请求
     if (setting.overwriteIndependentSettings && "id" in response.data
             && 'custom-list-child-docs' in response.data
             && setting.overwriteOrRemoveWhiteDocList.indexOf(thisDocId) == -1){
         console.info("重载挂件独立配置", thisWidgetId);
+        if (setting.deleteChildListBlockWhileReset) {
+            __refreshPrinter();
+            // 仍为文档中，保留目录列表块id
+            if (myPrinter.write2file == 1) {
+                custom_attr.childListId = attrObject.childListId;
+            }else{
+                deleteBlockFlag = true;
+            }
+        }else{
+            custom_attr.childListId = attrObject.childListId;
+        }
         await setCustomAttr();
         attrResetFlag = true;
     }else if (setting.removeIndependentSettings && "id" in response.data
             && 'custom-list-child-docs' in response.data
             && setting.overwriteOrRemoveWhiteDocList.indexOf(thisDocId) == -1){
+        if (setting.deleteChildListBlockWhileReset) deleteBlockFlag = true;
         console.info("移除挂件独立配置", thisWidgetId);
         await addblockAttrAPI({ "custom-list-child-docs": "" }, thisWidgetId);
         attrResetFlag = true;
     }
-
-    if (attrResetFlag && "id" in response.data && setting.deleteChildListBlockWhileReset) {
-        let oldAttrObject = JSON.parse(response.data['custom-list-child-docs'].replaceAll("&quot;", "\""));
-        if (isValidStr(oldAttrObject.childListId)) {
-            console.info("移除原内容块", oldAttrObject.childListId);
-            await removeBlockAPI(oldAttrObject.childListId);
-        }
+    // 清理原内容块
+    if (deleteBlockFlag && isValidStr(attrObject.childListId)) {
+        console.info("移除原内容块", attrObject.childListId);
+        await removeBlockAPI(attrObject.childListId);
     }
 
     if ('custom-list-child-docs' in response.data && !attrResetFlag) {
-        try {
-            attrObject = JSON.parse(response.data['custom-list-child-docs'].replaceAll("&quot;", "\""));
-            console.info("载入独立配置", attrObject);
-        } catch (err) {
-            console.warn("解析挂件属性json失败，将按默认值新建配置记录", err.message);
+        if (parseErrorFlag) {
+            console.info("载入独立配置失败，将按默认值新建配置记录");
             return;
+        }else{
+            console.info("载入独立配置", attrObject);
         }
         Object.assign(custom_attr, attrObject);
     }
