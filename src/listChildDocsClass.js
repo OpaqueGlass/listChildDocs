@@ -355,12 +355,7 @@ class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter 
     static id = 8;
     align(nowDepth) {
         let spaces = "";
-        if (nowDepth >= 2) {
-            spaces += "    "; // 保证同属于一个有序列表
-            if (nowDepth > 2) {
-                spaces += "　　".repeat(nowDepth - 2);
-            }
-        }
+        spaces += "    ".repeat(nowDepth - 1);
         return spaces;
     }
     oneDocLink(doc, rowCountStack) {
@@ -373,10 +368,10 @@ class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter 
             countStr += num + ".";
         }
         if (!isValidStr(doc.id)) {
-            return `${countStr} ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
+            return `* ${countStr}　${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
-        return `${countStr} ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
+        return `* ${countStr}　${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
 }
 
