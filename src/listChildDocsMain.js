@@ -164,16 +164,32 @@ function setAttrToDom(queryBlockIds, attrs) {
 async function getCustomAttr() {
     let response = await getblockAttrAPI(thisWidgetId);
     let attrObject = {};
-    if ('custom-list-child-docs' in response.data) {
+    let attrResetFlag = false;
+
+    if (setting.overwriteIndependentSettings && "id" in response.data
+            && 'custom-list-child-docs' in response.data
+            && setting.overwriteOrRemoveWhiteDocList.indexOf(thisDocId) == -1){
+        console.info("重载挂件独立配置", thisWidgetId);
+        await setCustomAttr();
+        attrResetFlag = true;
+    }else if (setting.removeIndependentSettings && "id" in response.data
+            && 'custom-list-child-docs' in response.data
+            && setting.overwriteOrRemoveWhiteDocList.indexOf(thisDocId) == -1){
+        console.info("移除挂件独立配置", thisWidgetId);
+        await addblockAttrAPI({ "custom-list-child-docs": "" }, thisWidgetId);
+        attrResetFlag = true;
+    }
+
+    if ('custom-list-child-docs' in response.data && !attrResetFlag) {
         try {
             attrObject = JSON.parse(response.data['custom-list-child-docs'].replaceAll("&quot;", "\""));
+            console.info("载入独立配置", attrObject);
         } catch (err) {
             console.warn("解析挂件属性json失败，将按默认值新建配置记录", err.message);
             return;
         }
         Object.assign(custom_attr, attrObject);
     }
-    console.debug("获取属性", response.data);
     // Resize设定默认宽高
     if (!("custom-resize-flag" in response.data) && isValidStr(setting.saveDefaultWidgetStyle) && ("id" in response.data)) {
         // 写属性

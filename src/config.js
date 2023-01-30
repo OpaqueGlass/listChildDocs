@@ -87,6 +87,18 @@ let setting = {
     // 示例 "width: 2000px; height: 303px;"
     saveDefaultWidgetStyle: undefined,
 
+    /* issue #31 挂件配置批量操作 
+    ！同步用户请注意：以下两个配置启用后挂件将在载入后更新挂件属性，未同步时可能导致同步覆盖
+    */
+    // 载入挂件后以配置文件为准重写独立设置
+    overwriteIndependentSettings: false,
+    // 载入挂件后移除独立设置
+    removeIndependentSettings: false,
+    // 独立设置重载或移除白名单
+    // 在这里列出的文档下的挂件，不会执行独立设置重载或移除
+    // 示例["20220815001720-4xjvir0"]
+    overwriteOrRemoveWhiteDocList: [],
+
     // 未完成功能 插入https:// 或 http:// 协议的emoji，
     webEmojiEnable: false,
 
