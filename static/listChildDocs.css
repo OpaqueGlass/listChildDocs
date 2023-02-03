@@ -141,6 +141,11 @@ input:hover {
     vertical-align: bottom;
 }
 
+/* 子文档区域 */
+#refContainer {
+    cursor: default;
+}
+
 /* 链接文字样式 */
 .childDocLinks,
 .refLinks {
@@ -156,15 +161,17 @@ input:hover {
 }
 
 /* 链接文字悬停样式 */
-.childDocLinks:hover,
-.refLinks:hover {
+.linkTextHoverHightLight:hover{
     color: #1186d9;
     border-bottom: 1px dashed #4CB0F9;
+    cursor: pointer;
 }
 
 /* 扩大点击范围为整行时，悬停样式 */
-.itemMouseOverHighlight:hover {
+.itemHoverHighLight:hover {
     background-color: #1186d91f;
+    color: #1186d9;
+    cursor: pointer;
 }
 
 /* 错误提示文字样式 */

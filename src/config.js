@@ -83,11 +83,13 @@ let setting = {
     // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最大高度（单位px），若不限制，请设为undefined
     height_2widget_max: undefined,
 
-    // issue#30【在插入挂件时表现不稳定，可能在第二次打开时设定、保存样式】挂件保存1次自身的显示样式，设置为undefined以禁用
+    // 【在插入挂件时表现不稳定，可能在第二次打开时设定、保存样式】挂件保存1次自身的显示样式，设置为undefined以禁用
+    // issue #30 https://github.com/OpaqueGlass/listChildDocs/issues/30
     // 示例 "width: 2000px; height: 303px;"
     saveDefaultWidgetStyle: undefined,
 
-    /* issue #31 挂件配置批量操作 
+    /*  挂件配置批量操作 
+      issue #31 https://github.com/OpaqueGlass/listChildDocs/issues/31
     ！同步用户请注意：以下两个配置启用后挂件将在载入后更新挂件属性，未同步时可能导致同步覆盖
     */
     // 载入挂件后以配置文件为准重写独立设置

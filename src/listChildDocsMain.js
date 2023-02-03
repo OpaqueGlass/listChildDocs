@@ -534,9 +534,10 @@ async function __main(initmode = false, justCreate = false) {
             // 处理响应范围，挂引用块点击事件
             if (setting.extendClickArea) {
                 $(".linksListItem").click(openRefLink);
-                $(".linksListItem").addClass("itemMouseOverHighlight");
+                $(".linksListItem").addClass("itemHoverHighLight");
             }else{
                 $("#refContainer .refLinks").click(openRefLink);
+                $("#refContainer .refLinks, .childDocLinks").addClass("linkTextHoverHightLight");
             }
             
             //挂一下事件，处理引用块浮窗
