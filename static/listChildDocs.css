@@ -149,16 +149,42 @@ input:hover {
 /* 链接文字样式 */
 .childDocLinks,
 .refLinks {
-    color: black;
+    /* color: black; */
     padding: 0 2px;
     text-decoration: none;
     border-bottom: 1px dashed rgba(0, 0, 0, .1);
 }
 
 /* 暗黑模式下，链接文字样式 */
-.childDocLinks_dark {
+.childDocLinks_dark{
     color: #C9D1D9;
 }
+/* 挂件思维导图样式 */
+/* 思维导图<a>链接样式 */
+.markmap_a {
+    color: black;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(0, 0, 0, .1);
+    /* white-space: nowrap; */
+}
+
+/* 思维导图普通文字深色样式 */
+.markmap_dark {
+    color: #C9D1D9 !important;
+}
+/* 思维导图链接深色样式 */
+.markmap_a_dark {
+    color: #C9D1D9 !important;
+    text-decoration: none !important;
+    /* white-space: nowrap; */
+}
+
+/* 思维导图悬停样式*/
+.markmap_a_dark:hover{
+    color: #1186d9 !important;
+    border-bottom: 1px dashed #4CB0F9 !important;
+}
+
 
 /* 链接文字悬停样式 */
 .linkTextHoverHightLight:hover{

@@ -16,9 +16,11 @@
   - 有序列表或无序列表；
   - （文档中）`siyuan://`URL或引用块；
   
-- 在几种特定情况下自动刷新子文档目录列表（安全模式下不刷新文档中的目录）：
-  - 挂件被加载（例如：点击文档树打开所在文档）[^1]；
-  - 点击所在文档页签[^2]；（仅windows）
+- 在几种特定情况下自动刷新子文档目录列表（安全模式下不刷新文档中的目录）：\*
+  - 挂件被加载（例如：点击文档树打开所在文档）；
+  - 点击所在文档页签；（默认仅windows）
+
+> 注：关于自动刷新、自动插入助手和关闭安全模式，请阅读[自动刷新、自动插入助手同步风险说明和使用建议](https://github.com/OpaqueGlass/listChildDocs/blob/main/about_auto_refresh.md)或挂件所在目录下的about_auto_refresh.md。
 
 ## 设置项说明
 
@@ -85,9 +87,9 @@
 
 10. 叶子文档大纲：在目录列表中的叶子页面下加入该文档的大纲；
 
-   勾选后，可以通过大纲层级设定大纲的层级数；为了区分大纲和子文档链接，大纲前用"@"标识，如要更改或删除“@”，请参考自定义设置更改`outlineDistinguishingWords`；
-
-   ==刷新时间较长，不建议开启== 
+    勾选后，可以通过大纲层级设定大纲的层级数；为了区分大纲和子文档链接，大纲前用"@"标识，如要更改或删除“@”，请参考自定义设置更改`outlineDistinguishingWords`；
+ 
+    ==刷新时间较长，不建议开启== 
 
 ### 自定义说明
 
@@ -95,15 +97,13 @@
 
 打开`${思源data目录}\widgets\listChildDocs\src\config.js`，设置项说明请参考各配置项旁边的注释。举例：在此文档可以修改：
 
-【常用】
-
 - 创建（插入）挂件时的默认参数（分列数、层级数、模式、是否自动刷新）`custom_attr`（如果写入文档，不建议将auto的默认值设定为true）；
 
 - 安全模式`safeMode`：默认启用。
 
   启用后，挂件将不对文档中的目录进行自动刷新，防止同步过程中自动刷新导致同步冲突/覆盖；（如果使用同步，建议启用安全模式[^4]）；
 
-- 只读安全模式`safeModePlus`：默认禁用（未来稳定后将默认启用）。
+- 只读安全模式`safeModePlus`：默认启用。
 
   启用后，当挂件检测到目前是历史预览页面、启用了只读模式或挂件所在文档页签不存在时，将禁止挂件刷新文档中的目录。拦截到刷新文档目录的操作时，将在挂件内输出错误提示。
 
@@ -117,31 +117,11 @@
 
 - 在挂件中显示返回父文档的链接`backToParent`：默认仅在屏幕宽度<=768px的设备启用；
 
-【不常用】
-
-- 超级块分列（分栏）时在缩进位置折断`divideColumnAtIndent`： 默认禁用；
-
-  （文档中）启用后，会在缩进位置分列，可能可以解决分列后每列长度不均的问题；
-
-- 新的超级块构成方式beta：`superBlockBeta`：默认启用；
-
-- 刷新列表后重写属性`inheritAttrs`：默认启用；
-
-- 刷新后属性写入列表对应HTML元素的属性类型`includeAttrName`；
-
-- 点击页签刷新生效系统`includeOs`；
-
-  默认仅用于windows，不适用于ios和Android。其他平台未测试，如要使用，请手动更改；
-
-- 扩大挂件内子文档链接有效点击范围`extendClickArea`：默认启用；
-
-- ....其他设置；
-
 #### 在`custom.js`中覆盖设置
 
 > 测试中，可能存在缺陷。理论上，即使更新挂件，这里进行覆盖的设置仍然可以保留。
 
-创建或编辑`${思源data目录}/widgets/custom.js`，仅支持`config.js`文件中`custom_attr`（创建挂件时的默认设置）、`setting`（全局设置）下的设置项，以下是一个示例。
+创建或编辑`${思源data目录}/widgets/custom.js`，仅支持`config.js`文件中`custom_attr`（创建挂件时的默认设置）、`setting`（全局设置）、`helperSettings`（自动插入助手设置）下的设置项，以下是一个示例。
 
 ```javascript
 /*方式1：若之前有config，需要添加listChildDocs的部分*/
@@ -184,15 +164,23 @@ export const listChildDocs = {
 }
 ```
 
+> 关于和部分主题列表转导图功能一起使用、默认创建为导图样式（只支持单列，请不要分列），请参考自定义说明将`blockInitAttrs`设置为：
+> ```javascript
+>    blockInitAttrs: {
+>       "custom-f": "dt",
+>       "custom-type": "map"
+>   },
+> ```
+
 ## ⚠️注意
 
 > 由于开发者能力所限，挂件还存在以下问题。
 
 - 直接将子文档目录列表**写入文档中**时：
   - 请避免过快地刷新文档列表；
-  - 如果要<u>多设备同步文档</u>、且<u>挂件所在文档要写其他内容</u>时，**请勿使用自动刷新**[^4]；
+  - 如果要<u>多设备同步文档</u>、且<u>挂件所在文档要写其他内容</u>时，**请勿使用自动刷新**[^1]；
 - 每次刷新时，将完全更新列表（即使子文档没有变化，也将更新列表全部内容）；
-- 双击刷新按钮会保存设置（设定挂件属性），文档编辑时间将被更新，**如果当时未完成同步，请勿双击刷新按钮**[^4]；
+- 双击刷新按钮会保存设置（设定挂件属性），文档编辑时间将被更新，**如果当时未完成同步，请勿双击刷新按钮**[^1]；
 - 点击页签自动刷新的方法有点玄学，可能在未来的版本更新中无法使用；
 - 关于超级块属性刷新后重写：
   - `superBlockBeta`应设为`true`；
@@ -223,10 +211,9 @@ export const listChildDocs = {
 
 以下大佬参与代码贡献：
 
-| 开发者                                            | PR                                                           |
-| ------------------------------------------------- | ------------------------------------------------------------ |
-| [Zuoqiu-Yingyi](https://github.com/Zuoqiu-Yingyi) | [文档深度下拉框改为输入框PR#1](https://github.com/OpaqueGlass/listChildDocs/pull/1) |
+- [Zuoqiu-Yingyi](https://github.com/Zuoqiu-Yingyi)；
 
+（详见[贡献者（开发者）列表](https://github.com/OpaqueGlass/listChildDocs/graphs/contributors)）
 
 
 ### 依赖
@@ -239,6 +226,22 @@ Copyright OpenJS Foundation and other contributors
 Released under the MIT license  https://jquery.org/license
 ```
 
+2. markmap；
+
+```
+markmap-lib v0.14.3 | MIT License
+markmap-view v0.14.3 | MIT License
+https://github.com/markmap/markmap
+https://markmap.js.org/
+```
+
+3. d3.js；
+
+```
+BSD-3-Clause https://opensource.org/licenses/BSD-3-Clause
+https://d3js.org v6.7.0 Copyright 2021 Mike Bostock
+```
+
 ### 图标
 
 1. [刷新按钮图标](https://www.iconfinder.com/icons/5402417/refresh_rotate_sync_update_reload_repeat_icon)，作者：[amoghdesign](https://www.iconfinder.com/amoghdesign)，许可协议：[CC3.0 BY-NC](http://creativecommons.org/licenses/by-nc/3.0/)；
@@ -247,6 +250,4 @@ Released under the MIT license  https://jquery.org/license
 
 
 
-[^1]: 例外：安全模式下，写入文档时（在文档中创建目录），将不会自动刷新。
-[^2]: 通过监视页签变化获取当前文档是否更新，默认仅在windows启用，不支持ios、android系统。例外：安全模式下，写入文档时，将不会自动刷新。
-[^4]: 当挂件更新文档内的目录列表（或保存设置）后，当前设备文档编辑时间将更新。如果当前设备未同步，则新文档会覆盖云端内容，导致其他设备的编辑丢失。目前，在写入挂件时（在挂件中创建目录），自动刷新不更改文档内容，理论上不会影响文档编辑时间。
+[^1]: 当挂件更新文档内的目录列表（或保存设置）后，当前设备文档编辑时间将更新。如果当前设备未同步，则新文档会覆盖云端内容，导致其他设备的编辑丢失。目前，在写入挂件时（在挂件中创建目录），自动刷新不更改文档内容，理论上不会影响文档编辑时间。

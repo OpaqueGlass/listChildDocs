@@ -4,7 +4,7 @@
  * 
  * 标注有UNSTABLE:的方法或代码行，通过jQuery定位界面元素实现，当protyle界面变化时，很可能需要更改
  */
-import { DefaultPrinter } from './listChildDocsClass.js';
+import { DefaultPrinter, printerList } from './listChildDocsClass.js';
 import {
     queryAPI,
     getSubDocsAPI,
@@ -22,11 +22,11 @@ import {
     removeBlockAPI
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
-import { printerList } from "./printerConfig.js";
 import { openRefLink, showFloatWnd } from './ref-util.js';
 import { isSafelyUpdate, isValidStr, transfromAttrToIAL } from './common.js';
 let thisDocId = "";
 let thisWidgetId = "";
+let targetDocName = "";
 let mutex = 0;
 let myPrinter;
 let myProvider;
@@ -282,7 +282,8 @@ async function getText(notebook, nowDocPath) {
         rawData = await getTextFromNotebooks(rowCountStack);
     }else{
         // 单独处理 返回父文档../
-        if (nowDocPath !== "/" &&
+        // 用户自行指定目标时，不附加../
+        if (!isValidStr(custom_attr["targetId"]) &&
           (setting.backToParent == "true" || (setting.backToParent == "auto" && window.screen.availWidth <= 768)) &&
           myPrinter.write2file == 0) {
             let tempPathData = nowDocPath.split("/");
@@ -517,8 +518,15 @@ async function __main(initmode = false, justCreate = false) {
         let textString = await getText(notebook, targetDocPath);
         //清理原有内容
         $("#linksContainer *").remove();
+        // 由模式自行完成目录更新
+        let updateAttr = {
+            widgetId: thisWidgetId,
+            docId: thisDocId,
+            "targetDocName": targetDocName,
+        };
+        let modeDoUpdateFlag = await myPrinter.doUpdate(textString, custom_attr, updateAttr);
         //写入子文档链接
-        if (myPrinter.write2file) {
+        if (modeDoUpdateFlag == 0 && myPrinter.write2file) {
             // 在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
             if (justCreate && (setting.safeMode || custom_attr.childListId == "")) {
                 console.log("初次创建，不写入/更新块");
@@ -529,8 +537,8 @@ async function __main(initmode = false, justCreate = false) {
             } else {
                 await addText2File(textString, custom_attr.childListId);
             }
-        } else {
-            $(textString).appendTo(".linksContainer");
+        } else if (modeDoUpdateFlag == 0){
+            $(textString).appendTo("#linksContainer");
             // 处理响应范围，挂引用块点击事件
             if (setting.extendClickArea) {
                 $(".linksListItem").click(openRefLink);
@@ -552,7 +560,15 @@ async function __main(initmode = false, justCreate = false) {
             // $("#linksContainer").css("font-family", window.top.siyuan.config.editor.fontFamily);
         }
         //issue #13 挂件自动高度
-        __refreshAppearance();
+        // 挂件内自动高度
+        if (setting.autoHeight && myPrinter.write2file == 0 && modeDoUpdateFlag != 1) {
+            // console.log("挂件高度应当设为", $("body").outerHeight());
+            let tempHeight = $("body").outerHeight() + 35;
+            if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
+            if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
+            window.frameElement.style.height = tempHeight + "px";
+        }
+        
     } catch (err) {
         console.error(err);
         printError(err.message);
@@ -571,12 +587,13 @@ async function __main(initmode = false, justCreate = false) {
 async function getTargetBlockBoxPath() {
     let userInputTargetId = custom_attr["targetId"];
     $("#targetDocName").text("");
+    targetDocName = "";
     // 若id未指定，以挂件所在位置为准
     if (!isValidStr(userInputTargetId)) {
         //以当前页面id查询当前页面所属笔记本和路径（优先使用widegtId，因为docId可能获取的不准）
-        let queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisWidgetId}'`);
+        let queryResult = await queryAPI(`SELECT * FROM blocks WHERE id = '${thisWidgetId}'`);
         if (queryResult == null || queryResult.length < 1) {
-            queryResult = await queryAPI(`SELECT box, path FROM blocks WHERE id = '${thisDocId}'`);
+            queryResult = await queryAPI(`SELECT * FROM blocks WHERE id = '${thisDocId}'`);
             if (queryResult == null || queryResult.length < 1) {
                 throw Error(language["getPathFailed"]); 
             }
@@ -596,6 +613,7 @@ async function getTargetBlockBoxPath() {
     // 若指定的是从笔记本上级列出
     if (userInputTargetId === "/" || userInputTargetId === "\\") {
         $("#targetDocName").text("/");
+        targetDocName = "/";
         return ["/", "/"];
     }
 
@@ -607,6 +625,7 @@ async function getTargetBlockBoxPath() {
     // 若id对应的是文档块
     if (targetQueryResult.length > 0 && targetQueryResult[0].type === "d") {
         $("#targetDocName").text(targetQueryResult[0].content);
+        targetDocName = targetQueryResult[0].content;
         return [targetQueryResult[0].box, targetQueryResult[0].path];
     }else if (targetQueryResult.length > 0) {
         throw Error(language["wrongTargetId"]); 
@@ -625,7 +644,8 @@ async function getTargetBlockBoxPath() {
     });
     // 若id对应的是笔记本
     if (g_notebooksIDList.indexOf(userInputTargetId) != -1) {
-        $("#targetDocName").text(notebookNameList[g_notebooksIDList.indexOf(userInputTargetId)]);
+        targetDocName = notebookNameList[g_notebooksIDList.indexOf(userInputTargetId)];
+        $("#targetDocName").text(targetDocName);
         return [userInputTargetId, "/"];
     }
     throw new Error(language["wrongTargetId"]);
@@ -708,14 +728,6 @@ function __refreshAppearance() {
         window.frameElement.style.width = setting.width_2file;
         window.frameElement.style.height = setting.height_2file;
         showSettingChanger(false);
-    }
-    // 挂件内自动高度
-    if (setting.autoHeight && myPrinter.write2file == 0) {
-        // console.log("挂件高度应当设为", $("body").outerHeight());
-        let tempHeight = $("body").outerHeight() + 35;
-        if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
-        if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
-        window.frameElement.style.height = tempHeight + "px";
     }
     //设定深色颜色（外观）
     if (window.top.siyuan.config.appearance.mode == 1) {

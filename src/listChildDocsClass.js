@@ -4,6 +4,8 @@
  */
 import { setting } from './config.js';
 import { getUpdateString, generateBlockId, isValidStr } from "./common.js";
+import { openRefLink } from './ref-util.js';
+import { getCurrentDocIdF, queryAPI } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //
@@ -67,6 +69,15 @@ class Printer {
      * @returns 分栏后的初始值
      */
     splitColumns(originalText, nColumns, nDepth) { return originalText; }
+    /**
+     * （如果必要）模式自行处理内容块写入（更新操作）
+     * @param {*} textString 待写入的内容
+     * @param {*} widgetAttr 挂件参数
+     * @return 1: 由模式自行处理写入；0: 由挂件统一执行写入和更新
+     */
+    async doUpdate(textString, widgetAttr, updateAttr) {
+        return 0;
+    }
 }
 /**
  * 【旧版默认】默认模式：在挂件中插入超链接<a>
@@ -392,6 +403,89 @@ class MarkdownTodoListPrinter extends MarkdownUrlUnorderListPrinter {
         return `* [ ] ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
 }
+
+/**
+ * todo url 文档中TODO列表
+ */
+class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
+    static id = 10;
+    write2file = 0;
+    oneDocLink(doc, rowCountStack) {
+        let docName = doc.name;
+        if (doc.name.indexOf(".sy") >= 0) {
+            docName = docName.substring(0, docName.length - 3);
+        }
+        if (!isValidStr(doc.id)) {
+            return `* ${docName}\n`;
+        }
+        // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
+        return `* [${docName}](siyuan://blocks/${doc.id})\n`;
+    }
+    async doUpdate(textString, widgetAttr, updateAttr) {
+        // 匹配移除返回父文档
+        textString = textString.replace(new RegExp("\\* \\[../\\][^\\n]*\\n"), "");
+        let docName = window.top.document.querySelector(`li[data-type="tab-header"].item.item--focus .item__text`)?.innerText;
+        let docNameQuery;
+        if (!isValidStr(docName) || isValidStr(widgetAttr["targetId"])) {
+            let queryId = isValidStr(widgetAttr["targetId"]) ? widgetAttr["targetId"] : updateAttr.docId;
+            docNameQuery = await queryAPI(`SELECT * FROM blocks WHERE id = "${queryId}"`);
+            if (isValidStr(docNameQuery) && docNameQuery.length > 0) {
+                docName = docNameQuery[0].content;
+            }else{
+                docName = undefined;
+            }
+        }
+        if (isValidStr(docName) && !isValidStr(widgetAttr["targetId"])) {
+            textString = `# ${docName}\n` + textString;
+        }else if (isValidStr(docName) && docNameQuery[0].type == "d"){
+            textString = `# [${docName}](siyuan://blocks/${docNameQuery[0].id})\n` + textString;
+        }else if (isValidStr(updateAttr.targetDocName)) {
+            textString = `# ${updateAttr.targetDocName}\n` + textString;
+        }
+        // textString = `# ${window.top.document.querySelector(`li[data-type="tab-header"].item.item--focus .item__text`).innerText}\n` + textString;
+        document.getElementById("linksContainer").insertAdjacentHTML("beforeend", `<svg id="markmap" style="width: 100%; display: none;"></svg>`);
+        let markmapElem = document.getElementById("markmap");
+        markmapElem.style.height = "";
+        markmapElem.style.display = "";
+        markmapElem.innerHTML = "";
+        console.log($(window.frameElement).outerHeight(), $("body").outerHeight());
+        markmapElem.style.height = ($(window.frameElement).outerHeight() - $("body").outerHeight() + 125) + "px";
+        const transformer = new window.markmap.Transformer();
+        const { root, features } = transformer.transform(textString);
+        const { styles, scripts } = transformer.getUsedAssets(features);
+        if (styles) window.markmap.loadCSS(styles);
+        if (scripts) window.markmap.loadJS(scripts, { getMarkmap: () => markmap });
+        // 计算层最大宽度
+        let markmapConfig = {duration: 0, zoom: false, pan: false, maxWidth: 0};
+        console.log($(window.frameElement).innerWidth())
+        if (widgetAttr.listDepth == 0 || widgetAttr.endDocOutline) {
+            markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth + widgetAttr.outlineDepth);
+        }else{
+            markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth);
+        }
+        console.log("限制层宽", markmapConfig.maxWidth);
+        Object.assign(markmapConfig, setting.markmapConfig);
+        
+        window.markmap.Markmap.create('#markmap', markmapConfig, root);
+        $("#markmap a").click((event)=>{
+            event.preventDefault();
+            event.stopPropagation();
+            console.log("User clicked", event.target.getAttribute("href"));
+            let url = event.target.getAttribute("href");
+            let id = url.match(new RegExp(`(?<=siyuan://blocks/).*`));
+            event.target.setAttribute("data-id", id);
+            openRefLink(event);
+        });
+        if (window.top.siyuan.config.appearance.mode == 1) {
+            markmapElem.classList.add("markmap_dark");
+            $("#markmap a").addClass("markmap_a_dark");
+        }else{
+            $("#markmap a").addClass("markmap_a");
+        }
+        return 1;
+    }
+}
+
 /* *****共用方法***** */
 
 /**
@@ -642,19 +736,19 @@ function markdownRefBlockDocNameEncoder(inputStr) {
     return inputStr;
 }
 
-export default {
-    Printer,
-    DefaultPrinter,// 【0】默认
-    MarkdownDChainUnorderListPrinter,//【1】挂件beta无序
-    MarkdownUrlUnorderListPrinter,//【2】url 无序
-    HtmlReflinkPrinter,//【3】双链 无序
-    HtmlReflinkOrderPrinter,//【4】1.1.挂件beta有序html双链
-    HtmlDefaultOrderPrinter,//【5】1.1.默认有序
-    MarkdownUrlOrderListPrinter,//【6】有序url
-    MarkdownDChainOrderListPrinter,//【7】有序双链
-    MarkdownUrlStandardOrderListPrinter,//【8】1.1.url
-    MarkdownTodoListPrinter, //【9】todo
-}//Priter子类在这里列出
+export let printerList = [
+    DefaultPrinter,//0默认：出错时将重置到此模式 // 可以调换顺序，但请不要移除默认模式
+    HtmlReflinkPrinter,//1挂件内，伪引用块
+    MarkdownUrlUnorderListPrinter,//2在文档中写入无序列表 siyuanUrl
+    MarkdownDChainUnorderListPrinter,//3在文档中写入无序列表 引用块 
+    MarkdownUrlOrderListPrinter,//6在文档中写入有序列表 siyuanUrl
+    MarkdownDChainOrderListPrinter,//7在文档中写入有序列表 引用块
+    MarkdownUrlStandardOrderListPrinter,//8文档中1.2.2.类型有序列表
+    HtmlReflinkOrderPrinter, //4挂件内，有序列表伪引用块
+    HtmlDefaultOrderPrinter, //5挂件内，有序列表<a>
+    MarkdownTodoListPrinter, //9todo列表 存在问题：刷新导致任务打钩丢失
+    MarkmapPrinter, //10挂件内思维导图
+];
 export { Printer, DefaultPrinter };
 /** 附录：doc对象（由文档树api获得），示例如下
  * "path": "/20220807110638-uv5bqv8/20220810155329-xnskr8a.sy",//文档路径

@@ -125,7 +125,10 @@ let setting = {
 
     // 在页签切换文档时自动刷新功能将在列出的操作系统上启用，不支持不显示页签的客户端
     // 若要禁用，值应当为[]；如要在windows启用，["windows"]；如要在多个操作系统上启用，示例：["linux", "windows"]
-    includeOs: ["windows"]
+    includeOs: ["windows"],
+
+    // 
+    markmapConfig: {},
 };
 // 自动插入助手设置
 let helperSettings = {
@@ -177,6 +180,7 @@ let zh_CN = {
     modeName7: "1.引用块",
     modeName8: "1.1.url",
     modeName9: "任务列表",
+    modeName10: "导图",
     // 界面元素鼠标悬停提示词
     refreshBtn: "刷新",
     depthList: "子文档展示层级",
@@ -228,6 +232,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modeName7: "1.ref block",
     modeName8: "1.1.url",
     modeName9: "todo list",
+    modeName10: "markmap",
     // 界面元素鼠标悬停提示词 hangover popup words
     refreshBtn: "Refresh",
     depthList: "Number of layers of child-docs display",
