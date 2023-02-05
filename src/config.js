@@ -148,6 +148,8 @@ let helperSettings = {
     insertAtEnd: undefined,
     // 插入挂件时，检查文档是否为空？设置为false，将通过文档的属性判断是否插入过。
     checkEmptyDocInsertWidget: true,
+    // 插入挂件时，选择触发时机："open": 开启空白的父文档时；"create": 在空白父文档下创建子文档时
+    insertWidgetMoment: "open",
     // 模式为插入链接/引用块/自定义时，当发现子文档被删除，移除对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
     removeLinkEnable: false,
     // 模式为插入链接/引用块/自定义时，当发现子文档文件名变化时，重写对应的子文档链接？若设置为undefined，则采用对应模式的默认设置

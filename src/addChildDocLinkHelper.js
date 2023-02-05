@@ -114,7 +114,11 @@ let switchTabObserver = new MutationObserver(async (mutationList) => {
         setTimeout(async () => {
             console.time(g_TIMER_LABLE_NAME_COMPARE);
             try{
-                await tabChangeHandler([mutation.target])
+                if (g_mode == "插入挂件" || g_mode == "add_list_child_docs") {
+                    await tabChangeWidgetHandler([mutation.target]);
+                }else{
+                    await tabChangeHandler([mutation.target]);
+                }
             }catch(err) {
                 console.error(err);
             }
@@ -148,7 +152,11 @@ function observerRetry() {
                 g_observerStartupRefreshTimeout = setTimeout(async () => {
                     console.time(g_TIMER_LABLE_NAME_COMPARE);
                     try{
-                        await tabChangeHandler(element.children);
+                        if (g_mode == "插入挂件" || g_mode == "add_list_child_docs") {
+                            await tabChangeWidgetHandler(element.children);
+                        }else{
+                            await tabChangeHandler(element.children);
+                        }
                     }catch (err) {
                         console.error(err);
                     }
@@ -248,6 +256,34 @@ async function createHandler(msgdata) {
     await saveCustomAttr(parentDocId, parentDocAttr);
 }
 
+
+async function isDocEmpty(docId) {
+    // 检查父文档是否为空
+    // 获取父文档内容
+    let parentDocContent = await getKramdown(docId);
+    // 简化判断，过长的父文档内容必定有文本，不插入 // 作为参考，空文档的kramdown长度约为400
+    if (parentDocContent.length > 1000) {
+        console.log("父文档较长，认为非空，不插入挂件", parentDocContent.length);
+        return;
+    }
+    console.log(parentDocContent);
+    // 清理ial和换行、空格
+    let parentDocPlainText = parentDocContent;
+    // 清理ial中的对象信息（例：文档块中的scrool字段），防止后面匹配ial出现遗漏
+    parentDocPlainText = parentDocPlainText.replace(new RegExp('(?<=\"){[^\n]*}(?=\")', "gm"), "")
+    console.log("替换内部对象中间结果", parentDocPlainText);
+    // 清理ial
+    parentDocPlainText = parentDocPlainText.replace(new RegExp('{:[^}]*}', "gm"), "");
+    // 清理换行
+    parentDocPlainText = parentDocPlainText.replace(new RegExp('\n', "gm"), "");
+    // 清理空格
+    parentDocPlainText = parentDocPlainText.replace(new RegExp(' +', "gm"), "");
+    console.log(`父文档文本（+标记）为 ${parentDocPlainText}`);
+    console.log(`父文档内容为空？${parentDocPlainText == ""}`);
+    if (parentDocPlainText != "") return false;
+    return true;
+}
+
 /**
  * 处理添加挂件
  * @param msgdata websocket信息的data属性
@@ -264,29 +300,7 @@ async function addWidgetHandler(msgdata) {
     if (parentDocId == "") return;
     if (g_checkEmptyDocInsertWidget) {
         // 检查父文档是否为空
-        // 获取父文档内容
-        let parentDocContent = await getKramdown(parentDocId);
-        // 简化判断，过长的父文档内容必定有文本，不插入 // 作为参考，空文档的kramdown长度约为400
-        if (parentDocContent.length > 1000) {
-            console.log("父文档较长，认为非空，不插入挂件", parentDocContent.length);
-            return;
-        }
-        console.log(parentDocContent);
-
-        // 清理ial和换行、空格
-        let parentDocPlainText = parentDocContent;
-        // 清理ial中的对象信息（例：文档块中的scrool字段），防止后面匹配ial出现遗漏
-        parentDocPlainText = parentDocPlainText.replace(new RegExp('(?<=\"){[^\n]*}(?=\")', "gm"), "")
-        console.log("替换内部对象中间结果", parentDocPlainText);
-        // 清理ial
-        parentDocPlainText = parentDocPlainText.replace(new RegExp('{:[^}]*}', "gm"), "");
-        // 清理换行
-        parentDocPlainText = parentDocPlainText.replace(new RegExp('\n', "gm"), "");
-        // 清理空格
-        parentDocPlainText = parentDocPlainText.replace(new RegExp(' +', "gm"), "");
-        console.log(`父文档文本（+标记）为 ${parentDocPlainText}`);
-        console.log(`父文档内容为空？${parentDocPlainText == ""}`);
-        if (parentDocPlainText != "") return;
+        if (!await isDocEmpty(parentDocId)) return;
     }else{
         // 获取父文档属性，判断是否插入过挂件
         let parentDocAttr = await getblockAttrAPI(parentDocId).data;
@@ -318,6 +332,82 @@ async function addWidgetHandler(msgdata) {
         await addblockAttrAPI(attr, parentDocId);
     }
     console.log(`helper已自动插入挂件块${addedWidgetIds}，于父文档${parentDocId}`);
+}
+
+
+/**
+ * 处理页签变化，对打开的空白父文档执行插入挂件操作
+ * @param {*} addedNodes 
+ */
+async function tabChangeWidgetHandler(addedNodes) {
+    let openDocIds = [];
+    let safelyUpdateFlag = true;
+    // WARN: UNSTABLE: 获取打开Tab的对应文档id
+    // addedNodes.forEach(element => {
+    // 重启监听后立刻执行检查时，传入的addedNodes类型为HTMLCollections，不支持forEach
+    [].forEach.call(addedNodes, (element) => {
+        let docDataId = element.getAttribute("data-id");
+        // document.querySelector("div[data-id='7fadb0ac-e27d-4d2a-b910-0a8b5c185162']").querySelector(".protyle-background").getAttribute("data-node-id")
+        if (document.querySelector(`div[data-id="${docDataId}"]`) == null) return;
+        if (document.querySelector(`div[data-id="${docDataId}"]`).querySelector(".protyle-background") == null) return;
+        let openDocId = document.querySelector(`div[data-id="${docDataId}"]`).querySelector(".protyle-background").getAttribute("data-node-id");
+        if (!isSafelyUpdate(openDocId)) {
+            safelyUpdateFlag = false;
+            return;
+        }
+        openDocIds.push(openDocId);
+    });
+    if (!safelyUpdateFlag) {
+        console.log("只读模式，已停止操作");
+        return;
+    }
+    console.log("刚开启的页签文档id", openDocIds);
+    if (openDocIds.length <= 0) return;
+    for (let docId of openDocIds) {
+        // 判断是否为父文档
+        let queryResult = await queryAPI(`SELECT * FROM blocks WHERE path like '%${docId}/%' and type = "d"`);
+        console.log("子文档信息", queryResult);
+        if (!isValidStr(queryResult) || queryResult <= 0) {
+            console.log("并非父文档");
+            return;
+        }
+        // 判断父文档是否为空
+        if (g_checkEmptyDocInsertWidget) {
+            // 检查父文档是否为空
+            if (!await isDocEmpty(docId)) return;
+        }else{
+            // 获取父文档属性，判断是否插入过挂件
+            let parentDocAttr = await getblockAttrAPI(docId).data;
+            if (parentDocAttr != undefined && "id" in parentDocAttr && g_attrName in parentDocAttr) {
+                return;
+            }
+        }
+        // 执行插入
+        let addedWidgetIds = [];
+        // 若未插入/文档为空，则插入挂件
+        for (let widgetPath of g_insertWidgetPath) {
+            let insertText = `<iframe src=\"${widgetPath}\" data-src=\"${widgetPath}\" data-subtype=\"widget\" border=\"0\" frameborder=\"no\" framespacing=\"0\" allowfullscreen=\"true\"></iframe>`;
+            let addResponse;
+            if (g_insertAtEnd) {
+                addResponse = await appendBlockAPI(insertText, docId);
+            }else{
+                addResponse = await prependBlockAPI(insertText, docId);
+            }
+            if (addResponse == null) {
+                console.warn(`helper插入挂件失败`, widgetPath);
+            }else{
+                addedWidgetIds.push(addResponse.id);
+            }
+        }
+        
+        // 写入文档属性
+        if (!g_checkEmptyDocInsertWidget) {
+            let attr = {};
+            attr[g_attrName] = "{}";
+            await addblockAttrAPI(attr, docId);
+        }
+        console.log(`helper已自动插入挂件块${addedWidgetIds}，于父文档${docId}`);
+    }
 }
 
 /**
@@ -507,7 +597,8 @@ switch (g_mode) {
          * 添加触发器，任意操作均触发，只在新建文件行为发生时执行；
          * WARN: 编辑过程中会高频触发，可能导致卡顿；
          */
-        if (setting.safeModePlus) g_mywebsocket.addEventListener("message", websocketEventHandler);
+        if (setting.safeModePlus && helperSettings.insertWidgetMoment == "create") g_mywebsocket.addEventListener("message", websocketEventHandler);
+        if (setting.safeModePlus && helperSettings.insertWidgetMoment == "open") startObserver();
         break;
     }
 
