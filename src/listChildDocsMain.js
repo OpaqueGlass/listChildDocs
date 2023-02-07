@@ -79,10 +79,10 @@ async function addText2File(markdownText, blockid = "") {
         //避免重新写入id和updated信息
         delete attrData.id;
         delete attrData.updated;
-    }else if (setting.blockInitAttrs != undefined){
+    }else if (setting.blockInitAttrs != undefined){ // 为新创建的列表获取默认属性
         attrData = Object.assign({}, setting.blockInitAttrs);
     }
-    // 补充属性，属性以IAL的形式写入
+    // 将属性以IAL的形式写入text，稍后直接更新块
     let blockAttrString = transfromAttrToIAL(attrData);
     if (blockAttrString != null) {
         markdownText += "\n" + blockAttrString;
@@ -100,7 +100,7 @@ async function addText2File(markdownText, blockid = "") {
     } else if (response == null || response.id == "") {
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
-        console.log("更新失败，下次将创建新块", response ? response.id : undefined);
+        console.warn("更新失败，下次将创建新块", response ? response.id : undefined);
         await setCustomAttr();//移除id属性后需要保存
         throw Error(language["refreshNeeded"]);
     } else {
@@ -130,14 +130,11 @@ async function addText2File(markdownText, blockid = "") {
             setTimeout(async function () { await addblockAttrAPI(attrData, currentValue); console.log("设置子块属性", currentValue) }, timeoutIncrease += 700);
         });
         //延时将指定的属性写入dom
-        setTimeout(
-            () => { setAttrToDom(domDataNodeId, attrData); }
-            , 700 * domDataNodeId.length);
+        // setTimeout(
+        //     () => { setAttrToDom(domDataNodeId, attrData); }
+        //     , 700 * domDataNodeId.length);
     } else {
-        // attrData["memo"] = language["modifywarn"];//为创建的块写入警告信息
-        // //对于非超级块，已经有id了，直接写入属性
-        // await addblockAttrAPI(attrData, custom_attr["childListId"]);
-        setAttrToDom([blockid], attrData);
+        // setAttrToDom([blockid], attrData);
     }
 
 
@@ -161,7 +158,11 @@ function setAttrToDom(queryBlockIds, attrs) {
 }
 
 
-//获取挂件属性custom-list-child-docs
+/**
+ * 获取挂件属性custom-list-child-docs
+ * 也包括了对挂件属性进行批量更改的代码
+ * 仅用于初始化
+ */ 
 async function getCustomAttr() {
     let response = await getblockAttrAPI(thisWidgetId);
     let attrObject = {};
@@ -208,7 +209,7 @@ async function getCustomAttr() {
         console.info("移除原内容块", attrObject.childListId);
         await removeBlockAPI(attrObject.childListId);
     }
-
+    // 载入配置
     if ('custom-list-child-docs' in response.data && !attrResetFlag) {
         if (parseErrorFlag) {
             console.info("载入独立配置失败，将按默认值新建配置记录");
@@ -263,7 +264,6 @@ async function setCustomAttr() {
     if (response != 0) {
         throw Error(language["writeAttrFailed"]);
     }
-    console.log("写入挂件属性", attrString);
 }
 
 //获取子文档层级目录输出文本
@@ -512,24 +512,35 @@ async function __main(initmode = false, justCreate = false) {
             // await getCustomAttr();//决定不再支持
             await __refresh();
         }
+        
         // 获取targetId文档所在的box笔记本、笔记本下路径
         let [notebook, targetDocPath] = await getTargetBlockBoxPath();
-        //获取子文档层级文本
-        let textString = await getText(notebook, targetDocPath);
-        //清理原有内容
-        $("#linksContainer *").remove();
-        // 由模式自行完成目录更新
+        // 交由模式的参数
         let updateAttr = {
             widgetId: thisWidgetId,
             docId: thisDocId,
             "targetDocName": targetDocName,
+            selectedNotebook: notebook,
+            "targetDocPath": targetDocPath,
+            "widgetSetting": custom_attr
         };
-        let modeDoUpdateFlag = await myPrinter.doUpdate(textString, custom_attr, updateAttr);
+        //获取子文档层级文本
+        let textString;
+        let modeGenerateString = await myPrinter.doGenerate(updateAttr);
+        if (isValidStr(modeGenerateString)) {
+            textString = modeGenerateString;
+        }else{
+            textString = await getText(notebook, targetDocPath);
+        }
+        //清理原有内容
+        $("#linksContainer *").remove();
+        // 由模式自行完成目录更新
+        let modeDoUpdateFlag = await myPrinter.doUpdate(textString, updateAttr);
         //写入子文档链接
         if (modeDoUpdateFlag == 0 && myPrinter.write2file) {
             // 在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
             if (justCreate && (setting.safeMode || custom_attr.childListId == "")) {
-                console.log("初次创建，不写入/更新块");
+                console.info("初次创建，不写入/更新块");
             } else if (custom_attr.childListId == "") {
                 await addText2File(textString, custom_attr.childListId);
                 //如果需要创建块，自动保存一下设置
@@ -576,7 +587,6 @@ async function __main(initmode = false, justCreate = false) {
     //写入更新时间
     let updateTime = new Date();
     $("#updateTime").text(language["updateTime"] + updateTime.toLocaleTimeString());
-    console.log("已更新子文档目录列表");
     mutex = 0;
 }
 
@@ -719,7 +729,6 @@ async function __refresh() {
     }
 
     __refreshPrinter();
-    console.log("已刷新");
 }
 
 function __refreshAppearance() {

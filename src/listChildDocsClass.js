@@ -70,12 +70,21 @@ class Printer {
      */
     splitColumns(originalText, nColumns, nDepth) { return originalText; }
     /**
-     * （如果必要）模式自行处理内容块写入（更新操作）
+     * （如果必要）模式自行生成待插入的内容块文本
+     * （挂件内为html，文档内为markdown(勿在结尾加ial)）
+     * @param {*} updateAttr 基本信息参数，详见listChildDocsMain.js __main()方法下的updateAttr对象
+     * @return 非空字符串【若返回undefined、null、""，将由__main()执行内容文本的生成。
+     */
+    async doGenerate(updateAttr) {
+        return undefined;
+    }
+    /**
+     * （如果必要）模式自行处理内容块写入（更新）操作
      * @param {*} textString 待写入的内容
-     * @param {*} widgetAttr 挂件参数
+     * @param {*} updateAttr 基本参数，详见listChildDocsMain.js __main()方法下的updateAttr对象
      * @return 1: 由模式自行处理写入；0: 由挂件统一执行写入和更新
      */
-    async doUpdate(textString, widgetAttr, updateAttr) {
+    async doUpdate(textString, updateAttr) {
         return 0;
     }
 }
@@ -421,7 +430,8 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
         return `* [${docName}](siyuan://blocks/${doc.id})\n`;
     }
-    async doUpdate(textString, widgetAttr, updateAttr) {
+    async doUpdate(textString, updateAttr) {
+        let widgetAttr = updateAttr.widgetSetting;
         // 匹配移除返回父文档
         textString = textString.replace(new RegExp("\\* \\[../\\][^\\n]*\\n"), "");
         let docName = window.top.document.querySelector(`li[data-type="tab-header"].item.item--focus .item__text`)?.innerText;
