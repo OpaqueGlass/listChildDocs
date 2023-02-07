@@ -114,11 +114,20 @@ let switchTabObserver = new MutationObserver(async (mutationList) => {
         setTimeout(async () => {
             console.time(g_TIMER_LABLE_NAME_COMPARE);
             try{
-                if (g_mode == "插入挂件" || g_mode == "add_list_child_docs") {
-                    await tabChangeWidgetHandler([mutation.target]);
-                }else{
-                    await tabChangeHandler([mutation.target]);
+                if (helperSettings.switchTabEnable) {
+                    if (g_mode == "插入挂件" || g_mode == "add_list_child_docs") {
+                        await tabChangeWidgetHandler([mutation.target]);
+                    }else{
+                        await tabChangeHandler([mutation.target]);
+                    }
+                }else {
+                    if (g_mode == "插入挂件" || g_mode == "add_list_child_docs") {
+                        await tabChangeWidgetHandler(mutation.addedNodes);
+                    }else{
+                        await tabChangeHandler(mutation.addedNodes);
+                    }
                 }
+                
             }catch(err) {
                 console.error(err);
             }
@@ -144,8 +153,11 @@ function observerRetry() {
     if (g_tabbarElement.length > 0) {
         // console.log("重新监视页签变化");
         g_tabbarElement.forEach((element)=>{
-            // tabBarObserver.observe(element, {childList: true});
-            switchTabObserver.observe(element, {"attributes": true, "attributeFilter": ["data-activetime"], subtree: true});
+            if (helperSettings.switchTabEnable) {
+                switchTabObserver.observe(element, {"attributes": true, "attributeFilter": ["data-activetime"], subtree: true});
+            }else{
+                switchTabObserver.observe(element, {childList: true});
+            }
             // 重启监听后立刻执行检查
             if (element.children.length > 0) {
                 // clearTimeout(g_observerStartupRefreshTimeout);

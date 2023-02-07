@@ -131,6 +131,7 @@ let setting = {
     markmapConfig: {},
 };
 // 自动插入助手设置
+// 自动插入助手和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
 let helperSettings = {
     // 文档中属性名称
     attrName: "custom-add-cdl-helper",
@@ -139,24 +140,30 @@ let helperSettings = {
     // 自动插入模式
     /* 【请只使用“插入挂件”模式。其他模式可能存在问题，请勿使用。】
     插入挂件 【插入挂件将不重复插入（通过属性或文档为空判断）】
-    插入链接【不建议使用】
-    插入引用块【不建议使用】
-    插入自定义【不建议使用】 根据docLinkTemplate，插入自定义的内容
+    插入链接【可能有缺陷，不建议使用】
+    插入引用块【可能有缺陷，不建议使用】
+    插入自定义【可能有缺陷，不建议使用】 根据docLinkTemplate，插入自定义的内容
     */
     mode: "插入挂件",
+/* 通用 */
     // 插入在父文档结尾？若设置为undefined，则采用对应模式的默认设置
     insertAtEnd: undefined,
-    // 插入挂件时，检查文档是否为空？设置为false，将通过文档的属性判断是否插入过。
+    // 在切换页签（而不是仅仅是打开）时也检查、执行自动插入
+    switchTabEnable: false,
+
+/* 仅插入挂件模式 */
+    // 检查文档是否为空？设置为false，将通过文档的属性判断是否插入过。
     checkEmptyDocInsertWidget: true,
-    // 插入挂件时，选择触发时机："open": 开启空白的父文档时；"create": 在空白父文档下创建子文档时
+    // 选择触发时机："open": 开启空白的父文档时；"create": 在空白父文档下创建子文档时（不建议修改为create）
     insertWidgetMoment: "open",
-    // 模式为插入链接/引用块/自定义时，当发现子文档被删除，移除对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
-    removeLinkEnable: false,
-    // 模式为插入链接/引用块/自定义时，当发现子文档文件名变化时，重写对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
-    renameLinkEnable: false,
-    // helper和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
-    // 插入挂件时，要插入的挂件路径信息
+    // 要插入的挂件路径信息
     widgetPath: ["widgets/listChildDocs"],
+
+/* 插入链接/引用块/自定义模式 */
+    // 当发现子文档被删除，移除对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
+    removeLinkEnable: false,
+    // 当发现子文档文件名变化时，重写对应的子文档链接？若设置为undefined，则采用对应模式的默认设置
+    renameLinkEnable: false,   
 }
 //全局设置
 let token = "";//API鉴权token，可以不填的样子（在设置-关于中查看）
