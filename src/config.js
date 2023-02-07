@@ -191,7 +191,7 @@ let zh_CN = {
     modeName9: "任务列表",
     modeName10: "导图",
     // 界面元素鼠标悬停提示词
-    refreshBtn: "刷新",
+    refreshBtn: "[单击] 刷新\n[双击] 保存设置",
     depthList: "子文档展示层级",
     modeList: "展示方式",
     autoBtn: "'半'自动刷新",
@@ -243,7 +243,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modeName9: "todo list",
     modeName10: "markmap",
     // 界面元素鼠标悬停提示词 hangover popup words
-    refreshBtn: "Refresh",
+    refreshBtn: "[Click] Refresh\n[Double click] Save Settings",
     depthList: "Number of layers of child-docs display",
     modeList: "Output mode",
     autoBtn: "'Auto' Refresh",

@@ -554,7 +554,7 @@ async function __main(initmode = false, justCreate = false) {
             setColumn();
             //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
             if (window.top.siyuan.config.appearance.mode == 1) {
-                $(".childDocLinks").addClass("childDocLinks_dark");
+                $("#linksList").addClass("childDocLinks_dark");
             }
             // TODO: ~~修复字体问题~~ 好像修复不了hhhh，字体跟随思源编辑器设定
             // $("#linksContainer").css("font-family", window.top.siyuan.config.editor.fontFamily);

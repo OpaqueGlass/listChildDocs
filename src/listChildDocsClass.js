@@ -448,7 +448,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         markmapElem.style.height = "";
         markmapElem.style.display = "";
         markmapElem.innerHTML = "";
-        console.log($(window.frameElement).outerHeight(), $("body").outerHeight());
+        // console.log($(window.frameElement).outerHeight(), $("body").outerHeight());
         markmapElem.style.height = ($(window.frameElement).outerHeight() - $("body").outerHeight() + 125) + "px";
         const transformer = new window.markmap.Transformer();
         const { root, features } = transformer.transform(textString);
@@ -457,20 +457,18 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         if (scripts) window.markmap.loadJS(scripts, { getMarkmap: () => markmap });
         // 计算层最大宽度
         let markmapConfig = {duration: 0, zoom: false, pan: false, maxWidth: 0};
-        console.log($(window.frameElement).innerWidth())
         if (widgetAttr.listDepth == 0 || widgetAttr.endDocOutline) {
             markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth + widgetAttr.outlineDepth);
         }else{
             markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth);
         }
-        console.log("限制层宽", markmapConfig.maxWidth);
+        // console.log("导图模式限制层宽", markmapConfig.maxWidth);
         Object.assign(markmapConfig, setting.markmapConfig);
         
         window.markmap.Markmap.create('#markmap', markmapConfig, root);
         $("#markmap a").click((event)=>{
             event.preventDefault();
             event.stopPropagation();
-            console.log("User clicked", event.target.getAttribute("href"));
             let url = event.target.getAttribute("href");
             let id = url.match(new RegExp(`(?<=siyuan://blocks/).*`));
             event.target.setAttribute("data-id", id);
