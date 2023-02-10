@@ -504,6 +504,7 @@ async function __main(initmode = false, justCreate = false) {
     } else {
         return;
     }
+    console.time("listChildDocs刷新计时");
     $("#updateTime").text(language["working"]);
     // pushMsgAPI(language["startRefresh"], 4500);
     try {
@@ -520,7 +521,7 @@ async function __main(initmode = false, justCreate = false) {
             widgetId: thisWidgetId,
             docId: thisDocId,
             "targetDocName": targetDocName,
-            selectedNotebook: notebook,
+            targetNotebook: notebook,
             "targetDocPath": targetDocPath,
             "widgetSetting": custom_attr
         };
@@ -552,23 +553,24 @@ async function __main(initmode = false, justCreate = false) {
             $(textString).appendTo("#linksContainer");
             // 处理响应范围，挂引用块点击事件
             if (setting.extendClickArea) {
-                $(".linksListItem").click(openRefLink);
-                $(".linksListItem").addClass("itemHoverHighLight");
+                // $(".linksListItem").click(openRefLink);
+                $(".linksListItem").addClass("itemHoverHighLight handle-ref-click");
             }else{
-                $("#refContainer .refLinks").click(openRefLink);
-                $("#refContainer .refLinks, .childDocLinks").addClass("linkTextHoverHightLight");
+                // $("#refContainer .refLinks").click(openRefLink);
+                $("#refContainer .refLinks, .childDocLinks").addClass("linkTextHoverHightLight handle-ref-click");
             }
-            
             //挂一下事件，处理引用块浮窗
             if (setting["floatWindowEnable"]) $("#refContainer .floatWindow").mouseover(showFloatWnd);
             //设定分列值
             setColumn();
-            //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
-            if (window.top.siyuan.config.appearance.mode == 1) {
-                $("#linksList").addClass("childDocLinks_dark");
-            }
             // TODO: ~~修复字体问题~~ 好像修复不了hhhh，字体跟随思源编辑器设定
             // $("#linksContainer").css("font-family", window.top.siyuan.config.editor.fontFamily);
+        }
+        $(".handle-ref-click").click(openRefLink);
+        //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
+        if (window.top.siyuan.config.appearance.mode == 1) {
+            $("#linksList").addClass("childDocLinks_dark");
+            $("#linksContainer").attr("data-darkmode", "true");
         }
         //issue #13 挂件自动高度
         // 挂件内自动高度
@@ -583,6 +585,8 @@ async function __main(initmode = false, justCreate = false) {
     } catch (err) {
         console.error(err);
         printError(err.message);
+    }finally{
+        console.timeEnd(`listChildDocs刷新计时`);
     }
     //写入更新时间
     let updateTime = new Date();

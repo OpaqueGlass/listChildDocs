@@ -3,11 +3,10 @@
  * 挂件默认设置和全局配置。
  * 
  * 【如果修改后崩溃或运行不正常，请删除挂件重新下载，或更改前手动备份】
- * 请不要删除//双斜杠注释
+ * 请不要删除//双斜杠
  * 请不要删除//双斜杠注释前的英文逗号,（如果有）
  * 为true 或者 false的设置项，只能填这两者
- * 有英文双引号的设置项，只更改英文双引号内的内容，不要删除英文双引号
- * 显示模式设置请在‘printerConfig.js’中完成。
+ * 有英文双引号的设置项，只更改英文双引号内的内容，不要删除英文双引号。
  *  */
 
 let custom_attr = {//这里列出的是挂件的默认设置，只在创建时写入到挂件中，挂件内属性custom-list-child-docs可覆盖此设置
@@ -190,6 +189,7 @@ let zh_CN = {
     modeName8: "1.1.url",
     modeName9: "任务列表",
     modeName10: "导图",
+    modeName11: "开发中",
     // 界面元素鼠标悬停提示词
     refreshBtn: "[单击] 刷新\n[双击] 保存设置",
     depthList: "子文档展示层级",
@@ -242,6 +242,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modeName8: "1.1.url",
     modeName9: "todo list",
     modeName10: "markmap",
+    modeName11: "In Develop",
     // 界面元素鼠标悬停提示词 hangover popup words
     refreshBtn: "[Click] Refresh\n[Double click] Save Settings",
     depthList: "Number of layers of child-docs display",

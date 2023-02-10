@@ -5,7 +5,7 @@
 import { setting } from './config.js';
 import { getUpdateString, generateBlockId, isValidStr } from "./common.js";
 import { openRefLink } from './ref-util.js';
-import { getCurrentDocIdF, queryAPI } from './API.js';
+import { getCurrentDocIdF, getKramdown, getSubDocsAPI, queryAPI } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //
@@ -414,7 +414,7 @@ class MarkdownTodoListPrinter extends MarkdownUrlUnorderListPrinter {
 }
 
 /**
- * todo url 文档中TODO列表
+ * 挂件内导图 MarkMap
  */
 class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     static id = 10;
@@ -484,14 +484,110 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             event.target.setAttribute("data-id", id);
             openRefLink(event);
         });
-        if (window.top.siyuan.config.appearance.mode == 1) {
-            markmapElem.classList.add("markmap_dark");
-            $("#markmap a").addClass("markmap_a_dark");
-        }else{
-            $("#markmap a").addClass("markmap_a");
-        }
+        $("#markmap a").addClass("markmap_a");
         return 1;
     }
+}
+
+/**
+ * 挂件内：子文档内容预览
+ */
+class ContentBlockPrinter extends Printer {
+    static id = 11;
+    write2file = 0;
+    async doGenerate(updateAttr) {
+        let result = `<div class="mode11-box">`;
+        // 获取子文档列表
+        let directChildDocs = await getSubDocsAPI(updateAttr["targetNotebook"], updateAttr["targetDocPath"]);
+        // 获取子文档内容
+        for (let oneChildDoc of directChildDocs) {
+            let docName = oneChildDoc.name;
+            if (docName.indexOf(".sy") >= 0) {
+                docName = docName.substring(0, docName.length - 3);
+            }
+            let tempDocContent = await getKramdown(oneChildDoc.id);
+            let emojiStr = getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0);
+            // let tempDocContent = await queryAPI(`SELECT * FROM blocks WHERE 
+            // root_id = "${oneChildDoc.id}" AND type in ('p', 's', 'l') ORDER BY sort`);
+            
+            result += `<div class="mode11-note-box handle-ref-click"  data-id="${oneChildDoc.id}">`;
+            result += `<h4 class="mode11-title">${emojiStr} ${docName}</h5>`;
+            let threshold = 100;
+            let cleanDocContent = this.cleanKramdown(tempDocContent);
+            // 超长文本截断
+            if (cleanDocContent.length > threshold) {
+                let temp = cleanDocContent.substring(threshold);
+                let crIndex = temp.search("\n");
+                if (crIndex != -1) {
+                    cleanDocContent = cleanDocContent.substring(0, threshold + crIndex);
+                }
+            }
+            // 用于判定空文档
+            let removeSpace = cleanDocContent.replace(new RegExp("\\n| ", "g"), "");
+            // 转义显示
+            cleanDocContent = cleanDocContent.replace(new RegExp("\n", "g"), "<br/>");
+            cleanDocContent = cleanDocContent.replace(new RegExp(" ", "g"), "&nbsp;");
+            if (!isValidStr(removeSpace)) {
+                result += await this.generateSecond(updateAttr["targetNotebook"], oneChildDoc.path);
+            }else{
+                result += `<p class="mode11-doc-content">${cleanDocContent}</p>`;
+            }
+            
+            result += `</div>`;
+        }
+        // 生成
+        return result;
+    }
+    /**
+     * 生成次级文档目录
+     * @param {*} notebook 笔记本boxid 
+     * @param {*} docPath 文档路径
+     * @returns 
+     */
+    async generateSecond(notebook, docPath) {
+        let result = `<div class="mode11-child-p-container">`;
+        let childDocResponse = await getSubDocsAPI(notebook, docPath);
+        for (let oneChildDoc of childDocResponse) {
+            let docName = oneChildDoc.name;
+            if (oneChildDoc.name.indexOf(".sy") >= 0) {
+                docName = docName.substring(0, docName.length - 3);
+            }
+            let emojiStr = getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0);
+            result += `<p class="linksListItem" data-id="${oneChildDoc.id}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${oneChildDoc.id}">${emojiStr}${docName}</span></p>`;
+        }
+        result += `</div>`;
+        return result
+    }
+    /**
+     * 清理kramdown数据
+     * @param {*} text 
+     * @returns 
+     */
+    cleanKramdown(text) {
+        let threshold = 5000;
+        // 超长文本截断
+        if (text.length > threshold) {
+            let temp = text.substring(threshold);
+            let crIndex = temp.search("\n");
+            if (crIndex != -1) {
+                text = text.substring(0, threshold + crIndex);
+            }
+        }
+        // 清理ial和换行、空格
+        let parentDocPlainText = text;
+        // 清理ial中的对象信息（例：文档块中的scroll字段），防止后面匹配ial出现遗漏
+        parentDocPlainText = parentDocPlainText.replace(new RegExp('(?<=\"){[^\n]*}(?=\")', "gm"), "");
+        // 清理ial
+        parentDocPlainText = parentDocPlainText.replace(new RegExp('{:[^}]*}\\n*', "gm"), "");
+        // console.log("清理ial后", parentDocPlainText);
+        // 清理换行（空行并为单行，多个空行除外）
+        parentDocPlainText = parentDocPlainText.replace(new RegExp('\\n *\\n', "gm"), "\n");
+        // 清理iframe
+        parentDocPlainText = parentDocPlainText.replace(new RegExp(`<iframe.*</iframe>`, "gm"), "");
+        // console.warn("DEBUG单次清理结果", parentDocPlainText);
+        return parentDocPlainText;
+    }
+
 }
 
 /* *****共用方法***** */
@@ -756,6 +852,7 @@ export let printerList = [
     HtmlDefaultOrderPrinter, //5挂件内，有序列表<a>
     MarkdownTodoListPrinter, //9todo列表 存在问题：刷新导致任务打钩丢失
     MarkmapPrinter, //10挂件内思维导图
+    ContentBlockPrinter, //11内容预览块
 ];
 export { Printer, DefaultPrinter };
 /** 附录：doc对象（由文档树api获得），示例如下
