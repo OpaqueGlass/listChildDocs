@@ -14,10 +14,13 @@ export {openRefLink, showFloatWnd};
  * @param {点击事件} event 
  */
 let openRefLink = function(event){
+    
     let 主界面= window.parent.document
-    let id = event.target.getAttribute("data-id");
+    let id = event.currentTarget.getAttribute("data-id");
     // 处理笔记本等无法跳转的情况
-    if (!isValidStr(id)) return;
+    if (!isValidStr(id)) {return;}
+    event.preventDefault();
+    event.stopPropagation();
     let 虚拟链接 =  主界面.createElement("span")
     虚拟链接.setAttribute("data-type","block-ref")
     虚拟链接.setAttribute("data-id",id)
