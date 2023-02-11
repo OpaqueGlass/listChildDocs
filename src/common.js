@@ -85,6 +85,13 @@ export function isValidStr(s){
 	return true;
 }
 
+export function isInvalidValue(s) {
+    if (s === undefined || s === null) {
+        return true;
+    }
+    return false;
+}
+
 /**
  * 获取当前更新时间字符串
  * @returns 

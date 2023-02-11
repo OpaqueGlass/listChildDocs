@@ -23,7 +23,7 @@ import {
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
 import { openRefLink, showFloatWnd } from './ref-util.js';
-import { isSafelyUpdate, isValidStr, transfromAttrToIAL } from './common.js';
+import { isInvalidValue, isSafelyUpdate, isValidStr, transfromAttrToIAL } from './common.js';
 let thisDocId = "";
 let thisWidgetId = "";
 let targetDocName = "";
@@ -688,17 +688,33 @@ async function __save() {
  * 调用前确定已经获得了printMode
  */
 function __refreshPrinter() {
+    console.log("响应模式变化");
+    custom_attr.printMode = $("#printMode").val();
+    let getPrinterFlag = false;
+    myPrinter?.destory();
     //重新获取Printer
     for (let printer of printerList) {
         if (printer.id == custom_attr.printMode) {
             myPrinter = new printer();
-            return;
+            getPrinterFlag = true;
+            break;
         }
     }
     // 没有匹配项则重置为默认
-    custom_attr.printMode = "0";
-    myPrinter = new DefaultPrinter();
-    printError(language["wrongPrintMode"]);
+    if (!getPrinterFlag) {
+        custom_attr.printMode = "0";
+        myPrinter = new DefaultPrinter();
+        printError(language["wrongPrintMode"]);
+    }
+    // 执行模式初始化
+    let newSetCustomAttr = myPrinter.init(custom_attr);
+    // TODO: 控制是否显示按键
+    // $("#listDepth").prop("disabled", !isInvalidValue(printerInitAttr.depth) ? "true" : "");
+    // $("#listColumn").prop("disabled", !isInvalidValue(printerInitAttr.column) ? "true" : "");
+    // $("#targetId").prop("disabled", !isInvalidValue(printerInitAttr.targetId) ? "true" : "");
+    // $("#endDocOutline").prop("disabled", !isInvalidValue(printerInitAttr.endDocOutline) ? "true" : "");
+    Object.assign(custom_attr, newSetCustomAttr);
+    __loadSettingToUI();
 }
 //重新从html读取设定，读取id，更改自动模式//解耦，不再更改外观
 async function __refresh() {
@@ -708,9 +724,9 @@ async function __refresh() {
     //获取模式设定 刷新时，从html读取设定
     custom_attr["printMode"] = document.getElementById("printMode").value;
     //获取下拉选择的展示深度
-    custom_attr["listDepth"] = parseInt(document.getElementById("listdepth").value);
+    custom_attr["listDepth"] = parseInt(document.getElementById("listDepth").value);
     //重设分列
-    custom_attr["listColumn"] = parseInt(document.getElementById("listcolumn").value);
+    custom_attr["listColumn"] = parseInt(document.getElementById("listColumn").value);
     //重设大纲层级
     custom_attr["outlineDepth"] = parseInt(document.getElementById("outlinedepth").value)
     //获取targetId
@@ -754,6 +770,20 @@ function __refreshAppearance() {
     }
 }
 
+/**
+ * 将挂件属性更新到UI
+ */
+function __loadSettingToUI() {
+    document.getElementById("listDepth").value = custom_attr["listDepth"];
+    document.getElementById("printMode").value = parseInt(custom_attr["printMode"]);
+    document.getElementById("autoMode").checked = custom_attr["auto"];
+    document.getElementById("listColumn").value = custom_attr["listColumn"];
+    document.getElementById("outlinedepth").value = custom_attr["outlineDepth"];
+    document.getElementById("targetId").value = custom_attr["targetId"];
+    document.getElementById("endDocOutline").checked = custom_attr["endDocOutline"];
+    document.getElementById("hideRefreshBtn").checked = custom_attr["hideRefreshBtn"];
+}
+
 async function __init() {
     //获取id，用于在载入页面时获取挂件属性
     thisWidgetId = getCurrentWidgetId();
@@ -783,25 +813,16 @@ async function __init() {
     }
     document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(false) }, 300); };
     document.getElementById("refresh").ondblclick = async function () { clearTimeout(refreshBtnTimeout); await __save(); };
-    //用于载入页面，将挂件属性写到挂件中
-    // document.getElementById("listdepth").selectedIndex = custom_attr["listDepth"] - 1;
-    document.getElementById("listdepth").value = custom_attr["listDepth"];
-    document.getElementById("printMode").value = parseInt(custom_attr["printMode"]);
-    document.getElementById("autoMode").checked = custom_attr["auto"];
-    document.getElementById("listcolumn").value = custom_attr["listColumn"];
-    document.getElementById("outlinedepth").value = custom_attr["outlineDepth"];
-    document.getElementById("targetId").value = custom_attr["targetId"];
-    document.getElementById("endDocOutline").checked = custom_attr["endDocOutline"];
-    document.getElementById("hideRefreshBtn").checked = custom_attr["hideRefreshBtn"];
+    __loadSettingToUI();
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter();
     __refreshAppearance();
     //写入悬停提示 
     $("#refresh").attr("title", language["refreshBtn"]);
-    $("#listdepth").attr("title", language["depthList"]);
+    $("#listDepth").attr("title", language["depthList"]);
     $("#printMode").attr("title", language["modeList"]);
     $("#autoMode").attr("title", language["autoBtn"]);
-    $("#listcolumn").attr("title", language["columnBtn"]);
+    $("#listColumn").attr("title", language["columnBtn"]);
     $("#setting").attr("title", language["settingBtn"]);
     $("#targetId").attr("title", language["targetIdTitle"]);
     $("#depthhint").text(language["depthHint"]);
@@ -898,18 +919,21 @@ document.getElementById("endDocOutline").addEventListener("change", function(e){
         $("#outlinedepthhint, #outlinedepth").css("display", "");
     }
 });
-document.getElementById("listdepth").addEventListener("change", function(){
-    if ($("#listdepth").val() == 0) {
+document.getElementById("listDepth").addEventListener("change", function(){
+    if ($("#listDepth").val() == 0) {
         $("#outlinedepthhint, #outlinedepth").css("display", "");
     }
 });
 // 挂件内及时响应分列变化
-document.getElementById("listcolumn").addEventListener("change", function(){
+document.getElementById("listColumn").addEventListener("change", function(){
     if (myPrinter.write2file == 0) {
-        custom_attr.listColumn = $("#listcolumn").val();
+        custom_attr.listColumn = $("#listColumn").val();
         setColumn();
     }
 });
+// 及时响应模式变化
+document.getElementById("printMode").onchange = __refreshPrinter;
+
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
 // setTimeout(__init, 300);
 __init();

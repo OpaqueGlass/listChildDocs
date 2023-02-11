@@ -5,7 +5,7 @@
 import { setting } from './config.js';
 import { getUpdateString, generateBlockId, isValidStr } from "./common.js";
 import { openRefLink } from './ref-util.js';
-import { getCurrentDocIdF, getKramdown, getSubDocsAPI, queryAPI } from './API.js';
+import { getCurrentDocIdF, getDoc, getKramdown, getSubDocsAPI, postRequest, queryAPI } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //
@@ -86,6 +86,21 @@ class Printer {
      */
     async doUpdate(textString, updateAttr) {
         return 0;
+    }
+    /**
+     * 模式初始化操作
+     * @return 
+     */
+    init(custom_attr) {
+        // 通过修改custom_attr实现强制指定某个设置项，建议只在禁止用户更改时强制指定设置项的值
+        return custom_attr;
+    }
+    /**
+     * 模式退出时操作
+     */
+    destory() {
+        // 取消常规设置的禁用样式
+        $("#listDepth, #listColumn, #targetId, #endDocOutline").prop("disabled", "");
     }
 }
 /**
@@ -419,6 +434,12 @@ class MarkdownTodoListPrinter extends MarkdownUrlUnorderListPrinter {
 class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     static id = 10;
     write2file = 0;
+    init(custom_attr) {
+        custom_attr.listColumn = 1;
+        custom_attr.endDocOutline = false;
+        $("#listColumn, #endDocOutline").prop("disabled", "true");
+        return custom_attr;
+    }
     oneDocLink(doc, rowCountStack) {
         let docName = doc.name;
         if (doc.name.indexOf(".sy") >= 0) {
@@ -495,6 +516,16 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
 class ContentBlockPrinter extends Printer {
     static id = 11;
     write2file = 0;
+    init(custom_attr) {
+        custom_attr.listDepth = 1;
+        custom_attr.listColumn = 1;
+        custom_attr.endDocOutline = false;
+        $("#listDepth, #listColumn, #endDocOutline").prop("disabled", "true");
+        return custom_attr;
+    }
+    destory() {
+       super.destory();
+    }
     async doGenerate(updateAttr) {
         let result = `<div class="mode11-box">`;
         // 获取子文档列表
@@ -506,10 +537,11 @@ class ContentBlockPrinter extends Printer {
                 docName = docName.substring(0, docName.length - 3);
             }
             let tempDocContent = await getKramdown(oneChildDoc.id);
+            let tempHtmlContent = await postRequest({id: oneChildDoc.id}, "/api/export/preview");
             let emojiStr = getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0);
             // let tempDocContent = await queryAPI(`SELECT * FROM blocks WHERE 
             // root_id = "${oneChildDoc.id}" AND type in ('p', 's', 'l') ORDER BY sort`);
-            
+            console.log(tempHtmlContent.data.html);
             result += `<div class="mode11-note-box handle-ref-click"  data-id="${oneChildDoc.id}">`;
             result += `<h4 class="mode11-title">${emojiStr} ${docName}</h5>`;
             let threshold = 100;
@@ -530,7 +562,7 @@ class ContentBlockPrinter extends Printer {
             if (!isValidStr(removeSpace)) {
                 result += await this.generateSecond(updateAttr["targetNotebook"], oneChildDoc.path);
             }else{
-                result += `<p class="mode11-doc-content">${cleanDocContent}</p>`;
+                result += `<div class="mode11-doc-content">${this.cleanDocHtml(tempHtmlContent.data.html)}</div>`;
             }
             
             result += `</div>`;
@@ -556,7 +588,7 @@ class ContentBlockPrinter extends Printer {
             result += `<p class="linksListItem" data-id="${oneChildDoc.id}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${oneChildDoc.id}">${emojiStr}${docName}</span></p>`;
         }
         result += `</div>`;
-        return result
+        return result;
     }
     /**
      * 清理kramdown数据
@@ -587,7 +619,14 @@ class ContentBlockPrinter extends Printer {
         // console.warn("DEBUG单次清理结果", parentDocPlainText);
         return parentDocPlainText;
     }
-
+    cleanDocHtml(text) {
+        let jqElem = $("<div>"+text+"</div>");
+        jqElem.find(".iframe").remove();
+        if (window.top.siyuan.config.export.addTitle) {
+            jqElem.find("h1").get(0).remove();
+        }
+        return jqElem.html();
+    }
 }
 
 /* *****共用方法***** */

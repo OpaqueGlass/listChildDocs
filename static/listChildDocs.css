@@ -70,6 +70,10 @@ input[type="checkbox"] {
     display: none;
 }
 
+#innerSetting select:disabled, #innerSetting input:disabled {
+    cursor: not-allowed;
+}
+
 /* #savedepth {
     width: 3em;
     height: 1.5em;
@@ -254,6 +258,12 @@ input:hover {
     width: 95%;
     white-space: normal;
     overflow: hidden;
+}
+
+/* 子文档预览内容 */
+.mode11-doc-content [id][updated] {
+    font-size: 16px;
+    margin: 5px 0 0 0;
 }
 
 .mode11-note-box:hover {

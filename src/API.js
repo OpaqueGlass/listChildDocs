@@ -438,3 +438,18 @@ export async function getRiffDecks() {
     }
     return new Array();
 }
+
+/**
+ * 获取文件内容或链接信息
+ * @param {*} blockid 获取的文件id
+ * @param {*} size 获取的块数
+ * @param {*} mode 获取模式，0为获取html；1为
+ */
+export async function getDoc(blockid, size = 5, mode = 0) {
+    let url = "/api/filetree/getDoc";
+    let response = await postRequest({id: blockid, mode: mode, size: size}, url);
+    if (response.code == 0 && response.data != null) {
+        return response.data;
+    }
+    return undefined;
+}
