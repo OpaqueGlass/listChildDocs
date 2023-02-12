@@ -30,11 +30,11 @@
 
 ![图片](/widgets/listChildDocs/README.assets/setting.png)
 
-1. 刷新按钮：单击将刷新子文档列表 ；双击将保存当前设置 ；
+1. 刷新按钮：单击将刷新子文档列表；双击将保存当前设置 ；
 
 2. 显示/隐藏设置
 
-> 以下设置项变更后，需要**双击刷新按钮保存设置**，否则下次启动时将丢失更改。
+> 以下设置项变更后，需要<u>**双击刷新按钮保存设置**</u>，否则下次启动时将丢失更改。
 
 3. 自动刷新选项：勾选则启用自动刷新。 
 
@@ -88,7 +88,7 @@
 10. 叶子文档大纲：在目录列表中的叶子页面下加入该文档的大纲；
 
     勾选后，可以通过大纲层级设定大纲的层级数；为了区分大纲和子文档链接，大纲前用"@"标识，如要更改或删除“@”，请参考自定义设置更改`outlineDistinguishingWords`；
- 
+
     ==刷新时间较长，不建议开启== 
 
 ### 自定义说明
@@ -120,8 +120,22 @@
 #### 在`custom.js`中覆盖设置
 
 > 测试中，可能存在缺陷。理论上，即使更新挂件，这里进行覆盖的设置仍然可以保留。
+>
+>  
+>
+> **开发者可能在后续版本更改到其他路径，请留意版本更新日志。**
+>
+> 您可以自行修改自定义配置项的读取路径，但挂件升级后需要重新修改。
+>
+> `${思源data目录}/widgets/listChildDocs/src/config.js`中搜索：
+>
+> ```js
+>     let allCustomConfig = await import('/widgets/custom.js');
+> ```
+>
+> 并将其中的`'/widgets/custom.js'`替换为您需要的路径，例如`'/storage/widget-custom.js'`。
 
-创建或编辑`${思源data目录}/widgets/custom.js`，仅支持`config.js`文件中`custom_attr`（创建挂件时的默认设置）、`setting`（全局设置）、`helperSettings`（自动插入助手设置）下的设置项，以下是一个示例。
+创建或编辑`${思源data目录}/widgets/custom.js`\*，仅支持`config.js`文件中`custom_attr`（创建挂件时的默认设置）、`setting`（全局设置）、`helperSettings`（自动插入助手设置）下的设置项。以下是一个示例。
 
 ```javascript
 /*方式1：若之前有config，需要添加listChildDocs的部分*/
