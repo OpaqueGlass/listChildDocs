@@ -453,3 +453,12 @@ export async function getDoc(blockid, size = 5, mode = 0) {
     }
     return undefined;
 }
+
+export async function getDocPreview(docid) {
+    let url = "/api/export/preview";
+    let response = await postRequest({id: docid}, url);
+    if (response.code == 0 && response.data != null) {
+        return response.data.html;
+    }
+    return "";
+}

@@ -5,7 +5,7 @@
 import { setting } from './config.js';
 import { getUpdateString, generateBlockId, isValidStr } from "./common.js";
 import { openRefLink } from './ref-util.js';
-import { getCurrentDocIdF, getDoc, getKramdown, getSubDocsAPI, postRequest, queryAPI } from './API.js';
+import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //
@@ -452,6 +452,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         return `* [${docName}](siyuan://blocks/${doc.id})\n`;
     }
     async doUpdate(textString, updateAttr) {
+        console.log(textString);
         let widgetAttr = updateAttr.widgetSetting;
         // 匹配移除返回父文档
         textString = textString.replace(new RegExp("\\* \\[../\\][^\\n]*\\n"), "");
@@ -501,7 +502,8 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             event.preventDefault();
             event.stopPropagation();
             let url = event.target.getAttribute("href");
-            let id = url.match(new RegExp(`(?<=siyuan://blocks/).*`));
+            let id = url.match(new RegExp(`siyuan:\\/\\/blocks\\/.*`));
+            id = id[0].substring("siyuan://blocks/".length);
             event.target.setAttribute("data-id", id);
             openRefLink(event);
         });
@@ -536,39 +538,29 @@ class ContentBlockPrinter extends Printer {
             if (docName.indexOf(".sy") >= 0) {
                 docName = docName.substring(0, docName.length - 3);
             }
-            let tempDocContent = await getKramdown(oneChildDoc.id);
-            let tempHtmlContent = await postRequest({id: oneChildDoc.id}, "/api/export/preview");
             let emojiStr = getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0);
-            // let tempDocContent = await queryAPI(`SELECT * FROM blocks WHERE 
-            // root_id = "${oneChildDoc.id}" AND type in ('p', 's', 'l') ORDER BY sort`);
-            console.log(tempHtmlContent.data.html);
             result += `<div class="mode11-note-box handle-ref-click"  data-id="${oneChildDoc.id}">`;
             result += `<h4 class="mode11-title">${emojiStr} ${docName}</h5>`;
-            let threshold = 100;
-            let cleanDocContent = this.cleanKramdown(tempDocContent);
-            // 超长文本截断
-            if (cleanDocContent.length > threshold) {
-                let temp = cleanDocContent.substring(threshold);
-                let crIndex = temp.search("\n");
-                if (crIndex != -1) {
-                    cleanDocContent = cleanDocContent.substring(0, threshold + crIndex);
-                }
-            }
-            // 用于判定空文档
-            let removeSpace = cleanDocContent.replace(new RegExp("\\n| ", "g"), "");
-            // 转义显示
-            cleanDocContent = cleanDocContent.replace(new RegExp("\n", "g"), "<br/>");
-            cleanDocContent = cleanDocContent.replace(new RegExp(" ", "g"), "&nbsp;");
+            let [previewText, removeSpace] = await this.generatePreview(oneChildDoc.id);
+
             if (!isValidStr(removeSpace)) {
                 result += await this.generateSecond(updateAttr["targetNotebook"], oneChildDoc.path);
             }else{
-                result += `<div class="mode11-doc-content">${this.cleanDocHtml(tempHtmlContent.data.html)}</div>`;
+                result += `<div class="mode11-doc-content">${previewText}</div>`;
             }
-            
             result += `</div>`;
         }
         // 生成
         return result;
+    }
+    async doUpdate(textString, updateAttr) {
+        if (updateAttr.widgetSetting.targetId == "/" | updateAttr.widgetSetting.targetId == "\\") {
+            console.log("aa");
+            $("#linksContainer").html(`<p>当前模式不支持从所有笔记本上级创建，请不要将目标文档id设置为/。</p>
+            <p>Listing from top notebooks (workspace) is unsupported by current mode, so you may not set <code>Target document id</code> as <code>/</code></p>.`);
+            return 1;
+        } 
+        return 0;
     }
     /**
      * 生成次级文档目录
@@ -591,6 +583,29 @@ class ContentBlockPrinter extends Printer {
         return result;
     }
     /**
+     * 生成预览
+     * @param {*} docid 
+     * @returns 
+     */
+    async generatePreview(docid) {
+        const previewHtml = await getDocPreview(docid);
+        let TRIM_THRESHOLD = 20000;
+        let trimedHtml = previewHtml;
+        if (previewHtml.length > TRIM_THRESHOLD) {
+            let temp = previewHtml.substring(TRIM_THRESHOLD);
+            let crIndex = temp.search("</p>");
+            if (crIndex != -1) {
+                trimedHtml = previewHtml.substring(0, TRIM_THRESHOLD + crIndex + 1);
+                console.warn("强制截断了预览内容");
+            }
+        }
+        let cleanedHtml = this.cleanDocHtml(trimedHtml);
+        let removeSpacedHtml = cleanedHtml.replace(new RegExp("&zwj;|&zwnj;|&thinsp;|&emsp;|&ensp;|&nbsp;", "g"), "");
+        removeSpacedHtml = removeSpacedHtml.replace(new RegExp("<p[^>]*>[\u200d]*<\\/p>", "g"), "");
+        removeSpacedHtml = removeSpacedHtml.replace(new RegExp(" |\\n", "g"), "");
+        return [cleanedHtml, removeSpacedHtml];
+    }
+    /**
      * 清理kramdown数据
      * @param {*} text 
      * @returns 
@@ -608,7 +623,7 @@ class ContentBlockPrinter extends Printer {
         // 清理ial和换行、空格
         let parentDocPlainText = text;
         // 清理ial中的对象信息（例：文档块中的scroll字段），防止后面匹配ial出现遗漏
-        parentDocPlainText = parentDocPlainText.replace(new RegExp('(?<=\"){[^\n]*}(?=\")', "gm"), "");
+        parentDocPlainText = parentDocPlainText.replace(new RegExp('\\"{[^\n]*}\\"', "gm"), "\"\"");
         // 清理ial
         parentDocPlainText = parentDocPlainText.replace(new RegExp('{:[^}]*}\\n*', "gm"), "");
         // console.log("清理ial后", parentDocPlainText);
@@ -620,11 +635,23 @@ class ContentBlockPrinter extends Printer {
         return parentDocPlainText;
     }
     cleanDocHtml(text) {
+        console.log(text);
         let jqElem = $("<div>"+text+"</div>");
         jqElem.find(".iframe").remove();
         if (window.top.siyuan.config.export.addTitle) {
-            jqElem.find("h1").get(0).remove();
+            jqElem.find("h1").get(0)?.remove();
         }
+        jqElem.find(".emoji").addClass("iconpic");
+        jqElem.find("p").each((index, elem)=>{
+            if ($(elem).text() == "" || $(elem).text() == String.fromCharCode(0x200d)) {
+                jqElem.find(elem).remove();
+            }
+        });
+        jqElem.find("img").each((index, elem)=>{
+            let path = $(elem).prop("src");
+            path = path.replace(new RegExp("http(s)*:\\/\\/[^\\/]*\\/widgets\\/listChildDocs(-dev)*"), "");
+            jqElem.find(elem).prop("src", path);
+        });
         return jqElem.html();
     }
 }

@@ -260,6 +260,10 @@ input:hover {
     overflow: hidden;
 }
 
+.mode11-doc-content p {
+    display: inline;
+}
+
 /* 子文档预览内容 */
 .mode11-doc-content [id][updated] {
     font-size: 16px;
