@@ -133,3 +133,9 @@ export function transfromAttrToIAL(attrData) {
     if (result == "{:}") return null;
     return result;
 }
+
+export function pushDebug(text) {
+    let areaElem = document.getElementById("debugArea");
+    areaElem.value = areaElem.value + `\n${new Date().toLocaleTimeString()}` + text;
+    areaElem.scrollTop = areaElem.scrollHeight;
+}

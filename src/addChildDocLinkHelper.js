@@ -282,7 +282,7 @@ async function isDocEmpty(docId) {
     // 清理ial和换行、空格
     let parentDocPlainText = parentDocContent;
     // 清理ial中的对象信息（例：文档块中的scrool字段），防止后面匹配ial出现遗漏
-    parentDocPlainText = parentDocPlainText.replace(new RegExp('(?<=\"){[^\n]*}(?=\")', "gm"), "")
+    parentDocPlainText = parentDocPlainText.replace(new RegExp('\\"{[^\n]*}\\"', "gm"), "\"\"")
     // console.log("替换内部对象中间结果", parentDocPlainText);
     // 清理ial
     parentDocPlainText = parentDocPlainText.replace(new RegExp('{:[^}]*}', "gm"), "");

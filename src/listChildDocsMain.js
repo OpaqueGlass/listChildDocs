@@ -23,7 +23,7 @@ import {
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
 import { openRefLink, showFloatWnd } from './ref-util.js';
-import { isInvalidValue, isSafelyUpdate, isValidStr, transfromAttrToIAL } from './common.js';
+import { isInvalidValue, isSafelyUpdate, isValidStr, pushDebug, transfromAttrToIAL } from './common.js';
 let thisDocId = "";
 let thisWidgetId = "";
 let targetDocName = "";
@@ -37,28 +37,28 @@ let g_showSetting;
 - 特殊的Printer调用方式？
 - 特殊的插入方式
 */
-class DefaultContentProvider {
-    static modeId = 0;
-    // 大纲模式 TODO: 待考虑的功能实现方法
-    // 0无大纲，1纯大纲，2叶子文档加大纲
-    outlineMode = 0;
-    // 调用此方法输出内容，如果要加入一些其他的，应该修改这里
-    async generateOutputText() {
+// class DefaultContentProvider {
+//     static modeId = 0;
+//     // 大纲模式 TODO: 待考虑的功能实现方法
+//     // 0无大纲，1纯大纲，2叶子文档加大纲
+//     outlineMode = 0;
+//     // 调用此方法输出内容，如果要加入一些其他的，应该修改这里
+//     async generateOutputText() {
 
-    }
-}
-/**
- * 大纲模式
- */
-class OutlineProvider extends DefaultContentProvider {
+//     }
+// }
+// /**
+//  * 大纲模式
+//  */
+// class OutlineProvider extends DefaultContentProvider {
 
-}
-/**
- * 追加模式
- */
-class AddProvider extends DefaultContentProvider {
+// }
+// /**
+//  * 追加模式
+//  */
+// class AddProvider extends DefaultContentProvider {
 
-}
+// }
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = "") {
     if (isSafelyUpdate(thisDocId) == false) {
@@ -534,7 +534,7 @@ async function __main(initmode = false, justCreate = false) {
             textString = await getText(notebook, targetDocPath);
         }
         //清理原有内容
-        $("#linksContainer *").remove();
+        $("#linksContainer").html("");
         // 由模式自行完成目录更新
         let modeDoUpdateFlag = await myPrinter.doUpdate(textString, updateAttr);
         //写入子文档链接
@@ -785,6 +785,7 @@ function __loadSettingToUI() {
 }
 
 async function __init() {
+    pushDebug("init内");
     //获取id，用于在载入页面时获取挂件属性
     thisWidgetId = getCurrentWidgetId();
     thisDocId = await getCurrentDocIdF();
@@ -868,6 +869,31 @@ async function __init() {
             }
         }
     }
+    //绑定按钮事件
+    // 刷新按钮绑定事件移动到Init
+    document.getElementById("setting").onclick = function () {
+        showSettingChanger(!g_showSetting);
+    };
+    // 监视Input变化，设置为显示大纲时，显示大纲层级选项
+    document.getElementById("endDocOutline").addEventListener("change", function(e){
+        if (document.getElementById("endDocOutline").checked == true) {
+            $("#outlinedepthhint, #outlinedepth").css("display", "");
+        }
+    });
+    document.getElementById("listDepth").addEventListener("change", function(){
+        if ($("#listDepth").val() == 0) {
+            $("#outlinedepthhint, #outlinedepth").css("display", "");
+        }
+    });
+    // 挂件内及时响应分列变化
+    document.getElementById("listColumn").addEventListener("change", function(){
+        if (myPrinter.write2file == 0) {
+            custom_attr.listColumn = $("#listColumn").val();
+            setColumn();
+        }
+    });
+    // 及时响应模式变化
+    document.getElementById("printMode").onchange = __refreshPrinter;
 }
 // UNSTABLE: 此方法通过现实页面定位页签
 function __setObserver() {
@@ -893,7 +919,7 @@ function __setObserver() {
         console.error("监视点击页签事件失败" + err);
     }
 }
-
+pushDebug("开始载入");
 let mutationObserver = new MutationObserver(() => { __main(true) });//避免频繁刷新id
 let mutationObserver2 = new MutationObserver(() => { setTimeout(__refreshAppearance, 1500); });
 let refreshBtnTimeout;
@@ -908,35 +934,16 @@ try {
 }catch (err) {
     console.error("获取笔记本方法过时，请@开发者修复此问题！");
 }
-//绑定按钮事件
-// 刷新按钮绑定事件移动到Init
-document.getElementById("setting").onclick = function () {
-    showSettingChanger(!g_showSetting);
-};
-// 监视Input变化，设置为显示大纲时，显示大纲层级选项
-document.getElementById("endDocOutline").addEventListener("change", function(e){
-    if (document.getElementById("endDocOutline").checked == true) {
-        $("#outlinedepthhint, #outlinedepth").css("display", "");
-    }
-});
-document.getElementById("listDepth").addEventListener("change", function(){
-    if ($("#listDepth").val() == 0) {
-        $("#outlinedepthhint, #outlinedepth").css("display", "");
-    }
-});
-// 挂件内及时响应分列变化
-document.getElementById("listColumn").addEventListener("change", function(){
-    if (myPrinter.write2file == 0) {
-        custom_attr.listColumn = $("#listColumn").val();
-        setColumn();
-    }
-});
-// 及时响应模式变化
-document.getElementById("printMode").onchange = __refreshPrinter;
 
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
 // setTimeout(__init, 300);
-__init();
+pushDebug("A基本功能载入成功，开始init");
+try{
+    __init();
+}catch(err) {
+    console.error(err);
+    pushDebug(err);
+}
 
 try {
     // UNSTABLE: 监视深色模式变化，依赖界面现实的外观模式按钮变化
@@ -956,4 +963,5 @@ try {
 } catch (err) {
     console.error(err);
     console.warn("监视外观切换事件失败");
+    pushDebug("监视外观切换事件失败");
 }
