@@ -635,7 +635,7 @@ class ContentBlockPrinter extends Printer {
         return parentDocPlainText;
     }
     cleanDocHtml(text) {
-        console.log(text);
+        // text = text.replace(new RegExp('<img src="assets', "g"), '<img src="/assets');
         let jqElem = $("<div>"+text+"</div>");
         jqElem.find(".iframe").remove();
         if (window.top.siyuan.config.export.addTitle) {
@@ -643,7 +643,7 @@ class ContentBlockPrinter extends Printer {
         }
         jqElem.find(".emoji").addClass("iconpic");
         jqElem.find("p").each((index, elem)=>{
-            if ($(elem).text() == "" || $(elem).text() == String.fromCharCode(0x200d)) {
+            if ($(elem).html() == "" || $(elem).html() == String.fromCharCode(0x200d)) {
                 jqElem.find(elem).remove();
             }
         });

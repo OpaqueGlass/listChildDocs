@@ -264,6 +264,12 @@ input:hover {
     display: inline;
 }
 
+/* mode11 图片显示*/
+.mode11-doc-content .img img {
+    max-width: 100%;
+    display: inline-block;
+}
+
 /* 子文档预览内容 */
 .mode11-doc-content [id][updated] {
     font-size: 16px;
