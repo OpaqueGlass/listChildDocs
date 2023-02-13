@@ -6,16 +6,18 @@ import { setting } from "./config.js";
  * 检查窗口状况，防止在历史预览页面刷新更改文档
  * @param thisDocId 待判断的文档id
  * @param config 检查项
+ * @param thisWidgetId 待判断的widgetId（需config中启用widgetMode
  * @return {boolean} true: 当前情况安全，允许执行刷新操作
  * UNSTABLE: !此方法大量依赖jQuery定位页面元素
  */
-export function isSafelyUpdate(thisDocId, customConfig = null) {
+export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = "") {
     if (setting.safeModePlus == false) return true;
     let config = {
         "history": true, // 检查历史页面
         "targetDoc": true, // 检查目标文档是否已经打开，并且未启用只读模式
         "anyDoc": true, // 检查任意文档是否存在，并且未启用只读模式
-        "allowWhenError": false // 发生错误时，默认放行或拦截
+        "allowWhenError": false, // 发生错误时，默认放行或拦截
+        "widgetMode": false
     }
     if (config != null) {
         for (let key in customConfig) {
@@ -53,15 +55,22 @@ export function isSafelyUpdate(thisDocId, customConfig = null) {
         // console.log($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`));
         // $(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`)
         let candidateThisDocEditor = window.top.document.querySelector(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`);
-        if (!isValidStr(candidateThisDocEditor) || candidateThisDocEditor.length <= 0) {
-            if (config.targetDoc) {
+        let candidateThisDocPopup = window.top.document.querySelector(`.block__popover[data-oid="${thisDocId}"] .protyle-wysiwyg`);
+        if ((!isValidStr(candidateThisDocEditor) || candidateThisDocEditor.length <= 0)
+                && (!isValidStr(candidateThisDocPopup) || candidateThisDocPopup.length <= 0)) {
+            if (config.widgetMode && config.targetDoc) {
+                if (window.top.document.querySelector(`.block__popover[data-oid] [data-node-id="${thisWidgetId}"]`).length <= 0) {
+                    console.warn("未在窗口中找到挂件所在的文档（文档所在文档编辑器可能未打开），为防止后台更新，此操作已拦截。");
+                    return false;
+                }
+            }else if (config.targetDoc) {
                 console.warn("未在窗口中找到目标文档（文档所在文档编辑器可能未打开），为防止后台更新，此操作已拦截。");
                 return false;
             }
         }
         // 判定只读模式
         // $(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false"
-        if (config.targetDoc && window.top.document.querySelector(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).getAttribute("contenteditable") == "false") {
+        if (config.targetDoc && (candidateThisDocEditor == null ? candidateThisDocPopup : candidateThisDocEditor).getAttribute("contenteditable") == "false") {
             return false;
         }
     }catch (err) {

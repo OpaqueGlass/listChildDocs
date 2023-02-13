@@ -61,7 +61,7 @@ let g_showSetting;
 // }
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = "") {
-    if (isSafelyUpdate(thisDocId) == false) {
+    if (isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId) == false) {
         throw new Error(language["readonly"]);
     }
     let attrData = {};
@@ -81,6 +81,11 @@ async function addText2File(markdownText, blockid = "") {
         delete attrData.updated;
     }else if (setting.blockInitAttrs != undefined){ // 为新创建的列表获取默认属性
         attrData = Object.assign({}, setting.blockInitAttrs);
+    }
+    // 导入模式属性
+    let modeCustomAttr = myPrinter.getAttributes();
+    if (!isInvalidValue(modeCustomAttr)) {
+        attrData = Object.assign(attrData, modeCustomAttr);
     }
     // 将属性以IAL的形式写入text，稍后直接更新块
     let blockAttrString = transfromAttrToIAL(attrData);
@@ -667,7 +672,7 @@ async function getTargetBlockBoxPath() {
 
 //保存设置项
 async function __save() {
-    if (isSafelyUpdate(thisDocId) == false) {
+    if (isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId) == false) {
         console.warn("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
     }
     //获取最新设置
@@ -859,7 +864,7 @@ async function __init() {
         __main(true, justCreate);//初始化模式
     }
     // 插入“addChildDocLinkHelper.js判断挂件是否存在”所需要的custom-addcdlhelper属性
-    if (!justCreate && setting.addChildDocLinkHelperEnable && isSafelyUpdate(thisDocId)) {
+    if (!justCreate && setting.addChildDocLinkHelperEnable && isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId)) {
         let thisDocAttr = await getblockAttrAPI(thisDocId);
         if (thisDocAttr && thisDocAttr.data && "id" in thisDocAttr.data) {
             if (!(setting.helperSettings.attrName in thisDocAttr.data)) {

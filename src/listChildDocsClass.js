@@ -88,6 +88,13 @@ class Printer {
         return 0;
     }
     /**
+     * 对于文档中列表块的方式，这里返回需要作为列表块（分列时为外层超级块）的块属性
+     * @returns 
+     */
+    getAttributes() {
+        return null;
+    }
+    /**
      * 模式初始化操作
      * @return 
      */
@@ -408,6 +415,11 @@ class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter 
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
         return `* ${countStr}　${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
+    getAttributes() {
+        return {
+            "custom-list-format": "standard-ol-on-ul"
+        };
+    }
 }
 
 /**
@@ -438,6 +450,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         custom_attr.listColumn = 1;
         custom_attr.endDocOutline = false;
         $("#listColumn, #endDocOutline").prop("disabled", "true");
+        $("#linksContainer").css("column-count", "");
         return custom_attr;
     }
     oneDocLink(doc, rowCountStack) {
@@ -523,6 +536,7 @@ class ContentBlockPrinter extends Printer {
         custom_attr.listColumn = 1;
         custom_attr.endDocOutline = false;
         $("#listDepth, #listColumn, #endDocOutline").prop("disabled", "true");
+        $("#linksContainer").css("column-count", "");
         return custom_attr;
     }
     destory() {
