@@ -24,13 +24,6 @@ import {
 import { custom_attr, language, setting } from './config.js';
 import { openRefLink, showFloatWnd } from './ref-util.js';
 import { isInvalidValue, isSafelyUpdate, isValidStr, pushDebug, transfromAttrToIAL } from './common.js';
-let thisDocId = "";
-let thisWidgetId = "";
-let targetDocName = "";
-let mutex = 0;
-let myPrinter;
-let myProvider;
-let g_showSetting;
 /** 生成、插入模式 */
 // TODO: 
 /*
@@ -105,7 +98,7 @@ async function addText2File(markdownText, blockid = "") {
     } else if (response == null || response.id == "") {
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
-        console.warn("更新失败，下次将创建新块", response ? response.id : undefined);
+        console.warn("更新失败，下次将创建新块", blockid);
         await setCustomAttr();//移除id属性后需要保存
         throw Error(language["refreshNeeded"]);
     } else {
@@ -223,6 +216,9 @@ async function getCustomAttr() {
             console.info("载入独立配置", attrObject);
         }
         Object.assign(custom_attr, attrObject);
+    }
+    if ('custom-lcd-cache' in response.data && !attrResetFlag) {
+        g_contentCache = response.data["custom-lcd-cache"];
     }
     // Resize设定默认宽高
     if (!("custom-resize-flag" in response.data) && isValidStr(setting.saveDefaultWidgetStyle) && ("id" in response.data)) {
@@ -497,28 +493,80 @@ function printError(msgText, clear = true) {
     window.frameElement.style.height = "10em";
 }
 
+
+function saveContentCache(textString = g_contentCache) {
+    console.info("[SAVE]保存缓存中");
+    let response = addblockAttrAPI({ "custom-lcd-cache": textString }, thisWidgetId);
+}
+
+/**
+ * 挂件内载入缓存
+ */
+async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = undefined) {
+    if (myPrinter.write2file) return false;
+    if (!isValidStr(textString)) return false;
+    let [notebook, targetDocPath] = await getTargetBlockBoxPath();
+    let updateAttr = {
+        widgetId: thisWidgetId,
+        docId: thisDocId,
+        "targetDocName": targetDocName,
+        targetNotebook: notebook,
+        "targetDocPath": targetDocPath,
+        "widgetSetting": custom_attr
+    };
+    if (!modeDoUpdateFlag) modeDoUpdateFlag = await myPrinter.doUpdate(textString, updateAttr);
+    if (modeDoUpdateFlag == 0){
+        $(textString).appendTo("#linksContainer");
+        // 处理响应范围，挂引用块点击事件
+        if (setting.extendClickArea) {
+            $(".linksListItem").addClass("itemHoverHighLight handle-ref-click");
+        }else{
+            $("#refContainer .refLinks, .childDocLinks").addClass("linkTextHoverHightLight handle-ref-click");
+        }
+        //挂一下事件，处理引用块浮窗
+        if (setting["floatWindowEnable"]) $("#refContainer .floatWindow").mouseover(showFloatWnd);
+        //设定分列值
+        setColumn();
+    }
+    $(".handle-ref-click").click(openRefLink);
+    //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
+    if (window.top.siyuan.config.appearance.mode == 1) {
+        $("#linksList").addClass("childDocLinks_dark");
+        $("#linksContainer").attr("data-darkmode", "true");
+    }
+    //issue #13 挂件自动高度
+    // 挂件内自动高度
+    if (setting.autoHeight && modeDoUpdateFlag != 1) {
+        // console.log("挂件高度应当设为", $("body").outerHeight());
+        let tempHeight = $("body").outerHeight() + 35;
+        if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
+        if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
+        window.frameElement.style.height = tempHeight + "px";
+    }
+    return true;
+}
+
+
 /**
  * 功能主函数
- * @param {boolean} initmode 初始化模式：在初始化模式下，将不重新获取挂件属性，没有块参数的情况下也不创建新块
- * @param {boolean} manual 手动刷新：手动刷新为true，才会执行保存属性的操作
+ * @param {boolean} manual 手动模式：只在手动模式下重载用户设置、保存缓存
+ * @param {boolean} justCreate 挂件刚创建标志：刚加入挂件时不进行块创建
  * 
  */
-async function __main(initmode = false, justCreate = false) {
+async function __main(manual = false, justCreate = false) {
     if (mutex == 0) {//并没有什么用的试图防止同时执行的信号量hhhh
         mutex = 1;
     } else {
         return;
     }
-    console.time("listChildDocs刷新计时");
+    console.time(`listChildDocs-${thisWidgetId.substring(15)}刷新计时`);
     $("#updateTime").text(language["working"]);
     // pushMsgAPI(language["startRefresh"], 4500);
     try {
         //获取挂件参数
-        if (!initmode) {
-            // await getCustomAttr();//决定不再支持
+        if (manual) {
             await __refresh();
         }
-        
         // 获取targetId文档所在的box笔记本、笔记本下路径
         let [notebook, targetDocPath] = await getTargetBlockBoxPath();
         // 交由模式的参数
@@ -554,44 +602,17 @@ async function __main(initmode = false, justCreate = false) {
             } else {
                 await addText2File(textString, custom_attr.childListId);
             }
-        } else if (modeDoUpdateFlag == 0){
-            $(textString).appendTo("#linksContainer");
-            // 处理响应范围，挂引用块点击事件
-            if (setting.extendClickArea) {
-                // $(".linksListItem").click(openRefLink);
-                $(".linksListItem").addClass("itemHoverHighLight handle-ref-click");
-            }else{
-                // $("#refContainer .refLinks").click(openRefLink);
-                $("#refContainer .refLinks, .childDocLinks").addClass("linkTextHoverHightLight handle-ref-click");
-            }
-            //挂一下事件，处理引用块浮窗
-            if (setting["floatWindowEnable"]) $("#refContainer .floatWindow").mouseover(showFloatWnd);
-            //设定分列值
-            setColumn();
-            // TODO: ~~修复字体问题~~ 好像修复不了hhhh，字体跟随思源编辑器设定
-            // $("#linksContainer").css("font-family", window.top.siyuan.config.editor.fontFamily);
         }
-        $(".handle-ref-click").click(openRefLink);
-        //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
-        if (window.top.siyuan.config.appearance.mode == 1) {
-            $("#linksList").addClass("childDocLinks_dark");
-            $("#linksContainer").attr("data-darkmode", "true");
+        await loadContentCache(textString, modeDoUpdateFlag);
+        if (myPrinter.write2file == 0) g_contentCache = textString;
+        if (manual && myPrinter.write2file == 0 && setting.safeModePlus && isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId)) {
+            saveContentCache(textString);
         }
-        //issue #13 挂件自动高度
-        // 挂件内自动高度
-        if (setting.autoHeight && myPrinter.write2file == 0 && modeDoUpdateFlag != 1) {
-            // console.log("挂件高度应当设为", $("body").outerHeight());
-            let tempHeight = $("body").outerHeight() + 35;
-            if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
-            if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
-            window.frameElement.style.height = tempHeight + "px";
-        }
-        
     } catch (err) {
         console.error(err);
         printError(err.message);
     }finally{
-        console.timeEnd(`listChildDocs刷新计时`);
+        console.timeEnd(`listChildDocs-${thisWidgetId.substring(15)}刷新计时`);
     }
     //写入更新时间
     let updateTime = new Date();
@@ -681,6 +702,7 @@ async function __save() {
     //写入挂件属性
     try {
         await setCustomAttr();
+        console.info("[SAVE]保存设置项");
         $("#updateTime").text(language["saved"]);
     } catch (err) {
         console.error(err);
@@ -713,11 +735,6 @@ function __refreshPrinter() {
     }
     // 执行模式初始化
     let newSetCustomAttr = myPrinter.init(custom_attr);
-    // TODO: 控制是否显示按键
-    // $("#listDepth").prop("disabled", !isInvalidValue(printerInitAttr.depth) ? "true" : "");
-    // $("#listColumn").prop("disabled", !isInvalidValue(printerInitAttr.column) ? "true" : "");
-    // $("#targetId").prop("disabled", !isInvalidValue(printerInitAttr.targetId) ? "true" : "");
-    // $("#endDocOutline").prop("disabled", !isInvalidValue(printerInitAttr.endDocOutline) ? "true" : "");
     Object.assign(custom_attr, newSetCustomAttr);
     __loadSettingToUI();
 }
@@ -817,7 +834,7 @@ async function __init() {
     }else if ("hideRefreshBtn" in custom_attr && custom_attr.hideRefreshBtn == false) {
         delete custom_attr.hideRefreshBtn;
     }
-    document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(false) }, 300); };
+    document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(true) }, 300); };
     document.getElementById("refresh").ondblclick = async function () { clearTimeout(refreshBtnTimeout); await __save(); };
     __loadSettingToUI();
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
@@ -838,42 +855,6 @@ async function __init() {
     $("#endDocOutlineHint").text(language["endDocOutlineHint"]);
     $("#targetIdhint").text(language["targetIdhint"]);
     $("#hideRefreshBtnHint").text(language["hideRefreshBtnHint"]);
-    //跟随软件字号设定
-    $("#linksContainer").css("font-size", window.top.siyuan.config.editor.fontSize + "px");
-    //控制自动刷新选项是否显示
-    if (!setting.showAutoBtn) {
-        $("#autoMode").attr("type", "hidden");
-    }
-    g_showSetting = setting.showSettingOnStartUp;
-    showSettingChanger(g_showSetting);
-    console.log("屏幕宽度" + window.screen.availWidth);
-    //初始化时设定列数
-    if (custom_attr.listColumn > 1) {
-        setColumn();
-    }
-    //自动更新
-    if (custom_attr.auto) {
-        //在更新/写入文档时截停操作（安全模式）
-        if (setting.safeMode && myPrinter.write2file == 1) return;
-        // 挂件刚创建，且写入文档，禁止操作，因为widgetId未入库，无法创建；
-        if (justCreate && myPrinter.write2file == 1) return;
-        //设定事件监听
-        __setObserver();
-        //尝试规避 找不到块创建位置的运行时错误
-        // setTimeout(()=>{ __main(true)}, 1000);
-        __main(true, justCreate);//初始化模式
-    }
-    // 插入“addChildDocLinkHelper.js判断挂件是否存在”所需要的custom-addcdlhelper属性
-    if (!justCreate && setting.addChildDocLinkHelperEnable && isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId)) {
-        let thisDocAttr = await getblockAttrAPI(thisDocId);
-        if (thisDocAttr && thisDocAttr.data && "id" in thisDocAttr.data) {
-            if (!(setting.helperSettings.attrName in thisDocAttr.data)) {
-                let attr = {};
-                attr[setting.helperSettings.attrName] = "{}";
-                await addblockAttrAPI(attr, thisDocId);
-            }
-        }
-    }
     //绑定按钮事件
     // 刷新按钮绑定事件移动到Init
     document.getElementById("setting").onclick = function () {
@@ -899,6 +880,55 @@ async function __init() {
     });
     // 及时响应模式变化
     document.getElementById("printMode").onchange = __refreshPrinter;
+    //跟随软件字号设定
+    $("#linksContainer").css("font-size", window.top.siyuan.config.editor.fontSize + "px");
+    //控制自动刷新选项是否显示
+    if (!setting.showAutoBtn) {
+        $("#autoMode").attr("type", "hidden");
+    }
+    g_showSetting = setting.showSettingOnStartUp;
+    showSettingChanger(g_showSetting);
+    console.log("屏幕宽度" + window.screen.availWidth);
+    //初始化时设定列数
+    if (custom_attr.listColumn > 1) {
+        setColumn();
+    }
+    //自动更新
+    if (custom_attr.auto) {
+        //在更新/写入文档时截停操作（安全模式）
+        if (setting.safeMode && myPrinter.write2file == 1) return;
+        // 挂件刚创建，且写入文档，禁止操作，因为widgetId未入库，无法创建；
+        if (justCreate && myPrinter.write2file == 1) return;
+        //设定事件监听
+        __setObserver();
+        //尝试规避 找不到块创建位置的运行时错误
+        // setTimeout(()=>{ __main(true)}, 1000);
+        __main(false, justCreate);//初始化模式
+    }else if (myPrinter.write2file == 0 && !custom_attr.auto) {
+        $("#updateTime").text(language["loading"]);
+        let loadResult = false;
+        try{
+            loadResult = await loadContentCache(g_contentCache);
+        }catch(err) {
+            console.error(err);
+        }
+        if (loadResult) {
+            $("#updateTime").text(language["cacheLoaded"]);
+        }else{
+            $("#updateTime").text(language["loadCacheFailed"]);
+        }
+    }
+    // 插入“addChildDocLinkHelper.js判断挂件是否存在”所需要的custom-addcdlhelper属性
+    if (!justCreate && setting.addChildDocLinkHelperEnable && isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId)) {
+        let thisDocAttr = await getblockAttrAPI(thisDocId);
+        if (thisDocAttr && thisDocAttr.data && "id" in thisDocAttr.data) {
+            if (!(setting.helperSettings.attrName in thisDocAttr.data)) {
+                let attr = {};
+                attr[setting.helperSettings.attrName] = "{}";
+                await addblockAttrAPI(attr, thisDocId);
+            }
+        }
+    }
 }
 // UNSTABLE: 此方法通过现实页面定位页签
 function __setObserver() {
@@ -925,15 +955,22 @@ function __setObserver() {
     }
 }
 pushDebug("开始载入");
-let mutationObserver = new MutationObserver(() => { __main(true) });//避免频繁刷新id
+let mutationObserver = new MutationObserver(() => { __main(false) });//避免频繁刷新id
 let mutationObserver2 = new MutationObserver(() => { setTimeout(__refreshAppearance, 1500); });
 let refreshBtnTimeout;
 
+let thisDocId = "";
+let thisWidgetId = "";
+let targetDocName = "";
+let mutex = 0;
+let myPrinter;
+let g_showSetting;
 let g_targetDocPath;
 let g_targetDocId;
 let g_targetMode;
 let g_notebooks = null;
 let g_notebooksIDList = null;
+let g_contentCache;
 try {
     g_notebooks = window.top.siyuan.notebooks;
 }catch (err) {

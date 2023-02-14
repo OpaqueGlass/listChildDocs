@@ -83,6 +83,7 @@ class Printer {
      * @param {*} textString 待写入的内容
      * @param {*} updateAttr 基本参数，详见listChildDocsMain.js __main()方法下的updateAttr对象
      * @return 1: 由模式自行处理写入；0: 由挂件统一执行写入和更新
+     * 不应在此方法中执行耗时的子文档获取操作，此方法仅用于将textString写入到文档中或挂件中
      */
     async doUpdate(textString, updateAttr) {
         return 0;
@@ -448,8 +449,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     write2file = 0;
     init(custom_attr) {
         custom_attr.listColumn = 1;
-        custom_attr.endDocOutline = false;
-        $("#listColumn, #endDocOutline").prop("disabled", "true");
+        $("#listColumn").prop("disabled", "true");
         $("#linksContainer").css("column-count", "");
         return custom_attr;
     }
@@ -465,7 +465,6 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         return `* [${docName}](siyuan://blocks/${doc.id})\n`;
     }
     async doUpdate(textString, updateAttr) {
-        console.log(textString);
         let widgetAttr = updateAttr.widgetSetting;
         // 匹配移除返回父文档
         textString = textString.replace(new RegExp("\\* \\[../\\][^\\n]*\\n"), "");
