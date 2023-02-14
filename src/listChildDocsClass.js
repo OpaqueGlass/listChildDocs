@@ -447,6 +447,10 @@ class MarkdownTodoListPrinter extends MarkdownUrlUnorderListPrinter {
 class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     static id = 10;
     write2file = 0;
+    observer = new ResizeObserver(this.resizeHandler.bind(this));
+    root;
+    observerTimeout;
+    widgetAttr;
     init(custom_attr) {
         custom_attr.listColumn = 1;
         $("#listColumn").prop("disabled", "true");
@@ -464,7 +468,11 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
         return `* [${docName}](siyuan://blocks/${doc.id})\n`;
     }
+    destory() {
+        this.observer.disconnect();
+    }
     async doUpdate(textString, updateAttr) {
+        this.observer.disconnect();
         let widgetAttr = updateAttr.widgetSetting;
         // 匹配移除返回父文档
         textString = textString.replace(new RegExp("\\* \\[../\\][^\\n]*\\n"), "");
@@ -488,27 +496,37 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         }
         // textString = `# ${window.top.document.querySelector(`li[data-type="tab-header"].item.item--focus .item__text`).innerText}\n` + textString;
         document.getElementById("linksContainer").insertAdjacentHTML("beforeend", `<svg id="markmap" style="width: 100%; display: none;"></svg>`);
-        let markmapElem = document.getElementById("markmap");
-        markmapElem.style.height = "";
-        markmapElem.style.display = "";
-        markmapElem.innerHTML = "";
-        // console.log($(window.frameElement).outerHeight(), $("body").outerHeight());
-        markmapElem.style.height = ($(window.frameElement).outerHeight() - $("body").outerHeight() + 125) + "px";
-        const transformer = new window.markmap.Transformer();
-        const { root, features } = transformer.transform(textString);
+        
+        let transformer = new window.markmap.Transformer();
+        let { root, features } = transformer.transform(textString);
+        // 保存用于Resize调用
+        this.root = root;
+        this.widgetAttr = widgetAttr;
         const { styles, scripts } = transformer.getUsedAssets(features);
         if (styles) window.markmap.loadCSS(styles);
         if (scripts) window.markmap.loadJS(scripts, { getMarkmap: () => markmap });
+        this.loadMarkmap(root, widgetAttr);
+        this.observer.observe(window.frameElement.parentElement);
+        return 1;
+    }
+    loadMarkmap(root, widgetAttr) {
+        let markmapElem = document.getElementById("markmap");
+        markmapElem.innerHTML = "";
+        markmapElem.style.height = "";
+        markmapElem.style.display = "";
+        // console.log($(window.frameElement).outerHeight(), $("body").outerHeight());
+        markmapElem.style.height = ($(window.frameElement).outerHeight() - $("body").outerHeight() + 125) + "px";
         // 计算层最大宽度
         let markmapConfig = {duration: 0, zoom: false, pan: false, maxWidth: 0};
-        if (widgetAttr.listDepth == 0 || widgetAttr.endDocOutline) {
-            markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth + widgetAttr.outlineDepth);
-        }else{
-            markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth);
+        if (widgetAttr?.listDepth != undefined) {
+            if (widgetAttr.listDepth == 0 || widgetAttr.endDocOutline) {
+                markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth + widgetAttr.outlineDepth);
+            }else{
+                markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth);
+            }
         }
         // console.log("导图模式限制层宽", markmapConfig.maxWidth);
         Object.assign(markmapConfig, setting.markmapConfig);
-        
         window.markmap.Markmap.create('#markmap', markmapConfig, root);
         $("#markmap a").click((event)=>{
             event.preventDefault();
@@ -520,8 +538,13 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             openRefLink(event);
         });
         $("#markmap a").addClass("markmap_a");
-        return 1;
     }
+    resizeHandler() {
+        clearTimeout(this.observerTimeout);
+        // 绑定
+        this.observerTimeout = setTimeout(this.loadMarkmap.bind(this, this.root, this.widgetAttr), 300);
+    }
+    
 }
 
 /**
