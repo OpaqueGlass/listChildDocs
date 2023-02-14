@@ -162,7 +162,27 @@ function setAttrToDom(queryBlockIds, attrs) {
  * 仅用于初始化
  */ 
 async function getCustomAttr() {
-    let response = await getblockAttrAPI(thisWidgetId);
+    let widgetNodeDom = window.frameElement.parentElement.parentElement;
+    let response = {
+        "data": {
+            "custom-list-child-docs": null,
+            "custom-lcd-cache": null,
+            "custom-resize-flag": null,
+            "id": thisWidgetId,
+        },
+    };
+    for (let key in response.data) {
+        if (key != "id") {
+            response.data[key] = widgetNodeDom?.getAttribute(key);
+        }else{
+            response.data[key] = widgetNodeDom?.getAttribute("data-node-id");
+        }
+    }
+    
+    if (response.data['custom-lcd-cache'] == undefined && response.data["custom-list-child-docs"] == undefined) {
+        console.warn("无法从DOM读取挂件属性，改为使用API", response);
+        response = await getblockAttrAPI(thisWidgetId);
+    }
     let attrObject = {};
     let attrResetFlag = false;
     let parseErrorFlag = false;
@@ -502,10 +522,12 @@ function saveContentCache(textString = g_contentCache) {
 /**
  * 挂件内载入缓存
  */
-async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = undefined) {
+async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = undefined, notebook = undefined, targetDocPath = undefined) {
     if (myPrinter.write2file) return false;
     if (!isValidStr(textString)) return false;
-    let [notebook, targetDocPath] = await getTargetBlockBoxPath();
+    if (notebook == undefined || targetDocPath == undefined) {
+        [notebook, targetDocPath] = await getTargetBlockBoxPath();
+    }
     let updateAttr = {
         widgetId: thisWidgetId,
         docId: thisDocId,
@@ -603,10 +625,12 @@ async function __main(manual = false, justCreate = false) {
                 await addText2File(textString, custom_attr.childListId);
             }
         }
-        await loadContentCache(textString, modeDoUpdateFlag);
+        await loadContentCache(textString, modeDoUpdateFlag, notebook, targetDocPath);
         if (myPrinter.write2file == 0) g_contentCache = textString;
         if (manual && myPrinter.write2file == 0 && setting.safeModePlus && isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId)) {
             saveContentCache(textString);
+        }else if (myPrinter.write2file == 0){
+            console.log("只读模式，或未启用只读安全模式，不进行缓存。");
         }
     } catch (err) {
         console.error(err);

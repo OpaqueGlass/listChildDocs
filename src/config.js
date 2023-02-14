@@ -189,7 +189,7 @@ let zh_CN = {
     modeName8: "1.1.url",
     modeName9: "任务列表",
     modeName10: "导图",
-    modeName11: "开发中",
+    modeName11: "预览方格",
     // 界面元素鼠标悬停提示词
     refreshBtn: "[单击] 刷新\n[双击] 保存设置",
     depthList: "子文档展示层级",
@@ -245,7 +245,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modeName8: "1.1.url",
     modeName9: "todo list",
     modeName10: "markmap",
-    modeName11: "In Develop",
+    modeName11: "Preview Box",
     // 界面元素鼠标悬停提示词 hangover popup words
     refreshBtn: "[Click] Refresh\n[Double click] Save Settings",
     depthList: "Number of layers of child-docs display",
