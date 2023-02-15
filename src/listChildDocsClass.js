@@ -3,7 +3,7 @@
  * 用于生成子文档目录文本的Printer。
  */
 import { setting } from './config.js';
-import { getUpdateString, generateBlockId, isValidStr } from "./common.js";
+import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL } from "./common.js";
 import { openRefLink } from './ref-util.js';
 import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
@@ -63,12 +63,13 @@ class Printer {
      * 分栏操作
      * 如果不需要实现，请直接返回初始值
      * (挂件内分栏通过css实现，请直接返回初始值)
+     * （只在 将块写入文档的默认实现中调用此函数，如果模式自行doUpdate，则Main.js不调用）
      * @params {string} originalText 初始值
      * @params {int} nColumns 列数
      * @params {int} nDepth 文档列出层级/深度
      * @returns 分栏后的初始值
      */
-    splitColumns(originalText, nColumns, nDepth) { return originalText; }
+    splitColumns(originalText, nColumns, nDepth, blockAttrData) { return originalText; }
     /**
      * （如果必要）模式自行生成待插入的内容块文本
      * （挂件内为html，文档内为markdown(勿在结尾加ial)）
@@ -90,6 +91,7 @@ class Printer {
     }
     /**
      * 对于文档中列表块的方式，这里返回需要作为列表块（分列时为外层超级块）的块属性
+     * （只在 将块写入文档的默认实现中调用此函数，如果模式自行doUpdate，则Main.js不调用）
      * @returns 
      */
     getAttributes() {
@@ -213,8 +215,8 @@ class MarkdownUrlUnorderListPrinter extends Printer {
     noneString(emptyText) {
         return "* " + emptyText;
     }
-    splitColumns(originalText, nColumns, nDepth) {
-        return generateSuperBlock(originalText, nColumns, nDepth);
+    splitColumns(originalText, nColumns, nDepth, blockAttrData) {
+        return generateSuperBlock(originalText, nColumns, nDepth, blockAttrData);
     }
 }
 /**
@@ -245,8 +247,8 @@ class MarkdownDChainUnorderListPrinter extends Printer {
     noneString(emptyText) {
         return "* " + emptyText;
     }
-    splitColumns(originalText, nColumns, nDepth) {
-        return generateSuperBlock(originalText, nColumns, nDepth);
+    splitColumns(originalText, nColumns, nDepth, blockAttrData) {
+        return generateSuperBlock(originalText, nColumns, nDepth, blockAttrData);
     }
 }
 
@@ -699,9 +701,10 @@ class ContentBlockPrinter extends Printer {
  * @param {string} originalText 原始文本
  * @param {int} nColumns 文档分列数
  * @param {int} nDepth 文档列出深度
+ * @param {*} blockAttrData 应用于分列后列表的属性
  * @returns 超级块Markdown文本
  */
-function generateSuperBlock(originalText, nColumns, nDepth) {
+function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData) {
     if (nColumns <= 1) return originalText;
     // console.log(originalText);
     //定位合适的划分点
@@ -809,7 +812,10 @@ function generateSuperBlock(originalText, nColumns, nDepth) {
     //生成kramdown类型的块分隔（？）
     function getDivider() {
         if (setting.superBlockBeta) {
-            return `  \n{: id=\"${generateBlockId()}\" updated=\"${getUpdateString()}\"}\n\n`;
+            blockAttrData["id"] = generateBlockId();
+            blockAttrData["updated"] = getUpdateString()
+            let attrIAL = transfromAttrToIAL(blockAttrData);
+            return `  \n${attrIAL}\n\n`;
         } else {
             return "}}}\n{{{row\n";
         }

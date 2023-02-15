@@ -53,6 +53,11 @@ async function addText2File(markdownText, blockid = "") {
     if (!isInvalidValue(modeCustomAttr)) {
         attrData = Object.assign(attrData, modeCustomAttr);
     }
+    // 分列操作（分列并使得列继承属性）
+    if (custom_attr.listColumn > 1 && setting.inheritAttrs && setting.superBlockBeta) {
+        markdownText = myPrinter.splitColumns(markdownText, custom_attr["listColumn"], custom_attr["listDepth"], attrData);
+    }
+
     // 将属性以IAL的形式写入text，稍后直接更新块
     let blockAttrString = transfromAttrToIAL(attrData);
     if (blockAttrString != null) {
@@ -78,37 +83,6 @@ async function addText2File(markdownText, blockid = "") {
         console.error("插入/更新块失败", response.id);
         throw Error(language["insertBlockFailed"]);
     }
-
-    //重写属性
-    //超级块重写属性特殊对待
-    if (custom_attr.listColumn > 1 && setting.inheritAttrs) {
-        //没有启用新的模式就不写超级块了，v0.0.4的超级块逻辑没适配
-        if (!setting.superBlockBeta) {
-            await addblockAttrAPI({ "memo": language["modifywarn"] }, blockid);
-            return;
-        }
-        //方案1，由更新返回值获取超级块下无序列表块id
-        let domDataNodeId = [];
-        // UNSTABLE: 找超级块的直接子元素，且子元素是无序列表块（容器块）
-        // console.log(response.data);
-        // console.log("更新后，直接子元素", $(response.data));
-        $(response.data).children().filter(".list[data-subtype='u']").each(function () { domDataNodeId.push($(this).attr("data-node-id")); });
-        // $(`<div id="listChildDocs">${response.data}</div>`).find("div[data-type='NodeSuperBlock'] > .list[data-subtype='u']").each(function(){console.log($(this));domDataNodeId.push($(this).attr("data-node-id"));});
-        console.assert(domDataNodeId.length >= 1, "无法在返回值中找到对应块，更新子块属性失败", domDataNodeId);
-        let timeoutIncrease = 700;
-        //为每个无序列表子块设定属性（其实memo设置的有点多了），延时是防止属性写入失败//上次的bug是循环内都延时5000==没延时
-        domDataNodeId.forEach(async function (currentValue) {
-            setTimeout(async function () { await addblockAttrAPI(attrData, currentValue); console.log("设置子块属性", currentValue) }, timeoutIncrease += 700);
-        });
-        //延时将指定的属性写入dom
-        // setTimeout(
-        //     () => { setAttrToDom(domDataNodeId, attrData); }
-        //     , 700 * domDataNodeId.length);
-    } else {
-        // setAttrToDom([blockid], attrData);
-    }
-
-
 }
 
 /**
@@ -286,7 +260,6 @@ async function getText(notebook, nowDocPath) {
         }
     }
     insertData += rawData + myPrinter.afterAll();
-    insertData = myPrinter.splitColumns(insertData, custom_attr["listColumn"], custom_attr["listDepth"]);
     return insertData;
 }
 
