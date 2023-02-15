@@ -24,34 +24,7 @@ import {
 import { custom_attr, language, setting } from './config.js';
 import { openRefLink, showFloatWnd } from './ref-util.js';
 import { isInvalidValue, isSafelyUpdate, isValidStr, pushDebug, transfromAttrToIAL } from './common.js';
-/** 生成、插入模式 */
-// TODO: 
-/*
-- 特殊的Printer调用方式？
-- 特殊的插入方式
-*/
-// class DefaultContentProvider {
-//     static modeId = 0;
-//     // 大纲模式 TODO: 待考虑的功能实现方法
-//     // 0无大纲，1纯大纲，2叶子文档加大纲
-//     outlineMode = 0;
-//     // 调用此方法输出内容，如果要加入一些其他的，应该修改这里
-//     async generateOutputText() {
 
-//     }
-// }
-// /**
-//  * 大纲模式
-//  */
-// class OutlineProvider extends DefaultContentProvider {
-
-// }
-// /**
-//  * 追加模式
-//  */
-// class AddProvider extends DefaultContentProvider {
-
-// }
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = "") {
     if (isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId) == false) {
@@ -137,24 +110,6 @@ async function addText2File(markdownText, blockid = "") {
 
 
 }
-
-/**
- * 将属性写入对应dom元素属性中
- * 只有位于setting.includeAttrName中的属性名才会写入
- * @param {*} queryBlockIds 要将attr写入的块id，数组
- * @param {*} attrs 要设置的属性
- * 
- */
-function setAttrToDom(queryBlockIds, attrs) {
-    for (let queryBlockId of queryBlockIds) {
-        for (let setAttrName of setting.includeAttrName) {
-            if (setAttrName in attrs) {
-                $(window.parent.document).find(`div[data-node-id="${queryBlockId}"]`).attr(setAttrName, attrs[setAttrName]);
-            }
-        }
-    }
-}
-
 
 /**
  * 获取挂件属性custom-list-child-docs
@@ -268,12 +223,6 @@ async function getCustomAttr() {
 
     if (!("id" in response.data)) {
         throw Error(language["getAttrFailed"]);
-    }
-    // TODO: 移除临时设置项迁移
-    if (setting.showEndDocOutline === true) {
-        console.log("设置项迁移：叶子文档大纲");
-        custom_attr.endDocOutline = true;
-        setCustomAttr();
     }
     // console.log("请求到的属性", JSON.stringify(response.data));
 }

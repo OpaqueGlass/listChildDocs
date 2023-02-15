@@ -54,16 +54,9 @@ let setting = {
     // 为true启用挂件内浮窗（挂件beta模式）
     floatWindowEnable: true,
 
-    // 数组中的属性名将在更新目录列表块时一并写入无序列表对应的元素属性中，或许可以适配部分主题的无序列表转导图功能
-    includeAttrName: ["custom-f"],
-
     // 使用玄学的超级块创建方式。如果出现问题，请设置为false（测试中）
     superBlockBeta: true,
 
-    // 【已废弃】一并列出终端文档的大纲？（目录中包括最深层级文档的大纲？）影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
-    // v0.0.9及以下版本使用，现已停用，请使用custom_attr.endDocOutline和挂件内设置指定。
-    // 若设定为true，将在挂件加载时迁移“启用叶子文档大纲”到挂件属性中保存，此设置项迁移将在下一版本移除。
-    showEndDocOutline: false, 
     // 混合列出时区分提示词（启用叶子文档大纲时，该提示词将被加载大纲的前面）
     outlineDistinguishingWords: "@",
 
@@ -126,7 +119,7 @@ let setting = {
     // 若要禁用，值应当为[]；如要在windows启用，["windows"]；如要在多个操作系统上启用，示例：["linux", "windows"]
     includeOs: ["windows"],
 
-    // 
+    // 导图模式Markmap配置项，详见https://markmap.js.org/docs/json-options
     markmapConfig: {},
 };
 // 自动插入助手设置
@@ -143,7 +136,7 @@ let helperSettings = {
     插入引用块【可能有缺陷，不建议使用】
     插入自定义【可能有缺陷，不建议使用】 根据docLinkTemplate，插入自定义的内容
     */
-    mode: "插入挂件",// 除非您了解这部分代码实现，请不要修改模式！Do not edit it unless you understand the code. 
+    mode: "插入挂件",// 除非您了解这部分代码实现，请不要修改模式！Do not edit it unless you understand the codes. 
 /* 通用 */
     // 插入在父文档结尾？若设置为undefined，则采用对应模式的默认设置
     insertAtEnd: undefined,
