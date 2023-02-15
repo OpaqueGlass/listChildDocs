@@ -6,15 +6,16 @@
 > 插入时模式为`默认`、启用自动刷新、层级1、分栏1、大纲层级3；如要修改插入时默认设置，请参考自定义说明部分。
 >
 
-> 用于思源笔记创建、更新子文档目录列表的挂件，依靠bugs运行。
+> 用于思源笔记创建、更新子文档目录列表的挂件。
 
 - 创建当前文档的子文档目录列表；
-  - 创建当前文档大纲列表；
+  - 创建当前文档大纲列表（层级设置为`0`）；
 
 - 子文档目录列表形式（在`模式`中选择）：
   - 挂件中或文档中创建目录；
   - 有序列表或无序列表；
   - （文档中）`siyuan://`URL或引用块；
+  - （挂件中）Markmap导图；
   
 - 在几种特定情况下自动刷新子文档目录列表（安全模式下不刷新文档中的目录）：\*
   - 挂件被加载（例如：点击文档树打开所在文档）；
@@ -232,7 +233,7 @@ export const listChildDocs = {
 
 ### 依赖
 
-1. jQuery （本项目中通过jQuery选择页面元素）；
+1. [jQuery](https://jquery.com/) （本项目中通过jQuery选择页面元素）；
 
 ```
 jQuery JavaScript Library v3.6.0  https://jquery.com/
@@ -240,7 +241,7 @@ Copyright OpenJS Foundation and other contributors
 Released under the MIT license  https://jquery.org/license
 ```
 
-2. markmap；
+2. [markmap](https://markmap.js.org/)；
 
 ```
 markmap-lib v0.14.3 | MIT License
@@ -249,7 +250,7 @@ https://github.com/markmap/markmap
 https://markmap.js.org/
 ```
 
-3. d3.js；
+3. [d3.js](https://d3js.org)；
 
 ```
 BSD-3-Clause https://opensource.org/licenses/BSD-3-Clause

@@ -170,31 +170,6 @@ input:hover {
 [data-darkmode] .childDocLinks{
     color: #C9D1D9;
 }
-/* 挂件思维导图样式 */
-/* 思维导图<a>链接样式 */
-.markmap_a {
-    color: black;
-    text-decoration: none;
-    border-bottom: 1px dashed rgba(0, 0, 0, .1);
-    /* white-space: nowrap; */
-}
-
-/* 思维导图普通文字深色样式 */
-[data-darkmode] .markmap {
-    color: #C9D1D9 !important;
-}
-/* 思维导图链接深色样式 */
-[data-darkmode] .markmap_a {
-    color: #C9D1D9 !important;
-    text-decoration: none !important;
-    /* white-space: nowrap; */
-}
-
-/* 思维导图悬停样式*/
-[data-darkmode] .markmap_a:hover{
-    color: #1186d9 !important;
-    border-bottom: 1px dashed #4CB0F9 !important;
-}
 
 /* 链接文字悬停样式 */
 .linkTextHoverHightLight:hover{
@@ -220,6 +195,12 @@ input:hover {
     clear: both;
 }
 
+/* 属于此类的元素，将被点击处理 */
+.handle-ref-click {
+    cursor: pointer;
+}
+
+/********************************************** 预览方格模式内css */
 /* 子文档方块区 */
 .mode11-note-box {
     max-height: 250px;
@@ -260,9 +241,9 @@ input:hover {
     overflow: hidden;
 }
 
-.mode11-doc-content p {
-    display: inline;
-}
+/* .mode11-doc-content p {
+    display: inline; 
+} */
 
 /* mode11 图片显示*/
 .mode11-doc-content .img img {
@@ -280,6 +261,20 @@ input:hover {
     background-color: #bfbfbf86;
 }
 
+/* 任务列表样式调整 */
+.mode11-doc-content ul:has(> .protyle-task) {
+    list-style-type: none;
+    padding-left: 16px;
+}
+
+.mode11-doc-content > ul:has(> .protyle-task) {
+    padding-left: 0px;
+}
+
+.mode11-doc-content .protyle-task input ~ p {
+    display: inline-block;
+}
+
 /* mode11 深色模式方块*/
 [data-darkmode] .mode11-note-box {
     background-color: #efefef40;
@@ -290,10 +285,34 @@ input:hover {
     background-color: #efefef30;
 }
 
-/* 属于此类的元素，将被点击处理 */
-.handle-ref-click {
-    cursor: pointer;
+
+/********************************************* 挂件思维导图样式 */
+/* 思维导图<a>链接样式 */
+.markmap_a {
+    color: black;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(0, 0, 0, .1);
+    /* white-space: nowrap; */
 }
+
+/* 思维导图普通文字深色样式 */
+[data-darkmode] .markmap {
+    color: #C9D1D9 !important;
+}
+/* 思维导图链接深色样式 */
+[data-darkmode] .markmap_a {
+    color: #C9D1D9 !important;
+    text-decoration: none !important;
+    /* white-space: nowrap; */
+}
+
+/* 思维导图悬停样式*/
+[data-darkmode] .markmap_a:hover{
+    color: #1186d9 !important;
+    border-bottom: 1px dashed #4CB0F9 !important;
+}
+
+
 
 body {
     padding: 0;

@@ -64,7 +64,7 @@ let setting = {
     // v0.0.9及以下版本使用，现已停用，请使用custom_attr.endDocOutline和挂件内设置指定。
     // 若设定为true，将在挂件加载时迁移“启用叶子文档大纲”到挂件属性中保存，此设置项迁移将在下一版本移除。
     showEndDocOutline: false, 
-    // 混合列出时区分提示词
+    // 混合列出时区分提示词（启用叶子文档大纲时，该提示词将被加载大纲的前面）
     outlineDistinguishingWords: "@",
 
     // 刷新列表后重写属性
@@ -143,7 +143,7 @@ let helperSettings = {
     插入引用块【可能有缺陷，不建议使用】
     插入自定义【可能有缺陷，不建议使用】 根据docLinkTemplate，插入自定义的内容
     */
-    mode: "插入挂件",
+    mode: "插入挂件",// 除非您了解这部分代码实现，请不要修改模式！Do not edit it unless you understand the code. 
 /* 通用 */
     // 插入在父文档结尾？若设置为undefined，则采用对应模式的默认设置
     insertAtEnd: undefined,
