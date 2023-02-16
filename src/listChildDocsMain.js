@@ -203,6 +203,11 @@ async function getCustomAttr() {
 
 //统一写入attr到挂件属性
 async function setCustomAttr() {
+    // 载入模式最新设定
+    let modeCustom = myPrinter?.save();
+    if (!isInvalidValue(modeCustom)) {
+        custom_attr["customModeSettings"] = modeCustom;
+    }
     let attrString = JSON.stringify(custom_attr);
     let response = await addblockAttrAPI({ "custom-list-child-docs": attrString }, thisWidgetId);
     if (response != 0) {
@@ -405,7 +410,7 @@ function debugPush(text, delay = 7000) {
 function showSettingChanger(showBtn) {
     g_showSetting = showBtn;
     let display = showBtn ? "inline" : "none";
-    $("#innerSetting > *").css("display", display);
+    $("#innerSetting *, #modeSetting *").css("display", display);
     if ((custom_attr.listDepth != 0 && !custom_attr.endDocOutline) && showBtn) {//层级不为0时不显示大纲层级
         $("#outlinedepth, #outlinedepthhint").css("display", "none");
     }
@@ -515,10 +520,10 @@ async function __main(manual = false, justCreate = false) {
         let [notebook, targetDocPath] = await getTargetBlockBoxPath();
         // 交由模式的参数
         let updateAttr = {
-            widgetId: thisWidgetId,
-            docId: thisDocId,
+            "widgetId": thisWidgetId,
+            "docId": thisDocId,
             "targetDocName": targetDocName,
-            targetNotebook: notebook,
+            "targetNotebook": notebook,
             "targetDocPath": targetDocPath,
             "widgetSetting": custom_attr
         };
@@ -660,11 +665,23 @@ async function __save() {
  * 重新获取Printer
  * 调用前确定已经获得了printMode
  */
-function __refreshPrinter() {
+function __refreshPrinter(init = false) {
     console.log("响应模式变化");
     custom_attr.printMode = $("#printMode").val();
     let getPrinterFlag = false;
-    myPrinter?.destory();
+    if (!init) {
+        let resettedCustomAttr = myPrinter?.destory(custom_attr);
+        // 部分修改默认设定的模式，应当在退出时修改到合理的值
+        if (!isInvalidValue(resettedCustomAttr)) {
+            Object.assign(custom_attr, resettedCustomAttr);
+        }
+        // 模式切换后移除旧设定
+        if (custom_attr["customModeSettings"] != undefined) {
+            delete custom_attr["customModeSettings"];
+        }
+        saveContentCache("");
+    }
+    $("#modeSetting").html("");
     //重新获取Printer
     for (let printer of printerList) {
         if (printer.id == custom_attr.printMode) {
@@ -681,7 +698,10 @@ function __refreshPrinter() {
     }
     // 执行模式初始化
     let newSetCustomAttr = myPrinter.init(custom_attr);
-    Object.assign(custom_attr, newSetCustomAttr);
+    if (!isInvalidValue(newSetCustomAttr)) {
+        Object.assign(custom_attr, newSetCustomAttr);
+    }
+    myPrinter.load(custom_attr["customModeSettings"]);
     __loadSettingToUI();
 }
 //重新从html读取设定，读取id，更改自动模式//解耦，不再更改外观
@@ -716,7 +736,7 @@ async function __refresh() {
         custom_attr["auto"] = nowAutoMode;
     }
 
-    __refreshPrinter();
+    // __refreshPrinter();
 }
 
 function __refreshAppearance() {
@@ -784,7 +804,7 @@ async function __init() {
     document.getElementById("refresh").ondblclick = async function () { clearTimeout(refreshBtnTimeout); await __save(); };
     __loadSettingToUI();
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
-    __refreshPrinter();
+    __refreshPrinter(true);
     __refreshAppearance();
     //写入悬停提示 
     $("#refresh").attr("title", language["refreshBtn"]);
@@ -825,7 +845,7 @@ async function __init() {
         }
     });
     // 及时响应模式变化
-    document.getElementById("printMode").onchange = __refreshPrinter;
+    document.getElementById("printMode").onchange = ()=>{__refreshPrinter(false)};
     //跟随软件字号设定
     $("#linksContainer").css("font-size", window.top.siyuan.config.editor.fontSize + "px");
     //控制自动刷新选项是否显示

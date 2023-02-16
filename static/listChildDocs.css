@@ -167,7 +167,7 @@ input:hover {
 }
 
 /* 暗黑模式下，链接文字样式 */
-[data-darkmode] .childDocLinks{
+[data-darkmode] .linksList {
     color: #C9D1D9;
 }
 
@@ -232,6 +232,10 @@ input:hover {
     white-space: normal;
     font-size: 0.9;
 }
+/* 预览内链接内容 */
+[data-darkmode] .mode11-doc-content a {
+    color: #7aa7d4 !important;
+}
 
 /* 子文档内容节选 */
 .mode11-doc-content {
@@ -289,9 +293,15 @@ input:hover {
 /********************************************* 挂件思维导图样式 */
 /* 思维导图<a>链接样式 */
 .markmap_a {
-    color: black;
+    color: black !important;
     text-decoration: none;
     border-bottom: 1px dashed rgba(0, 0, 0, .1);
+    /* white-space: nowrap; */
+}
+/* 思维导图<a>链接鼠标悬停时样式 */
+.markmap_a:hover {
+    color: #1186d9 !important;
+    border-bottom: 1px dashed #4CB0F9 !important;
     /* white-space: nowrap; */
 }
 
@@ -310,6 +320,11 @@ input:hover {
 [data-darkmode] .markmap_a:hover{
     color: #1186d9 !important;
     border-bottom: 1px dashed #4CB0F9 !important;
+}
+
+/***************** 模式12 */
+.mode12_date_text {
+    font-weight: bold;
 }
 
 

@@ -2,7 +2,7 @@
  * listChildDocsClass.js
  * 用于生成子文档目录文本的Printer。
  */
-import { setting } from './config.js';
+import { language, setting } from './config.js';
 import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL } from "./common.js";
 import { openRefLink } from './ref-util.js';
 import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI } from './API.js';
@@ -92,7 +92,7 @@ class Printer {
     /**
      * 对于文档中列表块的方式，这里返回需要作为列表块（分列时为外层超级块）的块属性
      * （只在 将块写入文档的默认实现中调用此函数，如果模式自行doUpdate，则Main.js不调用）
-     * @returns 
+     * @return
      */
     getAttributes() {
         return null;
@@ -102,15 +102,31 @@ class Printer {
      * @return 
      */
     init(custom_attr) {
-        // 通过修改custom_attr实现强制指定某个设置项，建议只在禁止用户更改时强制指定设置项的值
+        // 通过修改custom_attr并返回修改后的值实现强制指定某个设置项，建议只在禁止用户更改时强制指定设置项的值
         return custom_attr;
     }
     /**
      * 模式退出时操作
      */
-    destory() {
+    destory(custom_attr) {
         // 取消常规设置的禁用样式
         $("#listDepth, #listColumn, #targetId, #endDocOutline").prop("disabled", "");
+        // 如果部分通用设定过于不合理，通过修改custom_attr并返回修改后的以重置。
+        return custom_attr;
+    }
+    /**
+     * 载入配置
+     * 注意，可能不存在相应设置
+     */
+    load(savedAttrs) {
+
+    }
+    /**
+     * 保存配置
+     * @return 请返回一个对象
+     */
+    save() {
+        return undefined;
     }
 }
 /**
@@ -471,6 +487,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         return `* [${docName}](siyuan://blocks/${doc.id})\n`;
     }
     destory() {
+        $("#listColumn").prop("disabled", "");
         this.observer.disconnect();
     }
     async doUpdate(textString, updateAttr) {
@@ -564,6 +581,7 @@ class ContentBlockPrinter extends Printer {
         return custom_attr;
     }
     destory() {
+        $("#listDepth, #listColumn, #endDocOutline").prop("disabled", "");
        super.destory();
     }
     async doGenerate(updateAttr) {
@@ -691,6 +709,130 @@ class ContentBlockPrinter extends Printer {
             jqElem.find(elem).prop("src", path);
         });
         return jqElem.html();
+    }
+}
+
+/**
+ * 按时间排序
+ */
+class OrderByTimePrinter extends Printer {
+    static id = 12;
+    write2file = 0;
+    modeSettings = {};
+    beforeChildDocs(nowDepth) {
+        return `<ul>`;
+    }
+    afterChildDocs(nowDepth) {
+        return `</ul>`;
+    }
+    oneDocLink(doc, rowCountStack) {
+        let emojiStr = "";//getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+        let formatedTime = setting.timeTemplate;
+        formatedTime = formatedTime.replace(new RegExp("HH", "g"), doc.time.substring(0, 2));
+        formatedTime = formatedTime.replace(new RegExp("mm", "g"), doc.time.substring(2, 4));
+        return `<li class="linksListItem" data-id="${doc.id}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name}</span>　(${formatedTime})</li>`;
+    }
+    startOneDate(dateStr) {
+        let formatedStr = setting.dateTemplate;
+        formatedStr = formatedStr.replace(new RegExp("yyyy", "g"), dateStr.substring(0, 4));
+        formatedStr = formatedStr.replace(new RegExp("MM", "g"), dateStr.substring(4, 6));
+        formatedStr = formatedStr.replace(new RegExp("dd", "g"), dateStr.substring(6, 8));
+        let today = dayjs().startOf('day');
+        let docDate = dayjs(dateStr, "yyyyMMdd");
+        let dayGap = today.diff(docDate, "day");
+        if (dayGap < 1) {
+            formatedStr += ` ${language["mode12_today"]}`;
+        }else if (dayGap == 1) {
+            formatedStr += ` ${language["mode12_yesterday"]}`;
+        }else if (dayGap < 7) {
+            formatedStr += ` ${language["mode12_day_ago"].replace(new RegExp("%%", "g"), dayGap)}`;
+        }
+        return `<li><span class="mode12_date_text">${formatedStr}</span></li><ul class="linksList" id="linksList">`;
+    }
+    endOneDate() {
+        return `</ul>`;
+    }
+    //在所有输出文本写入之前
+    beforeAll() {
+        return `<div id="refContainer"> <ul class="linksList" id="linksList">`;
+    }
+    //在所有输出文本写入之后
+    afterAll() {
+        return `</ul></div>`;
+    }
+    init(custom_attr) {
+        custom_attr.listDepth = 999;
+        custom_attr.endDocOutline = false;
+        $("#listDepth, #endDocOutline").prop("disabled", "true");
+        $("#modeSetting").append(`<span id="mode12_doc_num_hint">${language["mode12_doc_num_text"]}</span>
+        <input id="mode12_doc_num" type="number" name="docNum" title="docNum" min="1" value="20">
+        <span id="mode12_update_hint">${language["mode12_update_hint"]}</span>
+        <input type="checkbox" name="mode12_updated_checkbox" checked id="mode12_update_checkbox" title="mode12_updated_checkbox">`);
+        return custom_attr;
+    }
+    destory(custom_attr) {
+        custom_attr.listDepth = 1;
+        $("#listDepth, #endDocOutline").prop("disabled", "");
+        $("#modeSetting").html("");
+        return custom_attr;
+    }
+    load(modeSettings) {
+        if (modeSettings == undefined) return;
+        console.log("LOAD SETTINGS")
+        $("#mode12_doc_num").val(modeSettings["docNum"]);
+        $("#mode12_update_checkbox").prop("checked", modeSettings["byUpdate"]);
+    }
+    save() {
+        return {
+            "docNum": $("#mode12_doc_num").val(),
+            "byUpdate": $("#mode12_update_checkbox").prop("checked"),
+        }
+    }
+    async doGenerate(updateAttr) {
+        // 
+        let queryStmt = `SELECT * FROM blocks WHERE type="d" `;
+        let isUpdateTime = false;
+        let result = this.beforeAll();
+        // 检索时区分检索范围
+        // / 或 笔记本 或path比对
+        if (updateAttr["targetNotebook"] == "/") {
+
+        }else if (updateAttr["targetDocPath"] == "/") {
+            queryStmt += `AND box = "${updateAttr.targetNotebook}" `;
+        }else if (isValidStr(updateAttr.widgetSetting["targetId"])){
+            queryStmt += `AND path like "%${updateAttr.widgetSetting["targetId"]}/%" `;
+        }else{
+            queryStmt += `AND path like "%${updateAttr["docId"]}/%" `;
+        }
+        // 区分按照创建/按照更新时间排序
+        if ($("#mode12_update_checkbox").prop("checked")) {
+            queryStmt += `ORDER BY updated DESC `;
+            isUpdateTime = true;
+        }else{
+            queryStmt += `ORDER BY created DESC `;
+        }
+        queryStmt += `LIMIT ${$("#mode12_doc_num").val()}`;
+        console.warn("SQL", queryStmt);
+        let queryDocsResponse = await queryAPI(queryStmt);
+        console.log("RES", queryDocsResponse);
+        if (!isValidStr(queryDocsResponse) || queryDocsResponse.length <= 0) {
+            return language["noChildDoc"];
+        }
+        // 根据上下文时间处理缩进
+        let lastDate = "";
+        for (let doc of queryDocsResponse) {
+            let currentDocDateTime = isUpdateTime ? doc.updated : doc.created;
+            let currentDocDate = currentDocDateTime.substring(0, 8);
+            if (currentDocDate != lastDate) {
+                if (lastDate != "") result += this.endOneDate();
+                result += this.startOneDate(currentDocDate);
+            }
+            result += this.oneDocLink({"id": doc.id, "name": doc.content, "time": currentDocDateTime.substring(8, 12)});
+            lastDate = currentDocDate;
+        }
+        result += this.endOneDate() + this.afterAll();
+        // console.log(result);
+        return result;
     }
 }
 
@@ -961,6 +1103,7 @@ export let printerList = [
     MarkdownTodoListPrinter, //9todo列表 存在问题：刷新导致任务打钩丢失
     MarkmapPrinter, //10挂件内思维导图
     ContentBlockPrinter, //11内容预览块
+    OrderByTimePrinter, //12按时间分组
 ];
 export { Printer, DefaultPrinter };
 /** 附录：doc对象（由文档树api获得），示例如下

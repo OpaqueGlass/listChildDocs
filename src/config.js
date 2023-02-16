@@ -9,6 +9,7 @@
  * 有英文双引号的设置项，只更改英文双引号内的内容，不要删除英文双引号。
  *  */
 
+// dev warn: Main.js多处使用Object.assign浅拷贝对象！
 let custom_attr = {//这里列出的是挂件的默认设置，只在创建时写入到挂件中，挂件内属性custom-list-child-docs可覆盖此设置
     printMode: "0",//默认格式和输出位置，参数见本文件最下方，或参考modeName（在本文件中搜索）
     childListId: "",//子文档列表块id，由挂件自动生成，对应的块将会被本挂件更新，请避免自行修改
@@ -121,6 +122,11 @@ let setting = {
 
     // 导图模式Markmap配置项，详见https://markmap.js.org/docs/json-options
     markmapConfig: {},
+
+    // 
+    dateTemplate: "MM-dd",
+
+    timeTemplate: "HH:mm",
 };
 // 自动插入助手设置
 // 自动插入助手和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
@@ -183,6 +189,7 @@ let zh_CN = {
     modeName9: "任务列表",
     modeName10: "导图",
     modeName11: "预览方格",
+    modeName12: "按日期分组",
     // 界面元素鼠标悬停提示词
     refreshBtn: "[单击] 刷新\n[双击] 保存设置",
     depthList: "子文档展示层级",
@@ -213,7 +220,13 @@ let zh_CN = {
     // 自动插入助手提示
     helperAddBlockMemo: "自动插入的子文档链接块：在此块下的编辑将在文档变化时被覆盖",
     queryFilePathFailed: "获取文档路径失败，文档可能刚创建",
-    helperErrorHint: "helper执行时发生错误，如果可以，请向开发者反馈："
+    helperErrorHint: "helper执行时发生错误，如果可以，请向开发者反馈：",
+    // 模式内部提示12
+    mode12_doc_num_text: "展示的文档数",
+    mode12_update_hint: "按照更新时间排列",
+    mode12_today: "（今天）",
+    mode12_yesterday: "（昨天）",
+    mode12_day_ago: "（%%天前）",
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
@@ -239,6 +252,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modeName9: "todo list",
     modeName10: "markmap",
     modeName11: "Preview Box",
+    modeName12: "Group by date",
     // 界面元素鼠标悬停提示词 hangover popup words
     refreshBtn: "[Click] Refresh\n[Double click] Save Settings",
     depthList: "Number of layers of child-docs display",
@@ -269,7 +283,13 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     // addChildDocLinkHelper hint text
     helperAddBlockMemo: "Child-doc link block: the edits under this block will be overwritten when the child-docs changes.",
     queryFilePathFailed: "Failed to get the document path, the document may have just been created.",
-    helperErrorHint: "An error occured during helper execution. If it's convenient for you, please give feedback to the developer."
+    helperErrorHint: "An error occured during helper execution. If it's convenient for you, please give feedback to the developer.",
+    // hint text in mode
+    mode12_doc_num_text: "the num of doc",
+    mode12_update_hint: "Order by update time",
+    mode12_today: "today",
+    mode12_yesterday: "yesterday",
+    mode12_day_ago: "%% day ago",
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~

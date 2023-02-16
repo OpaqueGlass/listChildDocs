@@ -194,8 +194,9 @@ export const listChildDocs = {
   - 请避免过快地刷新文档列表；
   - 如果要<u>多设备同步文档</u>、且<u>挂件所在文档要写其他内容</u>时，**请勿使用自动刷新**[^1]；
 - 每次刷新时，将完全更新列表（即使子文档没有变化，也将更新列表全部内容）；
-- 单击刷新按钮会更新文档中的目录列表或更新挂件目录列表缓存，文档编辑时间将被更新，**如果当时未完成同步，请勿点击刷新按钮**[^1]；
-- 双击刷新按钮会保存设置（设定挂件属性），文档编辑时间将被更新，**如果当时未完成同步，请勿点击刷新按钮**[^1]；
+- **如果未完成同步，请勿点击刷新按钮**[^1]：
+  - 单击刷新按钮会更新文档中的目录列表或更新挂件目录列表缓存，文档编辑时间将被更新；
+  - 双击刷新按钮会保存设置（设定挂件属性），文档编辑时间将被更新；
 - 切换页签时自动刷新的方法有点玄学，可能在未来的版本更新中无法使用；
 - 关于超级块属性刷新后重写：
   - `superBlockBeta`应设为`true`；
@@ -255,6 +256,14 @@ https://markmap.js.org/
 ```
 BSD-3-Clause https://opensource.org/licenses/BSD-3-Clause
 https://d3js.org v6.7.0 Copyright 2021 Mike Bostock
+```
+
+4. [day.js](https://day.js.org/)；
+
+```
+Day.js is licensed under a MIT License.
+https://github.com/iamkun/dayjs/
+https://day.js.org/
 ```
 
 ### 图标
