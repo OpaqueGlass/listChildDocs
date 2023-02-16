@@ -103,8 +103,9 @@ input:hover {
     /* color: darkgray; */
 }
 
-.ordinaryText_dark {
-    color: darkgray;
+/* 深夜模式下普通文本颜色 */
+.ordinaryText_dark, [data-darkmode] .upperbardiv span, [data-darkmode] #linksContainer, [data-darkmode] .mode12_date_text{
+    color: #C9D1D9;
 }
 
 .upperbar {
@@ -120,7 +121,7 @@ input:hover {
 }
 
 /* 按钮夜间样式 */
-.button_dark {
+.button_dark, [data-darkmode] .upperbardiv input, [data-darkmode] .upperbardiv select {
     background-color: darkslategray;
     color: white;
 }

@@ -125,8 +125,8 @@ let setting = {
 
     // 
     dateTemplate: "MM-dd",
-
-    timeTemplate: "HH:mm",
+    // 
+    timeTemplate: "(HH:mm)",
 };
 // 自动插入助手设置
 // 自动插入助手和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
@@ -170,7 +170,7 @@ let zh_CN = {
     insertBlockFailed: "创建或更新无序列表块失败，请稍后刷新重试。",
     writeAttrFailed: "写入挂件属性失败，请稍后刷新重试。",
     getPathFailed: "查询当前文档所属路径失败，请稍后刷新重试。",
-    noChildDoc: "似乎没有子文档。",
+    noChildDoc: "似乎没有子文档@_@。",
     error: "错误：",
     updateTime: "更新时间：",
     modifywarn: "此块由listChildDocs挂件创建，若刷新列表，您的更改将会被覆盖。", // 不想显示这个提示的话，改成空字符串""就行
@@ -191,11 +191,14 @@ let zh_CN = {
     modeName11: "预览方格",
     modeName12: "按日期分组",
     // 界面元素鼠标悬停提示词
-    refreshBtn: "[单击] 刷新\n[双击] 保存设置",
-    depthList: "子文档展示层级",
-    modeList: "展示方式",
-    autoBtn: "'半'自动刷新",
-    targetIdTitle: "目标文档id",
+    refreshBtn: "[单击] 刷新\n[双击] 保存设置\n听说双击我可以保存设置，不知道真的假的。",
+    depthList: "子文档展示层级\n设置为0就可以显示大纲啦​~\(≧▽≦)/~​​​",
+    modeList: "挂件工作模式",
+    autoBtn: "自动刷新\n启用安全模式时，对文档中目录列表无效",
+    targetIdTitle: "目标文档id\n从这里指定的文档或笔记本开始查找文档，设定为/则从所有已开启的笔记本开始",
+    disabledBtnHint: "\n因为不支持当前模式，我被禁用了T^T",
+    endDocOutlineTitle: "对于目录列表中不显示子文档的文档，显示其大纲",
+    hideRefreshBtnTitle: "将刷新按钮搬运到设置中，防止误触",
     // 错误提示词
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
     startRefresh: "开始更新子文档列表---来自listChildDocs挂件的通知",
@@ -205,7 +208,7 @@ let zh_CN = {
     settingBtn: "显示/隐藏设置",
     columnHint: "分列",
     depthHint: "层级",
-    noOutline: "似乎没有文档大纲。",
+    noOutline: "似乎没有文档大纲@_@。",
     outlineDepthHint: "大纲层级",
     endDocOutlineHint: "叶子文档大纲",
     targetIdhint: "目标文档id",

@@ -612,8 +612,8 @@ class ContentBlockPrinter extends Printer {
     async doUpdate(textString, updateAttr) {
         if (updateAttr.widgetSetting.targetId == "/" | updateAttr.widgetSetting.targetId == "\\") {
             console.log("aa");
-            $("#linksContainer").html(`<p>当前模式不支持从所有笔记本上级创建，请不要将目标文档id设置为/。</p>
-            <p>Listing from top notebooks (workspace) is unsupported by current mode, so you may not set <code>Target document id</code> as <code>/</code></p>.`);
+            $("#linksContainer").html(`<p>我不支持目标文档id设置为/，请重新设置一个目标文档id</p>
+            <p>The current mode does not support listing from all opened notebooks, so you may not set <code>Target doc id</code> as <code>/</code></p>.`);
             return 1;
         } 
         return 0;
@@ -730,7 +730,7 @@ class OrderByTimePrinter extends Printer {
         let formatedTime = setting.timeTemplate;
         formatedTime = formatedTime.replace(new RegExp("HH", "g"), doc.time.substring(0, 2));
         formatedTime = formatedTime.replace(new RegExp("mm", "g"), doc.time.substring(2, 4));
-        return `<li class="linksListItem" data-id="${doc.id}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name}</span>　(${formatedTime})</li>`;
+        return `<li class="linksListItem" data-id="${doc.id}" title="${doc.hpath}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name}</span>　${formatedTime}</li>`;
     }
     startOneDate(dateStr) {
         let formatedStr = setting.dateTemplate;
@@ -765,9 +765,9 @@ class OrderByTimePrinter extends Printer {
         custom_attr.endDocOutline = false;
         $("#listDepth, #endDocOutline").prop("disabled", "true");
         $("#modeSetting").append(`<span id="mode12_doc_num_hint">${language["mode12_doc_num_text"]}</span>
-        <input id="mode12_doc_num" type="number" name="docNum" title="docNum" min="1" value="20">
+        <input id="mode12_doc_num" type="number" name="docNum" title="要显示的文档数量最大值\nThe maximum number of docs displayed" min="1" value="20">
         <span id="mode12_update_hint">${language["mode12_update_hint"]}</span>
-        <input type="checkbox" name="mode12_updated_checkbox" checked id="mode12_update_checkbox" title="mode12_updated_checkbox">`);
+        <input type="checkbox" name="mode12_updated_checkbox" checked id="mode12_update_checkbox" title="禁用则使用创建时间排序\nDisabled to order by create time">`);
         return custom_attr;
     }
     destory(custom_attr) {
@@ -827,7 +827,7 @@ class OrderByTimePrinter extends Printer {
                 if (lastDate != "") result += this.endOneDate();
                 result += this.startOneDate(currentDocDate);
             }
-            result += this.oneDocLink({"id": doc.id, "name": doc.content, "time": currentDocDateTime.substring(8, 12)});
+            result += this.oneDocLink({"id": doc.id, "name": doc.content, "time": currentDocDateTime.substring(8, 12), "hpath": doc.hpath});
             lastDate = currentDocDate;
         }
         result += this.endOneDate() + this.afterAll();

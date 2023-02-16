@@ -456,10 +456,10 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
         [notebook, targetDocPath] = await getTargetBlockBoxPath();
     }
     let updateAttr = {
-        widgetId: thisWidgetId,
-        docId: thisDocId,
+        "widgetId": thisWidgetId,
+        "docId": thisDocId,
         "targetDocName": targetDocName,
-        targetNotebook: notebook,
+        "targetNotebook": notebook,
         "targetDocPath": targetDocPath,
         "widgetSetting": custom_attr
     };
@@ -481,7 +481,7 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
     //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
     if (window.top.siyuan.config.appearance.mode == 1) {
         $("#linksList").addClass("childDocLinks_dark");
-        $("#linksContainer").attr("data-darkmode", "true");
+        $(".app").attr("data-darkmode", "true");
     }
     //issue #13 挂件自动高度
     // 挂件内自动高度
@@ -662,6 +662,29 @@ async function __save() {
     __refreshAppearance();
 }
 /**
+ * 写入悬停提示
+ */
+function setDefaultTitle() {
+    $("#refresh").attr("title", language["refreshBtn"]);
+    $("#listDepth").attr("title", language["depthList"]);
+    $("#printMode").attr("title", language["modeList"]);
+    $("#autoMode").attr("title", language["autoBtn"]);
+    $("#listColumn").attr("title", language["columnBtn"]);
+    $("#setting").attr("title", language["settingBtn"]);
+    $("#targetId").attr("title", language["targetIdTitle"]);
+    $("#endDocOutline").attr("title", language["endDocOutlineTitle"]);
+    $("#hideRefreshBtn").attr("title", language["hideRefreshBtnTitle"]);
+
+    $("#depthhint").text(language["depthHint"]);
+    $("#columnhint").text(language["columnHint"]);
+    $("#outlinedepthhint").text(language["outlineDepthHint"]);
+    $("#outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").css("white-space", "nowrap");//提示文字禁止折行
+    $("#endDocOutlineHint").text(language["endDocOutlineHint"]);
+    $("#targetIdhint").text(language["targetIdhint"]);
+    $("#hideRefreshBtnHint").text(language["hideRefreshBtnHint"]);
+    
+}
+/**
  * 重新获取Printer
  * 调用前确定已经获得了printMode
  */
@@ -702,6 +725,12 @@ function __refreshPrinter(init = false) {
         Object.assign(custom_attr, newSetCustomAttr);
     }
     myPrinter.load(custom_attr["customModeSettings"]);
+    // 重置默认title
+    setDefaultTitle();
+    $(".upperbardiv [disabled]").each(function (index) {
+        let title = $(this).attr("title")??"";
+        $(this).attr("title", title + language["disabledBtnHint"]);
+    })
     __loadSettingToUI();
 }
 //重新从html读取设定，读取id，更改自动模式//解耦，不再更改外观
@@ -802,25 +831,11 @@ async function __init() {
     }
     document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(true) }, 300); };
     document.getElementById("refresh").ondblclick = async function () { clearTimeout(refreshBtnTimeout); await __save(); };
+    // 将属性设置载入到显示中
     __loadSettingToUI();
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
     __refreshPrinter(true);
     __refreshAppearance();
-    //写入悬停提示 
-    $("#refresh").attr("title", language["refreshBtn"]);
-    $("#listDepth").attr("title", language["depthList"]);
-    $("#printMode").attr("title", language["modeList"]);
-    $("#autoMode").attr("title", language["autoBtn"]);
-    $("#listColumn").attr("title", language["columnBtn"]);
-    $("#setting").attr("title", language["settingBtn"]);
-    $("#targetId").attr("title", language["targetIdTitle"]);
-    $("#depthhint").text(language["depthHint"]);
-    $("#columnhint").text(language["columnHint"]);
-    $("#outlinedepthhint").text(language["outlineDepthHint"]);
-    $("#outlinedepthhint, #targetIdhint, #targetDocName, #endDocOutlineHint").css("white-space", "nowrap");//提示文字禁止折行
-    $("#endDocOutlineHint").text(language["endDocOutlineHint"]);
-    $("#targetIdhint").text(language["targetIdhint"]);
-    $("#hideRefreshBtnHint").text(language["hideRefreshBtnHint"]);
     //绑定按钮事件
     // 刷新按钮绑定事件移动到Init
     document.getElementById("setting").onclick = function () {
