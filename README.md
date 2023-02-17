@@ -1,6 +1,6 @@
 ## list Child Docs列出子文档
 
-> 当前版本： v0.1.0 **新增**：挂件内 导图、预览方格和按时间分组模式；**新增**：（代码片段）自动插入助手；**改进**：一些显示改进；**改进**：（挂件内模式）在一些情况下加载缓存；**配置文件变更**：详见更新日志CHANGELOG.md；
+> 当前版本： v0.2.0 **新增**：挂件内 导图(markmap)、预览方格和按时间分组模式；**新增**：自动插入助手（使用代码片段自动插入挂件）；**改进**：一些显示改进；**改进**：（挂件内模式）在一些情况下保存/加载缓存；**配置文件变更**：详见更新日志CHANGELOG.md；
 > [更新日志（网页）](https://github.com/OpaqueGlass/listChildDocs/blob/main/CHANGELOG.md) 
 > 
 > 插入时模式为`默认`、启用自动刷新、层级1、分栏1、大纲层级3；如要修改插入时默认设置，请参考自定义说明部分。
@@ -70,6 +70,9 @@
    3. ~~任务列表~~ 
       
       - ~~`任务列表`：（文档中）~~ 【已知问题！刷新将创建一个新的任务列表，导致丢失任务的完成信息】（建议使用模板完成创建）；
+   4. 导图；（依赖Markmap）
+   5. 预览方格；（同时提供子文档的开头部分内容预览）
+   6. 按时间分组；（按创建/更新日期倒序分组显示）
 
 7. 大纲层级：列出大纲时，设定大纲的显示层级数；
 
@@ -91,6 +94,54 @@
 
     ==刷新时间较长，不建议开启== 
 
+### 代码片段
+
+#### 自动插入助手
+
+启用后，可以在打开父文档时，自动对空白的父文档插入listChildDocs挂件；（只有空段落块或只有空格的文档也认为是空文档）
+
+由于需要检查是否有子文档、父文档是否为空白，**可能导致打开文档卡顿**！发现异常请停止使用（设置-外观-代码片段-JS-删除，然后重启思源）。
+
+1. 在`config.js`（或`custom.js`）中启用只读安全模式`safeModePlus`（设置为`true`）。
+
+2. 在 设置-外观-代码片段-JS 中添加代码片段（复制以下内容）：
+
+    ```javascript
+    import("/widgets/listChildDocs/src/addChildDocLinkHelper.js");
+    ```
+
+#### 1.1.url模式显示效果修改
+
+复制以下内容，在 设置-外观-代码片段-CSS 中添加代码片段：
+
+```css
+/* 不显示无序列表* */
+.list[custom-list-format*=standard-ol-on-ul][data-subtype="u"] .protyle-action {
+    display: none !important;
+    border: 0;
+}
+/* 左侧间距调整 */
+.protyle-wysiwyg [custom-list-format*=standard-ol-on-ul][data-subtype="u"] [data-node-id].li>[data-node-id] {
+    margin-left: 5px !important;
+}
+/* 无序列表行距调整 */
+.protyle-wysiwyg [custom-list-format*=standard-ol-on-ul][data-subtype="u"]  [data-node-id] {
+    margin-top: 0px;
+    margin-bottom: 1px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.protyle-wysiwyg [custom-list-format*=standard-ol-on-ul][data-subtype="u"] .li {
+    min-height: 30px;
+}
+/* 列表提示线调整 */
+.protyle-wysiwyg  [custom-list-format*=standard-ol-on-ul][data-subtype="u"] [data-node-id].li:before {
+    top: 30px;
+    left: 15px;
+}
+```
+
 ### 自定义说明
 
 #### 在`config.js`中直接更改设置
@@ -105,7 +156,7 @@
 
 - 只读安全模式`safeModePlus`：默认启用。
 
-  启用后，当挂件检测到目前是历史预览页面、启用了只读模式或挂件所在文档页签不存在时，将禁止挂件刷新文档中的目录。拦截到刷新文档目录的操作时，将在挂件内输出错误提示。
+  启用后，当挂件检测到目前是历史预览页面、启用了只读模式或挂件所在文档页签不存在时，将禁止挂件刷新文档中的目录。拦截到刷新文档目录的操作时，将在挂件内显示错误提示。
 
 - 挂件中展示目录时，根据目录长度自动更改挂件高度： `autoHeight`；默认禁用；
 
@@ -121,21 +172,9 @@
 
 > 测试中，可能存在缺陷。理论上，即使更新挂件，这里进行覆盖的设置仍然可以保留。
 >
->  
->
-> **开发者可能在后续版本更改到其他路径，请留意版本更新日志。**
->
-> 您可以自行修改自定义配置项的读取路径，但挂件升级后需要重新修改。
->
-> `${思源data目录}/widgets/listChildDocs/src/config.js`中搜索：
->
-> ```js
->     let allCustomConfig = await import('/widgets/custom.js');
-> ```
->
-> 并将其中的`'/widgets/custom.js'`替换为您需要的路径，例如`'/storage/widget-custom.js'`。
+> 仍然支持旧版本读取路径`${思源data目录}/widgets/custom.js`。
 
-创建或编辑`${思源data目录}/widgets/custom.js`\*，仅支持`config.js`文件中`custom_attr`（创建挂件时的默认设置）、`setting`（全局设置）、`helperSettings`（自动插入助手设置）下的设置项。以下是一个示例。
+创建或编辑`${思源data目录}/snippets/widget.lcd.custom.js`\*，仅支持`config.js`文件中`custom_attr`（创建挂件时的默认设置）、`setting`（全局设置）、`helperSettings`（自动插入助手设置）下的设置项。以下是一个示例。
 
 ```javascript
 /*方式1：若之前有config，需要添加listChildDocs的部分*/
@@ -194,7 +233,7 @@ export const listChildDocs = {
   - 请避免过快地刷新文档列表；
   - 如果要<u>多设备同步文档</u>、且<u>挂件所在文档要写其他内容</u>时，**请勿使用自动刷新**[^1]；
 - 每次刷新时，将完全更新列表（即使子文档没有变化，也将更新列表全部内容）；
-- **如果未完成同步，请勿点击刷新按钮**[^1]：
+- **如果未完成同步，请勿点击刷新按钮**（多端同步前刷新可能导致同步覆盖）[^1]：
   - 单击刷新按钮会更新文档中的目录列表或更新挂件目录列表缓存，文档编辑时间将被更新；
   - 双击刷新按钮会保存设置（设定挂件属性），文档编辑时间将被更新；
 - 切换页签时自动刷新的方法有点玄学，可能在未来的版本更新中无法使用；
@@ -207,7 +246,7 @@ export const listChildDocs = {
   - 请避免图片路径包括特殊符号，例如`()%& `，如果包括，不能确定实际效果;
   - 暂不支持网络emoji；
 
-> 注：关于多端同步前刷新的详细说明，请阅读[同步风险说明](https://github.com/OpaqueGlass/listChildDocs/blob/main/about_auto_refresh.md)（挂件所在目录下的about_auto_refresh.md）。
+> 注：关于多端同步前刷新的详细说明，请阅读[FAQ](https://github.com/OpaqueGlass/listChildDocs/blob/main/faq.md)（挂件所在目录下的faq.md）。
 
 ## 反馈bug
 

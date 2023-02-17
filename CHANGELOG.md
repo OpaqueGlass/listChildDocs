@@ -5,10 +5,15 @@
 - 新增：导图模式、预览方格模式、按时间分组模式；（新模式有独立设定，或会屏蔽统一设定）
 - 改进：在一些情况下缓存挂件内目录列表；
 - 改进：一些显示效果优化；
+- 改进：文档中目录列表属性写入方式；
 - 新增：（代码片段）自动插入助手；
 - `config.js`全局设置变更：
   - 移除：完全移除`showEndDocOutline`；
-  - 新增：
+  - 新增：挂件设置批量操作（`overwriteIndependentSettings`等）；
+  - 新增：导图模式Markmap配置项`markmapConfig`；
+  - 新增：目录列表初始属性`blockInitAttrs`；
+  - 新增：缓存配置`loadCacheWhileAutoEnable`、`saveCacheWhileAutoEnable`；
+
 
 ### v0.1.0 (2022-12-28)
 
