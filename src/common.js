@@ -45,10 +45,10 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
             console.warn("界面更新，请@开发者重新适配");
             return false;
         }
-        if (anyDocEditable == "false" && config.anyDoc) {
-            console.warn("存在一个文档为只读状态");
-            return false;
-        }
+        // if (anyDocEditable == "false" && config.anyDoc) {
+        //     console.warn("存在一个文档为只读状态");
+        //     return false;
+        // }
         // 判定文档已打开&只读模式【挂件所在文档在窗口中，且页面为编辑状态，则放行】
         // 只读模式判定警告：若在闪卡页面，且后台开启了当前文档（编辑模式），只读不会拦截
         // console.log($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false");
@@ -67,6 +67,9 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
                 console.warn("未在窗口中找到目标文档（文档所在文档编辑器可能未打开），为防止后台更新，此操作已拦截。");
                 return false;
             }
+        }
+        if (candidateThisDocEditor == null && candidateThisDocPopup == null) {
+            console.warn("找不到挂件所在文档");
         }
         // 判定只读模式
         // $(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false"

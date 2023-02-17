@@ -812,9 +812,9 @@ class OrderByTimePrinter extends Printer {
             queryStmt += `ORDER BY created DESC `;
         }
         queryStmt += `LIMIT ${$("#mode12_doc_num").val()}`;
-        console.warn("SQL", queryStmt);
+        // console.warn("SQL", queryStmt);
         let queryDocsResponse = await queryAPI(queryStmt);
-        console.log("RES", queryDocsResponse);
+        // console.log("RES", queryDocsResponse);
         if (!isValidStr(queryDocsResponse) || queryDocsResponse.length <= 0) {
             return language["noChildDoc"];
         }

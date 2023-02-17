@@ -443,6 +443,9 @@ function printError(msgText, clear = true) {
 
 function saveContentCache(textString = g_contentCache) {
     console.info("[SAVE]保存缓存中");
+    if (isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId) == false) {
+        console.warn("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
+    }
     let response = addblockAttrAPI({ "custom-lcd-cache": textString }, thisWidgetId);
 }
 
@@ -554,7 +557,7 @@ async function __main(manual = false, justCreate = false) {
         }
         await loadContentCache(textString, modeDoUpdateFlag, notebook, targetDocPath);
         if (myPrinter.write2file == 0) g_contentCache = textString;
-        if (manual && myPrinter.write2file == 0 && setting.safeModePlus && isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId)) {
+        if ((manual || setting.saveCacheWhileAutoEnable) && myPrinter.write2file == 0 && isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId)) {
             saveContentCache(textString);
         }else if (myPrinter.write2file == 0){
             console.log("只读模式，或未启用只读安全模式，不进行缓存。");
@@ -874,18 +877,7 @@ async function __init() {
     if (custom_attr.listColumn > 1) {
         setColumn();
     }
-    //自动更新
-    if (custom_attr.auto) {
-        //在更新/写入文档时截停操作（安全模式）
-        if (setting.safeMode && myPrinter.write2file == 1) return;
-        // 挂件刚创建，且写入文档，禁止操作，因为widgetId未入库，无法创建；
-        if (justCreate && myPrinter.write2file == 1) return;
-        //设定事件监听
-        __setObserver();
-        //尝试规避 找不到块创建位置的运行时错误
-        // setTimeout(()=>{ __main(true)}, 1000);
-        __main(false, justCreate);//初始化模式
-    }else if (myPrinter.write2file == 0 && !custom_attr.auto) {
+    if (myPrinter.write2file == 0 && (!custom_attr.auto || setting.loadCacheWhileAutoEnable) ) {
         $("#updateTime").text(language["loading"]);
         let loadResult = false;
         try{
@@ -898,6 +890,18 @@ async function __init() {
         }else{
             $("#updateTime").text(language["loadCacheFailed"]);
         }
+    }
+    //自动更新
+    if (custom_attr.auto) {
+        //在更新/写入文档时截停操作（安全模式）
+        if (setting.safeMode && myPrinter.write2file == 1) return;
+        // 挂件刚创建，且写入文档，禁止操作，因为widgetId未入库，无法创建；
+        if (justCreate && myPrinter.write2file == 1) return;
+        //设定事件监听
+        __setObserver();
+        //尝试规避 找不到块创建位置的运行时错误
+        // setTimeout(()=>{ __main(true)}, 1000);
+        __main(false, justCreate);//初始化模式
     }
     // 插入“addChildDocLinkHelper.js判断挂件是否存在”所需要的custom-addcdlhelper属性
     if (!justCreate && setting.addChildDocLinkHelperEnable && isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId)) {

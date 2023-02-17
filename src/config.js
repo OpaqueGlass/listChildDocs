@@ -105,8 +105,8 @@ let setting = {
     // 挂件内时，扩大点击响应范围为整行
     extendClickArea: true,
 
-    // 适配挂件插入辅助（addChildDocLinkHelper.js）（不建议一直开启，请开启此功能后几天关闭）
-    // 若开启helperSettings.checkEmptyDocInsertWidget，无需打开此功能
+    // 适配挂件插入辅助（addChildDocLinkHelper.js）的属性检测模式，为所在文档插入属性（不建议一直开启，请开启此功能后几天关闭）
+    // 默认情况下，无需打开此功能
     addChildDocLinkHelperEnable: false,
 
     // 首次创建目录块时插入的目录属性
@@ -123,10 +123,16 @@ let setting = {
     // 导图模式Markmap配置项，详见https://markmap.js.org/docs/json-options
     markmapConfig: {},
 
-    // 
+    // 按时间分组模式，显示日期的格式，yyyy将被替换为4位年，MM将被替换为两位数月份，dd将被替换为两位数日
     dateTemplate: "MM-dd",
-    // 
+    // 按时间分组模式，显示时间的格式，设置为""则不显示时间，HH将被替换为小时（24小时制），mm将被替换为分钟
     timeTemplate: "(HH:mm)",
+
+    // 缓存只对挂件中显示的模式有效
+    // 先载入缓存，再执行自动刷新
+    loadCacheWhileAutoEnable: false,
+    // 在自动刷新时也自动保存缓存（!同步用户请注意：多端同步未完成时保存缓存，可能导致同步覆盖）
+    saveCacheWhileAutoEnable: false,
 };
 // 自动插入助手设置
 // 自动插入助手和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
@@ -192,12 +198,12 @@ let zh_CN = {
     modeName12: "按日期分组",
     // 界面元素鼠标悬停提示词
     refreshBtn: "[单击] 刷新\n[双击] 保存设置\n听说双击我可以保存设置，不知道真的假的。",
-    depthList: "子文档展示层级\n设置为0就可以显示大纲啦​~\(≧▽≦)/~​​​",
+    depthList: "子文档展示层级\n设置为0就可以只显示大纲啦​~\(≧▽≦)/~​​​",
     modeList: "挂件工作模式",
     autoBtn: "自动刷新\n启用安全模式时，对文档中目录列表无效",
-    targetIdTitle: "目标文档id\n从这里指定的文档或笔记本开始查找文档，设定为/则从所有已开启的笔记本开始",
+    targetIdTitle: "目标文档id\n从这里指定的文档或笔记本开始列出子文档，设定为/则从所有已开启的笔记本开始",
     disabledBtnHint: "\n因为不支持当前模式，我被禁用了T^T",
-    endDocOutlineTitle: "对于目录列表中不显示子文档的文档，显示其大纲",
+    endDocOutlineTitle: "对于目录列表中没有子文档的，显示其大纲",
     hideRefreshBtnTitle: "将刷新按钮搬运到设置中，防止误触",
     // 错误提示词
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
@@ -218,7 +224,7 @@ let zh_CN = {
     cacheLoaded: "已载入缓存",
     loadCacheFailed: "未能载入文档列表缓存",
     wrongTargetId: "错误的目标id。目标id应为存在的文档块id、开启的笔记本id或/",
-    readonly: "工作在只读模式，禁止对文档的更改操作。如果当前不是只读模式，麻烦向开发者反馈此问题。如要关闭此安全检查，请修改自定义设置safeModePlus为false。",
+    readonly: "检测到只读模式，已停止对文档的更改操作。",
     saveDefaultStyleFailed: "保存默认挂件样式设定失败，如反复出现此问题，请禁用saveDefaultWidgetStyle。",
     // 自动插入助手提示
     helperAddBlockMemo: "自动插入的子文档链接块：在此块下的编辑将在文档变化时被覆盖",
@@ -226,7 +232,7 @@ let zh_CN = {
     helperErrorHint: "helper执行时发生错误，如果可以，请向开发者反馈：",
     // 模式内部提示12
     mode12_doc_num_text: "展示的文档数",
-    mode12_update_hint: "按照更新时间排列",
+    mode12_update_hint: "按照更新时间排列\n禁用则按照创建时间排列",
     mode12_today: "（今天）",
     mode12_yesterday: "（昨天）",
     mode12_day_ago: "（%%天前）",
@@ -262,6 +268,9 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modeList: "Output mode",
     autoBtn: "'Auto' Refresh",
     targetIdTitle: "Target doc id",
+    disabledBtnHint: "\nDisabled by current mode.",
+    endDocOutlineTitle: "For the documents that have no subdocuments, display their outline.",
+    hideRefreshBtnTitle: "Hint refresh button into settings.",
     // 错误提示词error warn
     getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
     startRefresh: "Updating child-doc-list ... --- list child docs widget",
@@ -308,8 +317,17 @@ let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_
 
 
 // 导入外部config.js 测试功能，如果您不清楚，请避免修改此部分；
+let allCustomConfig = null;
+let newPlace = false;
 try {
-    let allCustomConfig = await import('/widgets/custom.js');
+    allCustomConfig = await import("/snippets/widget.lcd.custom.js");
+    newPlace = true;
+}catch(err) {
+    console.log("listChildDocs在新位置未找到配置文件");
+}
+
+try {
+    if (!newPlace) allCustomConfig = await import('/widgets/custom.js');
     let customConfig = null;
     let customConfigName = "listChildDocs";
     if (allCustomConfig[customConfigName] != undefined) {
@@ -351,7 +369,7 @@ try {
         }
         
     }
-    
+    console.log("成功从配置文件载入用户配置");
 }catch (err) {
     console.warn("导入用户自定义设置时出现错误", err);
 }
@@ -369,4 +387,7 @@ export {custom_attr, token, language, setting, helperSettings};
 7 1.引用块
 8 1.1.url
 9 todo列表（任务列表）url
+10 导图
+11 预览方格
+12 按时间分组
 */
