@@ -989,7 +989,7 @@ function getEmojiHtmlStr(iconString, hasChild) {
         }
         
     } else {
-        result = emojiIconHandler(iconString, hasChild);
+        result = `<span class="emojitext">${emojiIconHandler(iconString, hasChild)}</span>`;
     }
     return result;
 }

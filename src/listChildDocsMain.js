@@ -677,6 +677,7 @@ function setDefaultTitle() {
     $("#targetId").attr("title", language["targetIdTitle"]);
     $("#endDocOutline").attr("title", language["endDocOutlineTitle"]);
     $("#hideRefreshBtn").attr("title", language["hideRefreshBtnTitle"]);
+    $("#outlinedepth").attr("title", language["outlineDepthTitle"]);
 
     $("#depthhint").text(language["depthHint"]);
     $("#columnhint").text(language["columnHint"]);
@@ -686,6 +687,7 @@ function setDefaultTitle() {
     $("#targetIdhint").text(language["targetIdhint"]);
     $("#hideRefreshBtnHint").text(language["hideRefreshBtnHint"]);
     
+    $("#autoMode").prop("disabled", false);
 }
 /**
  * 重新获取Printer
@@ -734,6 +736,12 @@ function __refreshPrinter(init = false) {
         let title = $(this).attr("title")??"";
         $(this).attr("title", title + language["disabledBtnHint"]);
     })
+    if (myPrinter.write2file && setting.safeMode) {
+        let title = $("#autoMode").attr("title")??"";
+        $("#autoMode").attr("title", title + language["autoNotWork"]);
+        $("#autoMode").prop("disabled", true);
+        // custom_attr.auto = false;
+    }
     __loadSettingToUI();
 }
 //重新从html读取设定，读取id，更改自动模式//解耦，不再更改外观
@@ -846,13 +854,14 @@ async function __init() {
     };
     // 监视Input变化，设置为显示大纲时，显示大纲层级选项
     document.getElementById("endDocOutline").addEventListener("change", function(e){
+        console.log("CH");
         if (document.getElementById("endDocOutline").checked == true) {
-            $("#outlinedepthhint, #outlinedepth").css("display", "");
+            $("#outlinedepthhint, #outlinedepth").css("display", "inline");
         }
     });
     document.getElementById("listDepth").addEventListener("change", function(){
         if ($("#listDepth").val() == 0) {
-            $("#outlinedepthhint, #outlinedepth").css("display", "");
+            $("#outlinedepthhint, #outlinedepth").css("display", "inline");
         }
     });
     // 挂件内及时响应分列变化

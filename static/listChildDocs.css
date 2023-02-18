@@ -24,6 +24,14 @@ button {
     font-size: 16px;
     min-width: 15px;
     background-color: #f0f0f022;
+    cursor: pointer;
+}
+
+/* max-device-width 已过时，但替换为max-width可能导致电脑也变化*/
+@media screen and (max-device-width: 768px) { 
+    button {
+        margin-right: 1.7em;
+    }
 }
 
 select,
@@ -45,7 +53,17 @@ input {
     font-size: 16px;
     min-width: 15px;
     background-color: #f0f0f022;
+    cursor: pointer;
     /* background-color:darkslategray;
+    color: white; */
+}
+
+
+select:disabled,
+input:disabled {
+    border: 1px solid rgba(118, 118, 118, 0.3);
+    color: rgba(84, 84, 84, 0.3);
+    /* background-color:darkslategray
     color: white; */
 }
 
@@ -66,7 +84,7 @@ input[type="checkbox"] {
     width: 5em;
 }
 
-#innerSetting > *{
+#innerSetting > * {
     display: none;
 }
 
@@ -329,6 +347,10 @@ input:hover {
 }
 
 
+.emojitext {
+    font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'Apple Color Emoji',
+    'Twemoji Mozilla', 'Noto Color Emoji', 'Android Emoji';
+}
 
 body {
     padding: 0;

@@ -200,11 +200,13 @@ let zh_CN = {
     refreshBtn: "[单击] 刷新\n[双击] 保存设置\n听说双击我可以保存设置，不知道真的假的。",
     depthList: "子文档展示层级\n设置为0就可以只显示大纲啦​~\(≧▽≦)/~​​​",
     modeList: "挂件工作模式",
-    autoBtn: "自动刷新\n启用安全模式时，对文档中目录列表无效",
+    autoBtn: "自动刷新",
+    autoNotWork: "\n由于启用了安全模式（safeMode），自动刷新对当前工作模式无效。",
     targetIdTitle: "目标文档id\n从这里指定的文档或笔记本开始列出子文档，设定为/则从所有已开启的笔记本开始",
     disabledBtnHint: "\n因为不支持当前模式，我被禁用了T^T",
-    endDocOutlineTitle: "对于目录列表中没有子文档的，显示其大纲",
+    endDocOutlineTitle: "启用后，对于目录列表中没有子文档的，将显示大纲",
     hideRefreshBtnTitle: "将刷新按钮搬运到设置中，防止误触",
+    outlineDepthTitle: "大纲层级\n大纲层级和h1、h2等无关，以大纲面板显示的层次为准。",
     // 错误提示词
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
     startRefresh: "开始更新子文档列表---来自listChildDocs挂件的通知",
@@ -232,7 +234,7 @@ let zh_CN = {
     helperErrorHint: "helper执行时发生错误，如果可以，请向开发者反馈：",
     // 模式内部提示12
     mode12_doc_num_text: "展示的文档数",
-    mode12_update_hint: "按照更新时间排列\n禁用则按照创建时间排列",
+    mode12_update_hint: "按照更新时间排列",
     mode12_today: "（今天）",
     mode12_yesterday: "（昨天）",
     mode12_day_ago: "（%%天前）",
@@ -260,17 +262,19 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modeName8: "1.1.url",
     modeName9: "todo list",
     modeName10: "markmap",
-    modeName11: "Preview Box",
-    modeName12: "Group by date",
+    modeName11: "preview box",
+    modeName12: "group by date",
     // 界面元素鼠标悬停提示词 hangover popup words
     refreshBtn: "[Click] Refresh\n[Double click] Save Settings",
-    depthList: "Number of layers of child-docs display",
+    depthList: "The number of display levels for the child docs",
     modeList: "Output mode",
     autoBtn: "'Auto' Refresh",
-    targetIdTitle: "Target doc id",
+    autoNotWork: "\nNot available for current output mode, because safe mode is enabled",
+    targetIdTitle: "Target doc id\nAlso accept notebookid, '/' as target id.",
     disabledBtnHint: "\nDisabled by current mode.",
     endDocOutlineTitle: "For the documents that have no subdocuments, display their outline.",
-    hideRefreshBtnTitle: "Hint refresh button into settings.",
+    hideRefreshBtnTitle: "Move refresh button into settings.",
+    outlineDepthTitle: "The number of display levels for the doc outine. ",
     // 错误提示词error warn
     getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
     startRefresh: "Updating child-doc-list ... --- list child docs widget",
@@ -301,19 +305,19 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     mode12_update_hint: "Order by update time",
     mode12_today: "today",
     mode12_yesterday: "yesterday",
-    mode12_day_ago: "%% day ago",
+    mode12_day_ago: "%% days ago",
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~
-// let siyuanLanguage;
-// try{
-//     siyuanLanguage = window.top.siyuan.config.lang;
-// }catch (err){
-//     console.warn("读取语言信息失败");
-// }
-// if (siyuanLanguage != zh_CN && siyuanLanguage != undefined) {
-//     language = en_US;
-// }
+let siyuanLanguage;
+try{
+    siyuanLanguage = window.top.siyuan.config.lang;
+}catch (err){
+    console.warn("读取语言信息失败");
+}
+if (siyuanLanguage != "zh_CN" && siyuanLanguage != undefined) {
+    language = en_US;
+}
 
 
 // 导入外部config.js 测试功能，如果您不清楚，请避免修改此部分；
