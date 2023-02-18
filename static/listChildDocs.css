@@ -6,7 +6,7 @@
     background-image: url("./iconSetting.png");
 }
 
-button {
+.app button {
     border: 0px;
     font-weight: 300;
     background-size: auto 1.5em;
@@ -29,13 +29,14 @@ button {
 
 /* max-device-width 已过时，但替换为max-width可能导致电脑也变化*/
 @media screen and (max-device-width: 768px) { 
-    button {
+    .app button {
         margin-right: 1.7em;
     }
 }
 
-select,
-input {
+.app select,
+.app input,
+#dialog_rename_input {
     border: 1px solid sandybrown;
     font-weight: 300;
     background-size: auto 1.5em;
@@ -53,24 +54,41 @@ input {
     font-size: 16px;
     min-width: 15px;
     background-color: #f0f0f022;
-    cursor: pointer;
     /* background-color:darkslategray;
     color: white; */
 }
 
+/* 聚焦选中 */
+.app select:focus-visible,
+.app input:focus-visible,
+#dialog_rename_input:focus-visible {
+    outline: 0px;
+    border-width: 2px;
+}
 
-select:disabled,
-input:disabled {
+.app input[type="number"], .app input[type="text"]{
+    cursor: text;
+}
+
+#dialog_rename_input {
+    width: 100%;
+    cursor: text;
+    text-align: left;
+}
+
+.app select:disabled,
+.app input:disabled {
     border: 1px solid rgba(118, 118, 118, 0.3);
     color: rgba(84, 84, 84, 0.3);
     /* background-color:darkslategray
     color: white; */
 }
 
-input[type="checkbox"] {
+.app input[type="checkbox"] {
     width: 1em;
     height: 1em;
     margin-top: 0.25em;
+    cursor: pointer;
     /* box-sizing: border-box; */
     /* text-align: center;
     display: inline-block; */
@@ -139,7 +157,7 @@ input:hover {
 }
 
 /* 按钮夜间样式 */
-.button_dark, [data-darkmode] .upperbardiv input, [data-darkmode] .upperbardiv select {
+.button_dark, [data-darkmode] .upperbardiv input, [data-darkmode] .upperbardiv select, .dark_dialog #dialog_rename_input  {
     background-color: darkslategray;
     color: white;
 }
@@ -350,6 +368,37 @@ input:hover {
 .emojitext {
     font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'Apple Color Emoji',
     'Twemoji Mozilla', 'Noto Color Emoji', 'Android Emoji';
+}
+/*对话框*/
+.ui-dialog.dark_dialog {
+    background-color: #101010;
+    color: #C9D1D9;
+    box-shadow: none !important;
+}
+
+.ui-dialog.dark_dialog button {
+    color: #C9D1D9;
+    background-color: inherit;
+}
+
+.ui-dialog.dark_dialog button:hover {
+    color: #C9D1D9;
+    background-color: #00000055;
+}
+
+.ui-dialog button[i-id="Delete"], .ui-dialog button[i-id="删除"] {
+    background-color: #dd041e99;
+    color: whitesmoke;
+}
+
+.ui-dialog button[i-id="Delete"]:hover, .ui-dialog button[i-id="删除"]:hover {
+    background-color: #dd041ecc;
+    color: whitesmoke;
+}
+
+/* 内容占据全部宽度 */
+.ui-dialog-content[i="content"] {
+    width: 100%;
 }
 
 body {

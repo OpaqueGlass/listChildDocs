@@ -454,6 +454,11 @@ export async function getDoc(blockid, size = 5, mode = 0) {
     return undefined;
 }
 
+/**
+ * 获取文档导出预览
+ * @param {*} docid 
+ * @returns 
+ */
 export async function getDocPreview(docid) {
     let url = "/api/export/preview";
     let response = await postRequest({id: docid}, url);
@@ -461,4 +466,71 @@ export async function getDocPreview(docid) {
         return response.data.html;
     }
     return "";
+}
+/**
+ * 删除文档
+ * @param {*} notebookid 笔记本id
+ * @param {*} path 文档所在路径
+ * @returns 
+ */
+export async function removeDocAPI(notebookid, path) {
+    let url = "/api/filetree/removeDoc";
+    let response = await postRequest({"notebook": notebookid, "path": path}, url);
+    if (response.code == 0) {
+        return response.code;
+    }
+    console.warn("删除文档时发生错误", response.msg);
+    return response.code;
+}
+/**
+ * 重命名文档
+ * @param {*} notebookid 笔记本id
+ * @param {*} path 文档所在路径
+ * @param {*} title 新文档名
+ * @returns 
+ */
+export async function renameDocAPI(notebookid, path, title) {
+    let url = "/api/filetree/renameDoc";
+    let response = await postRequest({"notebook": notebookid, "path": path, "title": title}, url);
+    if (response.code == 0) {
+        return response.code;
+    }
+    console.warn("重命名文档时发生错误", response.msg);
+    return response.code;
+}
+
+export function isDarkMode() {
+    return window.top.siyuan.config.appearance.mode == 1 ? true : false;
+}
+
+/**
+ * 通过markdown创建文件
+ * @param {*} notebookid 笔记本id
+ * @param {*} hpath 示例 /父文档1/父文档2/你要新建的文档名
+ * @param {*} md 
+ * @returns 
+ */
+export async function createDocWithMdAPI(notebookid, hpath, md) {
+    let url = "/api/filetree/createDocWithMd";
+    let response = await postRequest({"notebook": notebookid, "path": hpath, "markdown": md}, url);
+    if (response.code == 0 && response.data != null) {
+        return response.data.id;
+    }
+    return null;
+}
+
+/**
+ * 
+ * @param {*} notebookid 
+ * @param {*} path 待创建的新文档path，即，最后应当为一个随机的id.sy
+ * @param {*} title 
+ * @returns 
+ */
+export async function createDocWithPath(notebookid, path, title = "Untitled") {
+    let url = "/api/filetree/createDoc";
+    let response = await postRequest({"notebook": notebookid, "path": path, "md": "", "title": title}, url);
+    if (response.code == 0) {
+        return true;
+    }
+    return false;
 }

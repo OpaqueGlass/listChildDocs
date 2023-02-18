@@ -19,11 +19,16 @@ import {
     getDocOutlineAPI,
     getNodebookList,
     getKramdown,
-    removeBlockAPI
+    removeBlockAPI,
+    removeDocAPI,
+    renameDocAPI,
+    isDarkMode,
+    createDocWithMdAPI,
+    createDocWithPath
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
 import { openRefLink, showFloatWnd } from './ref-util.js';
-import { isInvalidValue, isSafelyUpdate, isValidStr, pushDebug, transfromAttrToIAL } from './common.js';
+import { generateBlockId, isInvalidValue, isSafelyUpdate, isValidStr, pushDebug, transfromAttrToIAL } from './common.js';
 
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = "") {
@@ -451,6 +456,7 @@ function saveContentCache(textString = g_contentCache) {
 
 /**
  * 挂件内载入缓存
+ * 也用于直接刷新
  */
 async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = undefined, notebook = undefined, targetDocPath = undefined) {
     if (myPrinter.write2file) return false;
@@ -480,7 +486,10 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
         //设定分列值
         setColumn();
     }
-    $(".handle-ref-click").click(openRefLink);
+    $(".handle-ref-click").on("click", openRefLink);
+    if (setting.deleteOrRenameEnable) {
+        $(".handle-ref-click").on("mousedown", deleteOrRename);
+    }
     //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
     if (window.top.siyuan.config.appearance.mode == 1) {
         $("#linksList").addClass("childDocLinks_dark");
@@ -812,6 +821,90 @@ function __loadSettingToUI() {
     document.getElementById("hideRefreshBtn").checked = custom_attr["hideRefreshBtn"];
 }
 
+// 删除或重命名处理
+async function deleteOrRename(mouseEvent) {
+    if (mouseEvent.buttons != 2) return;
+    if (setting.backToParent != "false" && $(mouseEvent.currentTarget).text().includes("../")) return;
+    mouseEvent.stopPropagation();
+    mouseEvent.preventDefault();
+    let docId = $(mouseEvent.currentTarget).attr("data-id");
+    if (!isValidStr(docId)) {
+        return;
+    }
+    let queryResponse = await queryAPI(`SELECT * FROM blocks WHERE id = "${docId}" AND type = "d"`);
+    if (isInvalidValue(queryResponse) || queryResponse.length != 1) {
+        return;
+    }
+    let docName = queryResponse[0].content;
+    let deleteDialog = dialog({
+        title: language["dialog_delete"],
+        content: language["dialog_delete_hint"].replace(new RegExp("%%", "g"), docName),
+        quickClose: true,
+        ok: async function() {
+            await removeDocAPI(queryResponse[0].box, queryResponse[0].path);
+            __main(true);
+        },
+        cancel: function() {return true;},
+        okValue: language["dialog_confirm"],
+        cancelValue: language["dialog_cancel"],
+        skin: isDarkMode()?"dark_dialog":""
+    });
+    let renameDialog = dialog({
+        title: `${language["dialog_option"]}: ${docName}`,
+        content: `<input id="dialog_rename_input" type="text" value="${docName}" autofocus onfocus="this.select();" />`,
+        quickClose: true,
+        button: [
+            {
+                value: language["dialog_create_doc"],
+                callback: async function() {
+                    let newName = $("#dialog_rename_input").val();
+                    if (newName == docName || !isValidStr(newName)) {
+                        newName = "Untitled";
+                    }
+                    // 这个createDocWithMdAPI不太稳定 @_@
+                    // let id = await createDocWithMdAPI(queryResponse[0].box, queryResponse[0].hpath + `/${newName}`, "");
+                    let id = generateBlockId();
+                    await createDocWithPath(queryResponse[0].box,
+                         queryResponse[0].path.substring(0, queryResponse[0].path.length - 3) + `/${id}.sy`, newName);
+                    openRefLink(undefined, id);
+                }
+            },
+            {
+                value: language["dialog_delete"],
+                callback: function() {
+                    deleteDialog.show(mouseEvent.currentTarget);
+                    return true;
+                }
+            }
+        ],
+        ok: async function() {
+            let newName = $("#dialog_rename_input").val();
+            if (newName == docName) return true;
+            await renameDocAPI(queryResponse[0].box, queryResponse[0].path, newName);
+            setTimeout(function(){__main(true)}, 300);
+            return true;
+        },
+        cancel: function() {return true;},
+        okValue: language["dialog_rename"],
+        cancelValue: language["dialog_cancel"],
+        // onshow: function() {
+        //     $("#dialog_rename_input")
+        //     $("#dialog_rename_input").on("focus", () =>{this.select();});
+        // }
+        skin: isDarkMode()?"dark_dialog":""
+    });
+    if (mouseEvent.ctrlKey){
+        deleteDialog.show(mouseEvent.currentTarget);
+    }else{
+        renameDialog.show(mouseEvent.currentTarget);
+        // electron中，不支持prompt
+        // let newName = await prompt(`重命名文档(${docName})：`, docName);
+        // if (isValidStr(newName) && newName.indexOf("/") == -1) {
+        //     await renameDocAPI(queryResponse[0].box, queryResponse[0].path, newName);
+        // }
+    }
+}
+
 async function __init() {
     pushDebug("init内");
     //获取id，用于在载入页面时获取挂件属性
@@ -854,7 +947,6 @@ async function __init() {
     };
     // 监视Input变化，设置为显示大纲时，显示大纲层级选项
     document.getElementById("endDocOutline").addEventListener("change", function(e){
-        console.log("CH");
         if (document.getElementById("endDocOutline").checked == true) {
             $("#outlinedepthhint, #outlinedepth").css("display", "inline");
         }

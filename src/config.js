@@ -133,6 +133,9 @@ let setting = {
     loadCacheWhileAutoEnable: false,
     // 在自动刷新时也自动保存缓存（!同步用户请注意：多端同步未完成时保存缓存，可能导致同步覆盖）
     saveCacheWhileAutoEnable: false,
+
+    // 右键重命名或删除操作
+    deleteOrRenameEnable: true,
 };
 // 自动插入助手设置
 // 自动插入助手和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
@@ -238,6 +241,14 @@ let zh_CN = {
     mode12_today: "（今天）",
     mode12_yesterday: "（昨天）",
     mode12_day_ago: "（%%天前）",
+    // 对话框dialog
+    dialog_delete: "删除",
+    dialog_delete_hint: "确定要删除所选文档“%%”吗？<br />请注意，子文档也将被一并删除（如果有）。",
+    dialog_rename: "重命名",
+    dialog_cancel: "取消",
+    dialog_confirm: "确定",
+    dialog_create_doc: "新建子文档",
+    dialog_option: "选项",
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
@@ -306,6 +317,14 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     mode12_today: "today",
     mode12_yesterday: "yesterday",
     mode12_day_ago: "%% days ago",
+    // dialog
+    dialog_delete: "Delete",
+    dialog_delete_hint: "Are you sure you want to delete the selected document \"%%\"?<br />Please note that if there are subdocuments, they will also be deleted.",
+    dialog_rename: "Rename",
+    dialog_cancel: "Cancel",
+    dialog_confirm: "OK",
+    dialog_create_doc: "Create_child_doc",
+    dialog_option: "Option",
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~

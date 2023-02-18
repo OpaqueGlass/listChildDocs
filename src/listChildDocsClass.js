@@ -547,7 +547,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         // console.log("导图模式限制层宽", markmapConfig.maxWidth);
         Object.assign(markmapConfig, setting.markmapConfig);
         window.markmap.Markmap.create('#markmap', markmapConfig, root);
-        $("#markmap a").click((event)=>{
+        $("#markmap a").on("click",(event)=>{
             event.preventDefault();
             event.stopPropagation();
             let url = event.target.getAttribute("href");
@@ -652,7 +652,7 @@ class ContentBlockPrinter extends Printer {
             let crIndex = temp.search("</p>");
             if (crIndex != -1) {
                 trimedHtml = previewHtml.substring(0, TRIM_THRESHOLD + crIndex + 1);
-                console.warn("强制截断了预览内容");
+                console.log("预览内容过长，强制截断了预览内容");
             }
         }
         let cleanedHtml = this.cleanDocHtml(trimedHtml);

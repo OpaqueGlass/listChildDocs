@@ -1,6 +1,6 @@
 ## list Child Docs列出子文档
 
-> 当前版本： v0.2.0 **新增**：挂件内 导图(markmap)、预览方格和按时间分组模式；**新增**：自动插入助手（使用代码片段自动插入挂件）；**改进**：一些显示改进；**改进**：（挂件内模式）在一些情况下保存/加载缓存；**配置文件变更**：详见更新日志CHANGELOG.md；
+> 当前版本： v0.2.0 **新增**：挂件内 导图(markmap)、预览方格和按时间分组模式；**新增**：自动插入助手（使用代码片段自动插入挂件）；**新增**右键子文档显示操作选项；**改进**：一些显示改进；**改进**：（挂件内模式）在一些情况下保存/加载缓存；**配置文件变更**：详见更新日志CHANGELOG.md；
 > [更新日志（网页）](https://github.com/OpaqueGlass/listChildDocs/blob/main/CHANGELOG.md) 
 > 
 > 插入时模式为`默认`、启用自动刷新、层级1、分栏1、大纲层级3；如要修改插入时默认设置，请参考自定义说明部分。
@@ -21,6 +21,12 @@
   - 挂件被加载（例如：点击文档树打开所在文档）；
   - 点击所在文档页签；（默认仅windows）
 
+### 快速开始
+
+- 双击刷新按钮保存设置项；
+- 鼠标悬停在按钮或设置项上，将显示提示；
+- 关于模式可以切换试用一下；
+- 建议往下阅读`注意`部分。
 
 ## 设置项说明
 
@@ -303,6 +309,14 @@ https://d3js.org v6.7.0 Copyright 2021 Mike Bostock
 Day.js is licensed under a MIT License.
 https://github.com/iamkun/dayjs/
 https://day.js.org/
+```
+
+5. [artDialog](https://github.com/aui/artDialog)
+
+```
+免费，且开源，基于LGPL-3.0协议。
+https://github.com/aui/artDialog
+aui.github.io/artDialog/
 ```
 
 ### 图标
