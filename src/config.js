@@ -161,7 +161,11 @@ let helperSettings = {
 /* 仅插入挂件模式 */
     // 检查文档是否为空？设置为false，将通过文档的属性判断是否插入过。
     checkEmptyDocInsertWidget: true,
-    // 选择触发时机："open": 开启空白的父文档时；"create": 在空白父文档下创建子文档时（不建议修改为create）
+    // 选择触发时机：
+        /*
+        // "open": 开启空白的父文档时；
+        // "create": 在空白父文档下创建子文档时（不建议修改为create，在这种实现方式下，将持续获取WebSocket通信并判断是否进行了创建文档操作）；
+        */
     insertWidgetMoment: "open",
     // 要插入的挂件路径信息
     widgetPath: ["widgets/listChildDocs"],
