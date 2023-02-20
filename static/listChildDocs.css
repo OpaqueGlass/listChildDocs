@@ -369,7 +369,7 @@ input:hover {
     font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'Apple Color Emoji',
     'Twemoji Mozilla', 'Noto Color Emoji', 'Android Emoji';
 }
-/*对话框*/
+/*****************************对话框*/
 .ui-dialog.dark_dialog {
     background-color: #101010;
     color: #C9D1D9;

@@ -488,7 +488,12 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
     }
     $(".handle-ref-click").on("click", openRefLink);
     if (setting.deleteOrRenameEnable) {
-        $(".handle-ref-click").on("mousedown", deleteOrRename);
+        $(".handle-ref-click").on("mousedown", clickHandler);
+        $(".handle-ref-click").on({
+            "touchstart": touchstartHandler,
+            "touchend": touchendHandler,
+            "touchmove": touchmoveHandler
+        });
     }
     //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
     if (window.top.siyuan.config.appearance.mode == 1) {
@@ -821,13 +826,43 @@ function __loadSettingToUI() {
     document.getElementById("hideRefreshBtn").checked = custom_attr["hideRefreshBtn"];
 }
 
-// 删除或重命名处理
-async function deleteOrRename(mouseEvent) {
+/**
+ * 移动端长按适配
+ */
+async function touchstartHandler(touchEvent) {
+    clearTimeout(g_longTouchTimeout);
+    let target = touchEvent?.currentTarget ?? touchEvent.target;
+    // pushDebug(target);
+    g_longTouchFlag = false;
+    g_longTouchTimeout = setTimeout(()=>{deleteOrRename(target, false);g_longTouchFlag = true;}, 2000);
+}
+
+async function touchmoveHandler(touchEvent) {
+    clearTimeout(g_longTouchTimeout);
+}
+
+async function touchendHandler(touchEvent) {
+    clearTimeout(g_longTouchTimeout);
+    let target = touchEvent?.currentTarget ?? touchEvent.target;
+    touchEvent.stopPropagation();
+    // touchEvent.preventDefault();
+    // if (!g_longTouchFlag) {
+    //     openRefLink(touchEvent);
+    // }
+}
+
+async function clickHandler(mouseEvent) {
     if (mouseEvent.buttons != 2) return;
     if (setting.backToParent != "false" && $(mouseEvent.currentTarget).text().includes("../")) return;
     mouseEvent.stopPropagation();
     mouseEvent.preventDefault();
-    let docId = $(mouseEvent.currentTarget).attr("data-id");
+    await deleteOrRename(mouseEvent.currentTarget, mouseEvent.ctrlKey);
+}
+
+// 删除或重命名处理
+async function deleteOrRename(target, ctrlKey) {
+try{
+    let docId = $(target).attr("data-id");
     if (!isValidStr(docId)) {
         return;
     }
@@ -845,9 +880,10 @@ async function deleteOrRename(mouseEvent) {
             __main(true);
         },
         cancel: function() {return true;},
+        autofocus: false,
         okValue: language["dialog_confirm"],
         cancelValue: language["dialog_cancel"],
-        skin: isDarkMode()?"dark_dialog":""
+        skin: isDarkMode()?"dark_dialog delete_dialog":"delete_dialog"
     });
     let renameDialog = dialog({
         title: `${language["dialog_option"]}: ${docName}`,
@@ -872,7 +908,7 @@ async function deleteOrRename(mouseEvent) {
             {
                 value: language["dialog_delete"],
                 callback: function() {
-                    deleteDialog.show(mouseEvent.currentTarget);
+                    deleteDialog.show(target);
                     return true;
                 }
             }
@@ -885,24 +921,43 @@ async function deleteOrRename(mouseEvent) {
             return true;
         },
         cancel: function() {return true;},
+        cancelDisplay: false,
         okValue: language["dialog_rename"],
         cancelValue: language["dialog_cancel"],
         // onshow: function() {
         //     $("#dialog_rename_input")
         //     $("#dialog_rename_input").on("focus", () =>{this.select();});
         // }
-        skin: isDarkMode()?"dark_dialog":""
+        skin: isDarkMode()?"dark_dialog rename_dialog":"rename_dialog",
+        onshow: function() {
+            $("#dialog_rename_input").on("keyup", (event)=>{
+                if (event.keyCode == 13) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    let okBtn = $(".rename_dialog button[i-id='ok']");
+                    if (okBtn.length == 1) {
+                        okBtn.click();
+                    }else{
+                        console.warn("回车匹配到多个按钮，已停止操作");
+                    }
+                }
+            })
+        }
     });
-    if (mouseEvent.ctrlKey){
-        deleteDialog.show(mouseEvent.currentTarget);
+    if (ctrlKey){
+        deleteDialog.show(target);
     }else{
-        renameDialog.show(mouseEvent.currentTarget);
+        renameDialog.show(target);
         // electron中，不支持prompt
         // let newName = await prompt(`重命名文档(${docName})：`, docName);
         // if (isValidStr(newName) && newName.indexOf("/") == -1) {
         //     await renameDocAPI(queryResponse[0].box, queryResponse[0].path, newName);
         // }
     }
+}catch(err) {
+    pushDebug(err);
+    console.error(err);
+}
 }
 
 async function __init() {
@@ -1057,6 +1112,8 @@ let g_targetMode;
 let g_notebooks = null;
 let g_notebooksIDList = null;
 let g_contentCache;
+let g_longTouchTimeout;
+let g_longTouchFlag;
 try {
     g_notebooks = window.top.siyuan.notebooks;
 }catch (err) {

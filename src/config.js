@@ -243,12 +243,12 @@ let zh_CN = {
     mode12_day_ago: "（%%天前）",
     // 对话框dialog
     dialog_delete: "删除",
-    dialog_delete_hint: "确定要删除所选文档“%%”吗？<br />请注意，子文档也将被一并删除（如果有）。",
+    dialog_delete_hint: "确定要删除所选文档“%%”吗？<br />请注意，如果有子文档，子文档也将被一并删除。",
     dialog_rename: "重命名",
     dialog_cancel: "取消",
     dialog_confirm: "确定",
     dialog_create_doc: "新建子文档",
-    dialog_option: "选项",
+    dialog_option: "已选择",
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
@@ -324,7 +324,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     dialog_cancel: "Cancel",
     dialog_confirm: "OK",
     dialog_create_doc: "Create_child_doc",
-    dialog_option: "Option",
+    dialog_option: "Selected",
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~
