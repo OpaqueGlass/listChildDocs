@@ -170,7 +170,7 @@ let 获取元素绝对坐标 = function(element) {
  */
 let 获取文档元素 = function(element) {
     let docElement = {};
-    while (element.className != "protyle-content" && element) {
+    while (element?.classList && !element.classList.contains("protyle-content")) {
         element = element.parentElement;
     }
     docElement = element;
