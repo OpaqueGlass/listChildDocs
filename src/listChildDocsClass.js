@@ -3,9 +3,9 @@
  * 用于生成子文档目录文本的Printer。
  */
 import { language, setting } from './config.js';
-import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL } from "./common.js";
+import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue } from "./common.js";
 import { openRefLink } from './ref-util.js';
-import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI } from './API.js';
+import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //
@@ -556,14 +556,34 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             event.target.setAttribute("data-id", id);
             openRefLink(event);
         });
-        $("#markmap a").addClass("markmap_a");
+        // $("#markmap a").mousedown((event)=>{
+        //     if (event.buttons = 2) {
+        //         // event.preventDefault();
+        //         // event.stopPropagation();
+        //         let url = event.currentTarget.getAttribute("href");
+        //         let id = url.match(new RegExp(`siyuan:\\/\\/blocks\\/.*`));
+        //         id = id[0].substring("siyuan://blocks/".length);
+        //         event.target.setAttribute("data-id", id);
+        //         console.log("in rcll")
+        //         // this.deleteOrRename(event.currentTarget, event.ctrlKey);
+        //     }else{
+        //         event.preventDefault();
+        //         event.stopPropagation();
+        //         let url = event.target.getAttribute("href");
+        //         let id = url.match(new RegExp(`siyuan:\\/\\/blocks\\/.*`));
+        //         id = id[0].substring("siyuan://blocks/".length);
+        //         event.target.setAttribute("data-id", id);
+        //         openRefLink(event);
+        //     }
+            
+        // });
+        $("#markmap a").addClass("markmap_a handle_rename_menu");
     }
     resizeHandler() {
         clearTimeout(this.observerTimeout);
         // 绑定
         this.observerTimeout = setTimeout(this.loadMarkmap.bind(this, this.root, this.widgetAttr), 300);
     }
-    
 }
 
 /**
@@ -740,6 +760,7 @@ class OrderByTimePrinter extends Printer {
         let today = dayjs().startOf('day');
         let docDate = dayjs(dateStr, "yyyyMMdd");
         let dayGap = today.diff(docDate, "day");
+        formatedStr += ` ${language["mode12_week_day"][docDate.day()]}`;
         if (dayGap < 1) {
             formatedStr += ` ${language["mode12_today"]}`;
         }else if (dayGap == 1) {

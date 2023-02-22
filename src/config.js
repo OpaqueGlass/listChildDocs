@@ -245,6 +245,7 @@ let zh_CN = {
     mode12_today: "（今天）",
     mode12_yesterday: "（昨天）",
     mode12_day_ago: "（%%天前）",
+    mode12_week_day: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
     // 对话框dialog
     dialog_delete: "删除",
     dialog_delete_hint: "确定要删除所选文档“%%”吗？<br />请注意，如果有子文档，子文档也将被一并删除。",
@@ -321,6 +322,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     mode12_today: "today",
     mode12_yesterday: "yesterday",
     mode12_day_ago: "%% days ago",
+    mode12_week_day: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"],
     // dialog
     dialog_delete: "Delete",
     dialog_delete_hint: "Are you sure you want to delete the selected document \"%%\"?<br />Please note that if there are subdocuments, they will also be deleted.",

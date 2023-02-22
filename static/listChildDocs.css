@@ -318,12 +318,12 @@ input:hover {
 
 /* mode11 深色模式方块*/
 [data-darkmode] .mode11-note-box {
-    background-color: #efefef40;
+    background-color: #efefef15;
     color: #C9D1D9;
 }
 /* mode11 深色模式方块悬停*/
 [data-darkmode] .mode11-note-box:hover {
-    background-color: #efefef30;
+    background-color: #efefef25;
 }
 
 

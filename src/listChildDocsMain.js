@@ -488,7 +488,16 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
     }
     $(".handle-ref-click").on("click", openRefLink);
     if (setting.deleteOrRenameEnable) {
-        $(".handle-ref-click").on("mousedown", clickHandler);
+        $(".handle-ref-click").on("mousedown", rightClickHandler);
+        // 屏蔽右键菜单
+        document.oncontextmenu = function() {
+            return false;
+        }
+        // $(".handle-ref-click").on("contextmenu", );
+        // TODO 不知为何无法挂上eventListener
+        $(".handle_rename_menu").each(function (){
+            $(this).get(0).addEventListener("mousedown", rightClickHandler);
+        });
         $(".handle-ref-click").on({
             "touchstart": touchstartHandler,
             "touchend": touchendHandler,
@@ -834,7 +843,7 @@ async function touchstartHandler(touchEvent) {
     let target = touchEvent?.currentTarget ?? touchEvent.target;
     // pushDebug(target);
     g_longTouchFlag = false;
-    g_longTouchTimeout = setTimeout(()=>{deleteOrRename(target, false);g_longTouchFlag = true;}, 2000);
+    g_longTouchTimeout = setTimeout(()=>{deleteOrRename(target, false);g_longTouchFlag = true;}, 1500);
 }
 
 async function touchmoveHandler(touchEvent) {
@@ -851,7 +860,7 @@ async function touchendHandler(touchEvent) {
     // }
 }
 
-async function clickHandler(mouseEvent) {
+async function rightClickHandler(mouseEvent) {
     if (mouseEvent.buttons != 2) return;
     if (setting.backToParent != "false" && $(mouseEvent.currentTarget).text().includes("../")) return;
     mouseEvent.stopPropagation();
