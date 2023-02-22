@@ -1,28 +1,17 @@
-#refresh {
-    background-image: url("./icon.png");
-}
-
-#setting {
-    background-image: url("./iconSetting.png");
-}
-
 .app button {
     border: 0px;
-    font-weight: 300;
-    background-size: auto 1.5em;
-    background-repeat: no-repeat;
-    background-position: center;
-    width: 1.5em;
-    height: 1.5em;
-    border-radius: 0.3em;
+    /* font-weight: 300; */
+    width: 25px;
+    height: 25px;
+    border-radius: 3px;
     box-sizing: border-box;
     /* color: white; */
-    /* padding: 15px 32px; */
-    text-align: center;
-    text-decoration: none;
+    padding: 0px;
+    /* text-align: center;
+    text-decoration: none; */
     display: inline-block;
-    font-size: 16px;
-    min-width: 15px;
+    /* font-size: 16px; */
+    /* min-width: 15px; */
     background-color: #f0f0f022;
     cursor: pointer;
 }
@@ -36,7 +25,7 @@
 
 .app select,
 .app input,
-#dialog_rename_input {
+.ui-dialog input {
     border: 1px solid sandybrown;
     font-weight: 300;
     background-size: auto 1.5em;
@@ -61,7 +50,7 @@
 /* 聚焦选中 */
 .app select:focus-visible,
 .app input:focus-visible,
-#dialog_rename_input:focus-visible {
+.ui-dialog input:focus-visible {
     outline: 0px;
     border-width: 2px;
 }
@@ -70,7 +59,7 @@
     cursor: text;
 }
 
-#dialog_rename_input {
+.ui-dialog input {
     width: 100%;
     cursor: text;
     text-align: left;
@@ -157,7 +146,7 @@ input:hover {
 }
 
 /* 按钮夜间样式 */
-.button_dark, [data-darkmode] .upperbardiv input, [data-darkmode] .upperbardiv select, .dark_dialog #dialog_rename_input  {
+.button_dark, [data-darkmode] .upperbardiv input, [data-darkmode] .upperbardiv select, .dark_dialog input  {
     background-color: darkslategray;
     color: white;
 }
@@ -399,6 +388,15 @@ input:hover {
 /* 内容占据全部宽度 */
 .ui-dialog-content[i="content"] {
     width: 100%;
+}
+
+/* 检索高亮结果 */
+.search_highlight {
+    background-color: #efc52f5e;
+}
+
+[data-darkmode] .search_highlight {
+    background-color: #85d0a35e;
 }
 
 body {

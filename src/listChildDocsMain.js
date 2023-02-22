@@ -509,15 +509,6 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
         $("#linksList").addClass("childDocLinks_dark");
         $(".app").attr("data-darkmode", "true");
     }
-    //issue #13 挂件自动高度
-    // 挂件内自动高度
-    if (setting.autoHeight && modeDoUpdateFlag != 1) {
-        // console.log("挂件高度应当设为", $("body").outerHeight());
-        let tempHeight = $("body").outerHeight() + 35;
-        if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
-        if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
-        window.frameElement.style.height = tempHeight + "px";
-    }
     return true;
 }
 
@@ -536,6 +527,7 @@ async function __main(manual = false, justCreate = false) {
     }
     console.time(`listChildDocs-${thisWidgetId.substring(15)}刷新计时`);
     $("#updateTime").text(language["working"]);
+    let modeDoUpdateFlag;
     // pushMsgAPI(language["startRefresh"], 4500);
     try {
         //获取挂件参数
@@ -564,7 +556,7 @@ async function __main(manual = false, justCreate = false) {
         //清理原有内容
         $("#linksContainer").html("");
         // 由模式自行完成目录更新
-        let modeDoUpdateFlag = await myPrinter.doUpdate(textString, updateAttr);
+        modeDoUpdateFlag = await myPrinter.doUpdate(textString, updateAttr);
         //写入子文档链接
         if (modeDoUpdateFlag == 0 && myPrinter.write2file) {
             // 在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
@@ -594,6 +586,15 @@ async function __main(manual = false, justCreate = false) {
     //写入更新时间
     let updateTime = new Date();
     $("#updateTime").text(language["updateTime"] + updateTime.toLocaleTimeString());
+    //issue #13 挂件自动高度
+    // 挂件内自动高度
+    if (setting.autoHeight && modeDoUpdateFlag != 1 && myPrinter.write2file != 1) {
+        // console.log("挂件高度应当设为", $("body").outerHeight());
+        let tempHeight = $("body").outerHeight() + 50;
+        if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
+        if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
+        window.frameElement.style.height = tempHeight + "px";
+    }
     mutex = 0;
 }
 
@@ -691,16 +692,17 @@ async function __save() {
  * 写入悬停提示
  */
 function setDefaultTitle() {
-    $("#refresh").attr("title", language["refreshBtn"]);
-    $("#listDepth").attr("title", language["depthList"]);
-    $("#printMode").attr("title", language["modeList"]);
-    $("#autoMode").attr("title", language["autoBtn"]);
-    $("#listColumn").attr("title", language["columnBtn"]);
-    $("#setting").attr("title", language["settingBtn"]);
-    $("#targetId").attr("title", language["targetIdTitle"]);
-    $("#endDocOutline").attr("title", language["endDocOutlineTitle"]);
-    $("#hideRefreshBtn").attr("title", language["hideRefreshBtnTitle"]);
-    $("#outlinedepth").attr("title", language["outlineDepthTitle"]);
+    $("#refresh").prop("title", language["refreshBtn"]);
+    $("#listDepth").prop("title", language["depthList"]);
+    $("#printMode").prop("title", language["modeList"]);
+    $("#autoMode").prop("title", language["autoBtn"]);
+    $("#listColumn").prop("title", language["columnBtn"]);
+    $("#setting").prop("title", language["settingBtn"]);
+    $("#targetId").prop("title", language["targetIdTitle"]);
+    $("#endDocOutline").prop("title", language["endDocOutlineTitle"]);
+    $("#hideRefreshBtn").prop("title", language["hideRefreshBtnTitle"]);
+    $("#outlinedepth").prop("title", language["outlineDepthTitle"]);
+    $("#search").prop("title", language["searchBtnTitle"]);
 
     $("#depthhint").text(language["depthHint"]);
     $("#columnhint").text(language["columnHint"]);
@@ -763,7 +765,10 @@ function __refreshPrinter(init = false) {
         let title = $("#autoMode").attr("title")??"";
         $("#autoMode").attr("title", title + language["autoNotWork"]);
         $("#autoMode").prop("disabled", true);
+        $("#search").css("display", "none");
         // custom_attr.auto = false;
+    }else{
+        $("#search").css("display", "");
     }
     __loadSettingToUI();
 }
@@ -1079,6 +1084,76 @@ async function __init() {
             }
         }
     }
+    /* search */
+    let findDialog = dialog({
+        title: language["dialog_search_panel"],
+        content: `<input id="dialog_find_input" type="text"" autofocus onfocus="this.select();" />`,
+        quickClose: true,
+        ok: function() {
+            let searchText = $("#dialog_find_input").val().toLowerCase().split(" ");
+            $(".search_highlight").removeClass("search_highlight");
+            $("#linksList li, .needSearch").each(function() {
+                let liHtml = $(this).html();
+                let liText = $(this).text().toLowerCase();
+                let matchFlag = false;
+                for (let i = 0; i < searchText.length; i++) {
+                    if (liText.indexOf(searchText[i]) == -1) {
+                        break;
+                    }
+                    if (i == searchText.length - 1) {
+                        matchFlag = true;
+                    }
+                }
+                if (matchFlag) {
+                    $(this).addClass("search_highlight");
+                }
+            });
+            this.close();
+            return false;
+        },
+        button: [{
+            value: language["dialog_search_cancel"],
+            callback:  function() {
+                // $(".search_target").removeClass("search_target");
+                $(".search_highlight").removeClass("search_highlight");
+                this.close();
+                return false;
+            }
+        }],
+        cancel: function(){
+            this.close();
+            return false;
+        },
+        okValue: language["dialog_search"],
+        cancelDisplay: false,
+        skin: isDarkMode()?"dark_dialog search_dialog":"search_dialog",
+        onshow: function() {
+            $("#dialog_find_input").on("keyup", (event)=>{
+                if (event.keyCode == 13) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    let okBtn = $(".search_dialog button[i-id='ok']");
+                    if (okBtn.length == 1) {
+                        okBtn.click();
+                    }else{
+                        console.warn("回车匹配到多个按钮，已停止操作");
+                    }
+                }
+            })
+        }
+    });
+    if (setting.searchHotkeyEnable) {
+        document.addEventListener("keydown", function(event) {
+            if (event.code == "KeyF" && event.ctrlKey == true) {
+                event.stopPropagation();
+                event.preventDefault();
+                findDialog.show();
+            }
+        });
+    }
+    document.getElementById("search")?.addEventListener("click", function () {
+        findDialog.show(this);
+    });
 }
 // UNSTABLE: 此方法通过现实页面定位页签
 function __setObserver() {

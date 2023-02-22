@@ -323,8 +323,8 @@ aui.github.io/artDialog/
 
 1. [刷新按钮图标](https://www.iconfinder.com/icons/5402417/refresh_rotate_sync_update_reload_repeat_icon)，作者：[amoghdesign](https://www.iconfinder.com/amoghdesign)，许可协议：[CC3.0 BY-NC](http://creativecommons.org/licenses/by-nc/3.0/)；
 
-2. [设置按钮图标](https://www.iconfinder.com/icons/5925600/control_options_settings_icon)，作者：[IconPai](https://www.iconfinder.com/iconpai)，许可说明：Free for commercial use (Include link to authors website)；
+2. [设置按钮图标](https://lucide.dev/?search=setting)，[Lucide](https://github.com/lucide-icons/lucide)， [ISC License](https://lucide.dev/license)；
 
-
+3. [搜索按钮图标](https://lucide.dev/?search=search) ，[Lucide](https://github.com/lucide-icons/lucide)， [ISC License](https://lucide.dev/license)。
 
 [^1]: 点击刷新按钮将更新目录列表、挂件内目录缓存或保存设置，当前设备文档编辑时间也将更新。如果当前设备未同步，则当前设备的“旧”文档会覆盖云端内容，导致其他设备的编辑丢失。

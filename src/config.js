@@ -35,6 +35,8 @@ let setting = {
     showAutoBtn: true,
     // 在启动时显示所有设置项，设定true启用
     showSettingOnStartUp: false, 
+    // 显示搜索按钮
+    showSearchBtn: true,
 
     // 安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块
     // 可以避免此挂件自行刷新导致可能的同步覆盖问题。
@@ -136,6 +138,9 @@ let setting = {
 
     // 右键重命名或删除操作
     deleteOrRenameEnable: true,
+
+    // 使用Ctrl+F作为搜索快捷键（焦点在挂件内才生效）
+    searchHotkeyEnable: false,
 };
 // 自动插入助手设置
 // 自动插入助手和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
@@ -206,6 +211,7 @@ let zh_CN = {
     // 界面元素鼠标悬停提示词
     refreshBtn: "[单击] 刷新\n[双击] 保存设置\n听说双击我可以保存设置，不知道真的假的。",
     depthList: "子文档展示层级\n设置为0就可以只显示大纲啦​~\(≧▽≦)/~​​​",
+    searchBtnTitle: "显示搜索对话框",
     modeList: "挂件工作模式",
     autoBtn: "自动刷新",
     autoNotWork: "\n由于启用了安全模式（safeMode），自动刷新对当前工作模式无效。",
@@ -254,6 +260,9 @@ let zh_CN = {
     dialog_confirm: "确定",
     dialog_create_doc: "新建子文档",
     dialog_option: "已选择",
+    dialog_search: "搜索",
+    dialog_search_cancel: "清除高亮",
+    dialog_search_panel: "搜索文档标题"
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
@@ -282,6 +291,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     modeName12: "group by date",
     // 界面元素鼠标悬停提示词 hangover popup words
     refreshBtn: "[Click] Refresh\n[Double click] Save Settings",
+    searchBtnTitle: "Show search dialog",
     depthList: "The number of display levels for the child docs",
     modeList: "Output mode",
     autoBtn: "'Auto' Refresh",
@@ -331,6 +341,9 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     dialog_confirm: "OK",
     dialog_create_doc: "Create_child_doc",
     dialog_option: "Selected",
+    dialog_search: "Search",
+    dialog_search_cancel: "Clear",
+    dialog_search_panel: "Search by Doc Name"
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~

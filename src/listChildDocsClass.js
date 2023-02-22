@@ -577,7 +577,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         //     }
             
         // });
-        $("#markmap a").addClass("markmap_a handle_rename_menu");
+        $("#markmap a").addClass("markmap_a handle_rename_menu needSearch");
     }
     resizeHandler() {
         clearTimeout(this.observerTimeout);
@@ -616,7 +616,7 @@ class ContentBlockPrinter extends Printer {
             }
             let emojiStr = getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0);
             result += `<div class="mode11-note-box handle-ref-click"  data-id="${oneChildDoc.id}">`;
-            result += `<h4 class="mode11-title">${emojiStr} ${docName}</h5>`;
+            result += `<h4 class="mode11-title needSearch">${emojiStr} ${docName}</h5>`;
             let [previewText, removeSpace] = await this.generatePreview(oneChildDoc.id);
 
             if (!isValidStr(removeSpace)) {
@@ -653,7 +653,7 @@ class ContentBlockPrinter extends Printer {
                 docName = docName.substring(0, docName.length - 3);
             }
             let emojiStr = getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0);
-            result += `<p class="linksListItem" data-id="${oneChildDoc.id}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${oneChildDoc.id}">${emojiStr}${docName}</span></p>`;
+            result += `<p class="linksListItem needSearch" data-id="${oneChildDoc.id}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${oneChildDoc.id}">${emojiStr}${docName}</span></p>`;
         }
         result += `</div>`;
         return result;
