@@ -457,6 +457,7 @@ function saveContentCache(textString = g_contentCache) {
 /**
  * 挂件内载入缓存
  * 也用于直接刷新
+ * 内部使用modeDoUpdateFlag undefined与否判断是否载入的缓存，请注意
  */
 async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = undefined, notebook = undefined, targetDocPath = undefined) {
     if (myPrinter.write2file) return false;
@@ -472,7 +473,11 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
         "targetDocPath": targetDocPath,
         "widgetSetting": custom_attr
     };
-    if (!modeDoUpdateFlag) modeDoUpdateFlag = await myPrinter.doUpdate(textString, updateAttr);
+    let loadCacheFlag = false;
+    if (modeDoUpdateFlag == undefined) loadCacheFlag = true;
+    if (!modeDoUpdateFlag) {
+        modeDoUpdateFlag = await myPrinter.doUpdate(textString, updateAttr)
+    };
     if (modeDoUpdateFlag == 0){
         $(textString).appendTo("#linksContainer");
         // 处理响应范围，挂引用块点击事件
@@ -509,7 +514,24 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
         $("#linksList").addClass("childDocLinks_dark");
         $(".app").attr("data-darkmode", "true");
     }
+    if (loadCacheFlag) {
+        adjustHeight(modeDoUpdateFlag);
+    }
     return true;
+}
+
+/**
+ * 调整挂件高度
+ * @param {*} modeDoUpdateFlag 
+ */
+function adjustHeight(modeDoUpdateFlag) {
+    if (setting.autoHeight && modeDoUpdateFlag != 1 && myPrinter.write2file != 1) {
+        // console.log("挂件高度应当设为", $("body").outerHeight());
+        let tempHeight = $("body").outerHeight() + 50;
+        if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
+        if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
+        window.frameElement.style.height = tempHeight + "px";
+    }
 }
 
 
@@ -588,13 +610,7 @@ async function __main(manual = false, justCreate = false) {
     $("#updateTime").text(language["updateTime"] + updateTime.toLocaleTimeString());
     //issue #13 挂件自动高度
     // 挂件内自动高度
-    if (setting.autoHeight && modeDoUpdateFlag != 1 && myPrinter.write2file != 1) {
-        // console.log("挂件高度应当设为", $("body").outerHeight());
-        let tempHeight = $("body").outerHeight() + 50;
-        if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
-        if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
-        window.frameElement.style.height = tempHeight + "px";
-    }
+    adjustHeight(modeDoUpdateFlag);
     mutex = 0;
 }
 
