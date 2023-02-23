@@ -534,3 +534,7 @@ export async function createDocWithPath(notebookid, path, title = "Untitled") {
     }
     return false;
 }
+
+export function isMobile() {
+    return window.top.document.getElementById("sidebar") ? true : false;
+};

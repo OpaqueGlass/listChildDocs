@@ -469,6 +469,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     root;
     observerTimeout;
     widgetAttr;
+    contentRectCache = {"width": 10, "height": 10};
     init(custom_attr) {
         custom_attr.listColumn = 1;
         $("#listColumn").prop("disabled", "true");
@@ -525,7 +526,9 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         if (styles) window.markmap.loadCSS(styles);
         if (scripts) window.markmap.loadJS(scripts, { getMarkmap: () => markmap });
         this.loadMarkmap(root, widgetAttr);
-        this.observer.observe(window.frameElement.parentElement);
+        if (setting.markmapResizeHandlerEnable) {
+            this.observer.observe(window.frameElement.parentElement);
+        }
         return 1;
     }
     loadMarkmap(root, widgetAttr) {
@@ -579,10 +582,17 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         // });
         $("#markmap a").addClass("markmap_a handle_rename_menu needSearch");
     }
-    resizeHandler() {
+    resizeHandler(entries) {
         clearTimeout(this.observerTimeout);
-        // 绑定
-        this.observerTimeout = setTimeout(this.loadMarkmap.bind(this, this.root, this.widgetAttr), 300);
+        // 页签切换导致frameElement 宽高变为0，因此即使没有调整挂件大小，也会触发重载，这里解决此问题
+        let curWidth = entries[0].contentRect.width;
+        let curHeight = entries[0].contentRect.height;
+        if ((curWidth != this.contentRectCache.width || curHeight != this.contentRectCache.height) &&
+          (curWidth != 0)) {
+            this.observerTimeout = setTimeout(this.loadMarkmap.bind(this, this.root, this.widgetAttr), 300);
+            this.contentRectCache.width = curWidth;
+            this.contentRectCache.height = curHeight;
+        }
     }
 }
 

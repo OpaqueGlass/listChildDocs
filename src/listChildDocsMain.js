@@ -848,7 +848,7 @@ async function touchstartHandler(touchEvent) {
     let target = touchEvent?.currentTarget ?? touchEvent.target;
     // pushDebug(target);
     g_longTouchFlag = false;
-    g_longTouchTimeout = setTimeout(()=>{deleteOrRename(target, false);g_longTouchFlag = true;}, 1500);
+    g_longTouchTimeout = setTimeout(()=>{deleteOrRename(target, false);g_longTouchFlag = true;}, 1000);
 }
 
 async function touchmoveHandler(touchEvent) {

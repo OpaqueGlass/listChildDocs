@@ -124,6 +124,8 @@ let setting = {
 
     // 导图模式Markmap配置项，详见https://markmap.js.org/docs/json-options
     markmapConfig: {},
+    // 导图模式：响应挂件大小变化
+    markmapResizeHandlerEnable: true,
 
     // 按时间分组模式，显示日期的格式，yyyy将被替换为4位年，MM将被替换为两位数月份，dd将被替换为两位数日
     dateTemplate: "MM-dd",
