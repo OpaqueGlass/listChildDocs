@@ -215,7 +215,7 @@ let zh_CN = {
     modeList: "挂件工作模式",
     autoBtn: "自动刷新",
     autoNotWork: "\n由于启用了安全模式（safeMode），自动刷新对当前工作模式无效。",
-    targetIdTitle: "目标文档id\n从这里指定的文档或笔记本开始列出子文档，设定为/则从所有已开启的笔记本开始",
+    targetIdTitle: "目标文档id\n从这里指定的文档或笔记本开始列出子文档，\n设定为/则从所有已开启的笔记本开始",
     disabledBtnHint: "\n因为不支持当前模式，我被禁用了T^T",
     endDocOutlineTitle: "启用后，对于目录列表中没有子文档的，将显示大纲",
     hideRefreshBtnTitle: "将刷新按钮搬运到设置中，防止误触",
@@ -262,7 +262,8 @@ let zh_CN = {
     dialog_option: "已选择",
     dialog_search: "搜索",
     dialog_search_cancel: "清除高亮",
-    dialog_search_panel: "搜索文档标题"
+    dialog_search_panel: "搜索文档标题",
+    dialog_search_nomatch: "无结果",
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
@@ -343,7 +344,8 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     dialog_option: "Selected",
     dialog_search: "Search",
     dialog_search_cancel: "Clear",
-    dialog_search_panel: "Search by Doc Name"
+    dialog_search_panel: "Search by Doc Name",
+    dialog_search_nomatch: "No match",
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~

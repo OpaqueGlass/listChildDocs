@@ -1091,6 +1091,7 @@ async function __init() {
         quickClose: true,
         ok: function() {
             let searchText = $("#dialog_find_input").val().toLowerCase().split(" ");
+            let matchAnyFlag = false;
             $(".search_highlight").removeClass("search_highlight");
             $("#linksList li, .needSearch").each(function() {
                 let liHtml = $(this).html();
@@ -1106,10 +1107,18 @@ async function __init() {
                 }
                 if (matchFlag) {
                     $(this).addClass("search_highlight");
+                    matchAnyFlag = true;
                 }
             });
-            this.close();
-            return false;
+            if (matchAnyFlag) {
+                this.close();
+                return false;
+            }else{
+                $(".search_dialog button[i-id='ok']").text(language["dialog_search_nomatch"]);
+                setTimeout(()=>{$(".search_dialog button[i-id='ok']").text(language["dialog_search"]);}, 2000);
+                return false;
+            }
+            
         },
         button: [{
             value: language["dialog_search_cancel"],
