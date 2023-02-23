@@ -366,8 +366,8 @@ if (siyuanLanguage != "zh_CN" && siyuanLanguage != undefined) {
 let allCustomConfig = null;
 let newPlace = false;
 try {
-    allCustomConfig = await import("/snippets/widget.lcd.custom.js");
-    newPlace = true;
+    // allCustomConfig = await import("/snippets/widget.lcd.custom.js").catch(err=>{});
+    // newPlace = true;
 }catch(err) {
     console.log("listChildDocs在新位置未找到配置文件");
 }

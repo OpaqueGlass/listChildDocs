@@ -177,10 +177,8 @@
 #### 在`custom.js`中覆盖设置
 
 > 测试中，可能存在缺陷。理论上，即使更新挂件，这里进行覆盖的设置仍然可以保留。
->
-> 仍然支持旧版本读取路径`${思源data目录}/widgets/custom.js`。
 
-创建或编辑`${思源data目录}/snippets/widget.lcd.custom.js`\*，仅支持`config.js`文件中`custom_attr`（创建挂件时的默认设置）、`setting`（全局设置）、`helperSettings`（自动插入助手设置）下的设置项。以下是一个示例。
+创建或编辑`${思源data目录}/widgets/custom.js`，仅支持`config.js`文件中`custom_attr`（创建挂件时的默认设置）、`setting`（全局设置）、`helperSettings`（自动插入助手设置）下的设置项。以下是一个示例。
 
 ```javascript
 /*方式1：若之前有config，需要添加listChildDocs的部分*/

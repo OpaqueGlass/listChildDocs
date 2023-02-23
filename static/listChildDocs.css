@@ -375,12 +375,12 @@ input:hover {
     background-color: #00000055;
 }
 
-.ui-dialog button[i-id="Delete"], .ui-dialog button[i-id="删除"] {
+.ui-dialog button[i-id="Delete"], .ui-dialog button[i-id="删除"], .ui-dialog.delete_dialog button[i-id=ok] {
     background-color: #dd041e99;
     color: whitesmoke;
 }
 
-.ui-dialog button[i-id="Delete"]:hover, .ui-dialog button[i-id="删除"]:hover {
+.ui-dialog button[i-id="Delete"]:hover, .ui-dialog button[i-id="删除"]:hover, .ui-dialog.delete_dialog button[i-id=ok]:hover {
     background-color: #dd041ecc;
     color: whitesmoke;
 }
