@@ -862,9 +862,11 @@ function __loadSettingToUI() {
 async function touchstartHandler(touchEvent) {
     clearTimeout(g_longTouchTimeout);
     let target = touchEvent?.currentTarget ?? touchEvent.target;
-    // pushDebug(target);
-    g_longTouchFlag = false;
-    g_longTouchTimeout = setTimeout(()=>{deleteOrRename(target, false);g_longTouchFlag = true;}, 1000);
+    // 多指触摸不触发
+    if (touchEvent.touches.length == 1) {
+        g_longTouchFlag = false;
+        g_longTouchTimeout = setTimeout(()=>{deleteOrRename(target, false);g_longTouchFlag = true;}, 1000);
+    }
 }
 
 async function touchmoveHandler(touchEvent) {

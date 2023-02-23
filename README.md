@@ -78,7 +78,7 @@
       - ~~`任务列表`：（文档中）~~ 【已知问题！刷新将创建一个新的任务列表，导致丢失任务的完成信息】（建议使用模板完成创建）；
    4. 导图；（依赖Markmap）
    5. 预览方格；（同时提供子文档的开头部分内容预览）
-   6. 按时间分组；（按创建/更新日期倒序分组显示）
+   6. 按日期分组；（按创建/更新日期倒序分组显示）
 
 7. 大纲层级：列出大纲时，设定大纲的显示层级数；
 
@@ -98,7 +98,7 @@
 
     勾选后，可以通过大纲层级设定大纲的层级数；为了区分大纲和子文档链接，大纲前用"@"标识，如要更改或删除“@”，请参考自定义设置更改`outlineDistinguishingWords`；
 
-    ==刷新时间较长，不建议开启== 
+     ==刷新时间较长，不建议开启== 
 
 ### 代码片段
 
@@ -264,11 +264,12 @@ export const listChildDocs = {
 
 本挂件使用/参考了以下大佬的项目：
 
-| 开发者                                            | 项目                                                         | 开源协议                                                     | 备注                      |
-| ------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------- |
-| [leolee9086](https://github.com/leolee9086)       | [cc-template](https://github.com/leolee9086/cc-template)     | [木兰宽松许可证， 第2版](https://github.com/leolee9086/cc-template/blob/main/LICENSE) | 在挂件中展示“引用块“      |
-| [InEase](https://github.com/InEase)               | [Note Map](https://github.com/InEase/SiYuan-Xmind)           | N/A                                                          | API使用方式               |
-| [Zuoqiu-Yingyi](https://github.com/Zuoqiu-Yingyi) | [widget-query](https://github.com/Zuoqiu-Yingyi/widget-query) | AGPL-3.0                                                     | 从custom.js导入自定义设置 |
+| 开发者                                            | 项目                                                         | 开源协议                                                     | 备注                            |
+| ------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------- |
+| [leolee9086](https://github.com/leolee9086)       | [cc-template](https://github.com/leolee9086/cc-template)     | [木兰宽松许可证， 第2版](https://github.com/leolee9086/cc-template/blob/main/LICENSE) | 在挂件中展示“引用块“            |
+| [InEase](https://github.com/InEase)               | [Note Map](https://github.com/InEase/SiYuan-Xmind)           | N/A                                                          | API使用方式                     |
+| [Zuoqiu-Yingyi](https://github.com/Zuoqiu-Yingyi) | [widget-query](https://github.com/Zuoqiu-Yingyi/widget-query) | AGPL-3.0                                                     | 从custom.js导入自定义设置       |
+|                                                   | [Trilium](https://github.com/zadam/trilium) / note-list-widget |                                                              | 预览方格模式css样式，和功能设计 |
 
 以下大佬参与代码贡献：
 
@@ -311,7 +312,7 @@ https://github.com/iamkun/dayjs/
 https://day.js.org/
 ```
 
-5. [artDialog](https://github.com/aui/artDialog)
+5. [artDialog](https://github.com/aui/artDialog)；
 
 ```
 免费，且开源，基于LGPL-3.0协议。
