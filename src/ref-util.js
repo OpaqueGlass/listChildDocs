@@ -27,7 +27,13 @@ let openRefLink = function(event, paramId = ""){
     虚拟链接.style.display = "none";//不显示虚拟链接，防止视觉干扰
     let 临时目标 = 主界面.querySelector(".protyle-wysiwyg div[data-node-id] div[contenteditable]")
     临时目标.appendChild(虚拟链接);
-    虚拟链接.click();
+    let clickEvent = new MouseEvent("click", {
+        ctrlKey: event?.ctrlKey,
+        shiftKey: event?.shiftKey,
+        altKey: event?.altKey,
+        bubbles: true
+    });
+    虚拟链接.dispatchEvent(clickEvent);
     虚拟链接.remove();
 }
 

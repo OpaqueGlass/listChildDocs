@@ -782,7 +782,7 @@ function __refreshPrinter(init = false) {
         $("#autoMode").attr("title", title + language["autoNotWork"]);
         $("#autoMode").prop("disabled", true);
         $("#search").css("display", "none");
-        // custom_attr.auto = false;
+        custom_attr.auto = false;
     }else{
         $("#search").css("display", "");
     }
