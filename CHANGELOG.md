@@ -2,13 +2,17 @@
 
 ### v0.2.0
 
-- 新增：导图模式、预览方格模式、按日期分组模式；
+- 新增：导图模式、预览方格模式、按日期分组模式；[#33](https://github.com/OpaqueGlass/listChildDocs/issues/33) [#34](https://github.com/OpaqueGlass/listChildDocs/issues/34)
 - 新增：（大部分挂件中模式）右键子文档显示操作选项；
-- 改进：在一些情况下缓存挂件内目录列表；
-- 改进：一些显示效果优化；
+- 改进：在一些情况下缓存挂件内目录列表；[#35](https://github.com/OpaqueGlass/listChildDocs/issues/35)
+- 改进：一些显示效果优化；[#32](https://github.com/OpaqueGlass/listChildDocs/issues/32)
 - 改进：文档中目录列表属性写入方式；
 - 新增：（代码片段）自动插入助手；
 - 新增：搜索并高亮挂件内文档标题；
+- 改进：Shift / Alt / Ctrl + Click 子文档链接；
+- 新增：（代码片段）快速插入子文档列表；
+- 修复：v2.7.6+版本，挂件beta模式未显示浮窗；
+- 新增：挂件中右键子文档链接显示菜单项（导图模式除外）；
 - `config.js`全局设置变更：
   - 移除：完全移除`showEndDocOutline`；
   - 新增：挂件设置批量操作（`overwriteIndependentSettings`等）；

@@ -323,7 +323,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     cacheLoaded: "Cache loaded.",
     loadCacheFailed: "Couldn't load doc-list cache.",
     wrongTargetId: "Wrong target doc id. The target id should be an existing document id, an open notebook id or /",
-    readonly: "Work in read-only mode. Changes to the document are prohibited. If it is not read-only mode, please give feedback to the developer. To turn off this security check, please modify the custom setting 'safeModePlus' to false.",
+    readonly: "Work in read-only mode. Changes to the document are prohibited.",
     saveDefaultStyleFailed: "Failed to save default pendant style settings. If this problem occurs repeatedly, please disable saveDefaultWidgetStyle.",
     // addChildDocLinkHelper hint text
     helperAddBlockMemo: "Child-doc link block: the edits under this block will be overwritten when the child-docs changes.",
@@ -332,9 +332,9 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     // hint text in mode
     mode12_doc_num_text: "the num of doc",
     mode12_update_hint: "Order by update time",
-    mode12_today: "today",
-    mode12_yesterday: "yesterday",
-    mode12_day_ago: "%% days ago",
+    mode12_today: "(today)",
+    mode12_yesterday: "(yesterday)",
+    mode12_day_ago: "(%% days ago)",
     mode12_week_day: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"],
     // dialog
     dialog_delete: "Delete",
