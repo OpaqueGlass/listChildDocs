@@ -211,7 +211,7 @@ let zh_CN = {
     modeName11: "预览方格",
     modeName12: "按日期分组",
     // 界面元素鼠标悬停提示词
-    refreshBtn: "[单击] 刷新\n[双击] 保存设置\n听说双击我可以保存设置，不知道真的假的。",
+    refreshBtn: "[单击] 刷新\n[双击] 保存设置",
     depthList: "子文档展示层级\n设置为0就可以只显示大纲啦​~\(≧▽≦)/~​​​",
     searchBtnTitle: "显示搜索对话框",
     modeList: "挂件工作模式",

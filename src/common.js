@@ -16,7 +16,7 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
         "history": true, // 检查历史页面
         "targetDoc": true, // 检查目标文档是否已经打开，并且未启用只读模式
         "anyDoc": true, // 检查任意文档是否存在，并且未启用只读模式
-        "allowWhenError": false, // 发生错误时，默认放行或拦截
+        "allowWhenError": true, // 发生错误时，默认放行或拦截
         "widgetMode": false
     }
     if (config != null) {
@@ -77,7 +77,7 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
             return false;
         }
     }catch (err) {
-        console.warn(`安全检查时出现错误，已放行刷新操作？${config.allowWhenError}，错误为：`, err);
+        console.warn(`安全检查时出现错误，已${config.allowWhenError?"放行":"禁止"}刷新操作，错误为：`, err);
         return config.allowWhenError;
     }
     
