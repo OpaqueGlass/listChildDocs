@@ -617,7 +617,7 @@ class ContentBlockPrinter extends Printer {
     async doGenerate(updateAttr) {
         let result = `<div class="mode11-box">`;
         // 获取子文档列表
-        let directChildDocs = await getSubDocsAPI(updateAttr["targetNotebook"], updateAttr["targetDocPath"]);
+        let directChildDocs = await getSubDocsAPI(updateAttr["targetNotebook"], updateAttr["targetDocPath"], updateAttr["widgetSetting"]["maxListCount"], updateAttr["widgetSetting"]["sortBy"]);
         // 获取子文档内容
         for (let oneChildDoc of directChildDocs) {
             let docName = oneChildDoc.name;
@@ -630,7 +630,7 @@ class ContentBlockPrinter extends Printer {
             let [previewText, removeSpace] = await this.generatePreview(oneChildDoc.id);
 
             if (!isValidStr(removeSpace)) {
-                result += await this.generateSecond(updateAttr["targetNotebook"], oneChildDoc.path);
+                result += await this.generateSecond(updateAttr["targetNotebook"], oneChildDoc.path, updateAttr["widgetSetting"]["maxListCount"], updateAttr["widgetSetting"]["sortBy"]);
             }else{
                 result += `<div class="mode11-doc-content">${previewText}</div>`;
             }
@@ -654,9 +654,9 @@ class ContentBlockPrinter extends Printer {
      * @param {*} docPath 文档路径
      * @returns 
      */
-    async generateSecond(notebook, docPath) {
+    async generateSecond(notebook, docPath, maxListCount, sortBy) {
         let result = `<div class="mode11-child-p-container">`;
-        let childDocResponse = await getSubDocsAPI(notebook, docPath);
+        let childDocResponse = await getSubDocsAPI(notebook, docPath, maxListCount, sortBy);
         for (let oneChildDoc of childDocResponse) {
             let docName = oneChildDoc.name;
             if (oneChildDoc.name.indexOf(".sy") >= 0) {
@@ -794,7 +794,7 @@ class OrderByTimePrinter extends Printer {
     init(custom_attr) {
         custom_attr.listDepth = 999;
         custom_attr.endDocOutline = false;
-        $("#listDepth, #endDocOutline").prop("disabled", "true");
+        $("#listDepth, #endDocOutline, #maxListCount, #sortBy").prop("disabled", "true");
         $("#modeSetting").append(`<span id="mode12_doc_num_hint">${language["mode12_doc_num_text"]}</span>
         <input id="mode12_doc_num" type="number" name="docNum" title="要显示的文档数量最大值\nThe maximum number of docs displayed" min="1" value="20">
         <span id="mode12_update_hint">${language["mode12_update_hint"]}</span>
@@ -803,7 +803,7 @@ class OrderByTimePrinter extends Printer {
     }
     destory(custom_attr) {
         custom_attr.listDepth = 1;
-        $("#listDepth, #endDocOutline").prop("disabled", "");
+        $("#listDepth, #endDocOutline, #maxListCount, #sortBy").prop("disabled", "");
         $("#modeSetting").html("");
         return custom_attr;
     }

@@ -24,7 +24,8 @@ import {
     renameDocAPI,
     isDarkMode,
     createDocWithMdAPI,
-    createDocWithPath
+    createDocWithPath,
+    DOC_SORT_TYPES
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
 import { openRefLink, showFloatWnd } from './ref-util.js';
@@ -322,7 +323,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) 
     if (rowCountStack.length > custom_attr.listDepth) {
         return insertData;
     }
-    let docs = await getSubDocsAPI(notebook, nowDocPath);
+    let docs = await getSubDocsAPI(notebook, nowDocPath, custom_attr["maxListCount"], custom_attr["sortBy"]);
     //生成写入文本
     for (let doc of docs) {
         insertData += myPrinter.align(rowCountStack.length);
@@ -565,7 +566,7 @@ async function __main(manual = false, justCreate = false) {
             "targetDocName": targetDocName,
             "targetNotebook": notebook,
             "targetDocPath": targetDocPath,
-            "widgetSetting": custom_attr
+            "widgetSetting": custom_attr,
         };
         //获取子文档层级文本
         let textString;
@@ -719,6 +720,8 @@ function setDefaultTitle() {
     $("#hideRefreshBtn").prop("title", language["hideRefreshBtnTitle"]);
     $("#outlinedepth").prop("title", language["outlineDepthTitle"]);
     $("#search").prop("title", language["searchBtnTitle"]);
+    $("#sortBy").prop("title", language["sortByTitle"]);
+    $("#maxListCount").prop("title", language["maxListCountTitle"]);
 
     $("#depthhint").text(language["depthHint"]);
     $("#columnhint").text(language["columnHint"]);
@@ -727,7 +730,9 @@ function setDefaultTitle() {
     $("#endDocOutlineHint").text(language["endDocOutlineHint"]);
     $("#targetIdhint").text(language["targetIdhint"]);
     $("#hideRefreshBtnHint").text(language["hideRefreshBtnHint"]);
-    
+    $("#sortByHint").text(language["sortByHint"]);
+    $("#maxListCountHint").text(language["maxListCountHint"]);
+
     $("#autoMode").prop("disabled", false);
 }
 /**
@@ -806,6 +811,9 @@ async function __refresh() {
     //获取终端大纲设置
     custom_attr["endDocOutline"] = document.getElementById("endDocOutline").checked;
     custom_attr["hideRefreshBtn"] = document.getElementById("hideRefreshBtn").checked;
+    // 获取排序等设置
+    custom_attr["sortBy"] = parseInt(document.getElementById("sortBy").value);
+    custom_attr["maxListCount"] = parseInt(document.getElementById("maxListCount").value);
     if (custom_attr.hideRefreshBtn == false) {
         delete custom_attr.hideRefreshBtn;
     }
@@ -848,6 +856,8 @@ function __refreshAppearance() {
 function __loadSettingToUI() {
     document.getElementById("listDepth").value = custom_attr["listDepth"];
     document.getElementById("printMode").value = parseInt(custom_attr["printMode"]);
+    document.getElementById("sortBy").value = parseInt(custom_attr["sortBy"]);
+    document.getElementById("maxListCount").value = parseInt(custom_attr["maxListCount"]);
     document.getElementById("autoMode").checked = custom_attr["auto"];
     document.getElementById("listColumn").value = custom_attr["listColumn"];
     document.getElementById("outlinedepth").value = custom_attr["outlineDepth"];
@@ -1011,6 +1021,13 @@ async function __init() {
     //写入模式设定选择框的选项
     for (let key of Object.keys(printerList)) {
         $(`<option value="${printerList[key].id}">${language["modeName"+printerList[key].id.toString()]}</option>`).appendTo("#printMode");
+    }
+    // 写排序
+    for (let key of Object.keys(DOC_SORT_TYPES)) {
+        $(`<option value="${DOC_SORT_TYPES[key]}">${language["doc_sort_type"][key]}</option>`).appendTo("#sortBy");
+        if (["NAME_NAT_DESC", "MODIFIED_TIME_DESC", "REF_COUNT_DESC", "SUB_DOC_COUNT_DESC"].indexOf(key) != -1) {
+            $(`<option disabled }">-------</option>`).appendTo("#sortBy");
+        }
     }
     // UI更改
     if ("hideRefreshBtn" in custom_attr && custom_attr.hideRefreshBtn == true) {

@@ -91,6 +91,10 @@
     width: 5em;
 }
 
+#sortBy {
+    width: 9em;
+}
+
 #innerSetting > * {
     display: none;
 }

@@ -21,6 +21,8 @@ let custom_attr = {//这里列出的是挂件的默认设置，只在创建时�
     endDocOutline: false, // 一并列出叶子文档的大纲？（目录中包括最深层级文档的大纲？）影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
     // 如果需要默认隐藏刷新按钮，请删除下面一行前的双斜杠
     // hideRefreshBtn: true,
+    sortBy: 15, //排序模式，具体取值请参考本文件最下方的DOC_SORT_TYPES，默认值15为跟随文档树排序
+    maxListCount: 0,//控制每个文档的子文档显示数量
 };
 // 全局设置
 let setting = {
@@ -222,6 +224,8 @@ let zh_CN = {
     endDocOutlineTitle: "启用后，对于目录列表中没有子文档的，将显示大纲",
     hideRefreshBtnTitle: "将刷新按钮搬运到设置中，防止误触",
     outlineDepthTitle: "大纲层级\n大纲层级和h1、h2等无关，以大纲面板显示的层次为准。",
+    sortByTitle: "控制文档的排序方式",
+    maxListCountTitle: "每个文档的子文档显示数量（设置为0则显示全部）不支持思源2.8.5以下版本",
     // 错误提示词
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
     startRefresh: "开始更新子文档列表---来自listChildDocs挂件的通知",
@@ -229,6 +233,7 @@ let zh_CN = {
     saved: "设置项已保存",
     columnBtn: "子文档展示列数",
     settingBtn: "显示/隐藏设置",
+    // 界面提示词
     columnHint: "分列",
     depthHint: "层级",
     noOutline: "似乎没有文档大纲@_@。",
@@ -236,6 +241,8 @@ let zh_CN = {
     endDocOutlineHint: "叶子文档大纲",
     targetIdhint: "目标文档id",
     hideRefreshBtnHint: "隐藏刷新按钮",
+    sortByHint: "排序方式",
+    maxListCountHint: "子文档最大数量",
     working: "执行中……",
     loadingCache: "载入缓存中",
     cacheLoaded: "已载入缓存",
@@ -266,6 +273,25 @@ let zh_CN = {
     dialog_search_cancel: "清除高亮",
     dialog_search_panel: "搜索文档标题",
     dialog_search_nomatch: "无结果",
+    doc_sort_type: {
+        FILE_NAME_ASC: "名称字母升序",
+        FILE_NAME_DESC: "名称字母降序",
+        NAME_NAT_ASC: "名称自然升序",
+        NAME_NAT_DESC: "名称自然降序",
+        MODIFIED_TIME_ASC: "修改时间升序",
+        MODIFIED_TIME_DESC: "修改时间降序",
+        CREATED_TIME_ASC: "创建时间升序",
+        CREATED_TIME_DESC: "创建时间降序",
+        REF_COUNT_ASC: "引用次数升序",
+        REF_COUNT_DESC: "引用次数降序",
+        DOC_SIZE_ASC: "文档大小升序",
+        DOC_SIZE_DESC: "文档大小降序",
+        SUB_DOC_COUNT_ASC: "子文档数量升序",
+        SUB_DOC_COUNT_DESC: "子文档数量降序",
+        CUSTOM_SORT: "文档树自定义排序",
+        FOLLOW_DOC_TREE: "跟随文档树排序",
+    },
+      
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
@@ -304,11 +330,14 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     endDocOutlineTitle: "For the documents that have no subdocuments, display their outline.",
     hideRefreshBtnTitle: "Move refresh button into settings.",
     outlineDepthTitle: "The number of display levels for the doc outine. ",
+    sortByTitle: "child docs sort mode",
+    maxListCountTitle: "Maximum number of subdocuments to be displayed for each document. If set to 0, all documents are displayed. Versions earlier than siyuan v2.8.5 are not supported.",
     // 错误提示词error warn
     getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
     startRefresh: "Updating child-doc-list ... --- list child docs widget",
     widgetRefLink: "Widget beta",
     saved: "Settings have been saved",
+    // 界面控件提示词 Hint words
     columnBtn: "Number of columns",
     settingBtn: "Show/hide settings",
     columnHint: "Column",
@@ -318,6 +347,9 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     endDocOutlineHint: "Leaf document outline",
     targetIdhint: "Target document id",
     hideRefreshBtnHint: "Hide refresh button",
+    sortByHint: "Sort Mode",
+    maxListCountHint: "Maximum of sub-docs",
+    // 
     working: "Running...",
     loadingCache: "Loading...",
     cacheLoaded: "Cache loaded.",
@@ -348,6 +380,25 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     dialog_search_cancel: "Clear",
     dialog_search_panel: "Search by Doc Name",
     dialog_search_nomatch: "No match",
+    doc_sort_type: {
+        FILE_NAME_ASC: "Name Alphabet ASC",
+        FILE_NAME_DESC: "Name Alphabet DESC",
+        NAME_NAT_ASC: "Name Natural ASC",
+        NAME_NAT_DESC: "Name Natural DESC",
+        MODIFIED_TIME_ASC: "Modified Time ASC",
+        MODIFIED_TIME_DESC: "Modified Time DESC",
+        CREATED_TIME_ASC: "Created Time ASC",
+        CREATED_TIME_DESC: "Created Time DESC",
+        REF_COUNT_ASC: "Ref Count ASC",
+        REF_COUNT_DESC: "Ref Count DESC",
+        DOC_SIZE_ASC: "Document Size ASC",
+        DOC_SIZE_DESC: "Document Size DESC",
+        SUB_DOC_COUNT_ASC: "Sub-docs Count ASC",
+        SUB_DOC_COUNT_DESC: "Sub-docs Count DESC",
+        CUSTOM_SORT: "Custom Sorting in the File Tree",
+        FOLLOW_DOC_TREE: "Follow the File Tree"
+    },
+      
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~
@@ -419,6 +470,26 @@ try {
 }catch (err) {
     console.warn("导入用户自定义设置时出现错误", err);
 }
+
+//注：下方的排序分类可能不会随着思源版本而及时更新
+const SORT_TYPES = {
+    FILE_NAME_ASC: {type: 0, name: "文件名升序", englishName: "Name Alphabet ASC"},
+    FILE_NAME_DESC: {type: 1, name: "文件名降序", englishName: "Name Alphabet DESC"},
+    NAME_NAT_ASC: {type: 4, name: "名称自然升序", englishName: "Name Natural ASC"},
+    NAME_NAT_DESC: {type: 5, name: "名称自然降序", englishName: "Name Natural DESC"},
+    MODIFIED_TIME_ASC: {type: 2, name: "修改时间升序", englishName: "Modified Time ASC"},
+    MODIFIED_TIME_DESC: {type: 3, name: "修改时间降序", englishName: "Modified Time DESC"},
+    CREATED_TIME_ASC: {type: 9, name: "创建时间升序", englishName: "Created Time ASC"},
+    CREATED_TIME_DESC: {type: 10, name: "创建时间降序", englishName: "Created Time DESC"},
+    REF_COUNT_ASC: {type: 7, name: "引用次数升序", englishName: "Ref Count ASC"},
+    REF_COUNT_DESC: {type: 8, name: "引用次数降序", englishName: "Ref Count DESC"},
+    DOC_SIZE_ASC: {type: 11, name: "文档大小升序", englishName: "Document Size ASC"},
+    DOC_SIZE_DESC: {type: 12, name: "文档大小降序", englishName: "Document Size DESC"},
+    SUB_DOC_COUNT_ASC: {type: 13, name: "子文档数量升序", englishName: "Sub-docs Count ASC"},
+    SUB_DOC_COUNT_DESC: {type: 14, name: "子文档数量降序", englishName: "Sub-docs Count DESC"},
+    CUSTOM_SORT: {type: 6, name: "自定义排序", englishName: "Custom Sorting in the File Tree"},
+    FOLLOW_DOC_TREE: {type: 15, name: "跟随文档树排序", englishName: "Follow Doc Tree Sorting"},
+};
 
 
 export {custom_attr, token, language, setting, helperSettings};

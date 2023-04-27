@@ -72,14 +72,33 @@ export async function reindexDoc(docpath){
 /**列出子文件（api）
  * @param notebookId 笔记本id
  * @param path 需要列出子文件的路径
+ * @param maxListCount 子文档最大显示数量
+ * @param sort 排序方式（类型号）
  */
-export async function getSubDocsAPI(notebookId, path){
+export async function getSubDocsAPI(notebookId, path, maxListCount = undefined, sort = undefined){
     let url = "/api/filetree/listDocsByPath";
-    let response = await postRequest({notebook: notebookId, path: path}, url);
+    let body = {
+        "notebook": notebookId,
+        "path": path
+    }
+    if (maxListCount != undefined && maxListCount >= 0) {
+        body["maxListCount"] = (maxListCount > 32 || maxListCount == 0) ? maxListCount : 32;
+    }
+    if (sort != undefined && sort != DOC_SORT_TYPES.FOLLOW_DOC_TREE) {
+        body["sort"] = sort;
+    }else{
+        body["sort"] = getNotebookSortModeF(notebookId);
+    }
+    let response = await postRequest(body, url);
     if (response.code != 0 || response.data == null){
         return new Array();
     }
-    return response.data.files;
+
+    if (maxListCount > 32 || !maxListCount || maxListCount == 0) {
+        return response.data.files;
+    }else{
+        return response.data.files.slice(0, maxListCount);
+    }
 }
 
 /**
@@ -370,6 +389,38 @@ export async function getNodebookList() {
 }
 
 /**
+ * 基于本地window.siyuan获得笔记本信息
+ * @param {*} notebookId 为空获得所有笔记本信息
+ * @returns 
+ */
+export function getNotebookInfoLocallyF(notebookId = undefined) {
+    if (window?.top?.siyuan?.notebooks) return undefined;
+    if (!notebookId) return window.top?.siyuan?.notebooks;
+    for (let notebookInfo of window.top.siyuan.notebooks) {
+        if (notebookInfo.id == notebookId) {
+            return notebookInfo;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * 获取笔记本排序规则
+ * （为“跟随文档树“的，转为文档树排序
+ * @param {*} notebookId 笔记本id，不传则为文档树排序
+ * @returns 
+ */
+export function getNotebookSortModeF(notebookId = undefined) {
+    let fileTreeSort = window.top?.siyuan?.config?.fileTree?.sort;
+    if (!notebookId) return fileTreeSort;
+    let notebookSortMode = getNotebookInfoLocallyF(notebookId)?.sortMode;
+    if (notebookSortMode == DOC_SORT_TYPES.FOLLOW_DOC_TREE) {
+        return fileTreeSort;
+    }
+    return notebookSortMode;
+}
+
+/**
  * 批量添加闪卡
  * @param {*} ids 
  * @param {*} deckId 目标牌组Id 
@@ -538,3 +589,22 @@ export async function createDocWithPath(notebookid, path, title = "Untitled") {
 export function isMobile() {
     return window.top.document.getElementById("sidebar") ? true : false;
 };
+
+export const DOC_SORT_TYPES = {
+    FILE_NAME_ASC: 0,
+    FILE_NAME_DESC: 1,
+    NAME_NAT_ASC: 4,
+    NAME_NAT_DESC: 5,
+    CREATED_TIME_ASC: 9,
+    CREATED_TIME_DESC: 10,
+    MODIFIED_TIME_ASC: 2,
+    MODIFIED_TIME_DESC: 3,
+    REF_COUNT_ASC: 7,
+    REF_COUNT_DESC: 8,
+    DOC_SIZE_ASC: 11,
+    DOC_SIZE_DESC: 12,
+    SUB_DOC_COUNT_ASC: 13,
+    SUB_DOC_COUNT_DESC: 14,
+    CUSTOM_SORT: 6,
+    FOLLOW_DOC_TREE: 15,
+};  
