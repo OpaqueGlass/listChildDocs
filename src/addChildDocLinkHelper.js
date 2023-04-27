@@ -51,6 +51,7 @@ let CONSTANTS = {
 }
 let g_observerRetryInterval;
 let g_observerStartupRefreshTimeout;
+let g_tabSwitchTimeout;
 let g_TIMER_LABLE_NAME_COMPARE = "acdlh子文件比对";
 let g_insertWidgetPath = helperSettings.widgetPath;
 /*
@@ -111,7 +112,8 @@ let windowObserver = new MutationObserver((mutationList) => {
 let switchTabObserver = new MutationObserver(async (mutationList) => {
     for (let mutation of mutationList) {
         // console.log("发现页签切换", mutation);
-        setTimeout(async () => {
+        clearTimeout(g_tabSwitchTimeout);
+        g_tabSwitchTimeout = setTimeout(async () => {
             console.time(g_TIMER_LABLE_NAME_COMPARE);
             try{
                 if (helperSettings.switchTabEnable) {
@@ -160,7 +162,7 @@ function observerRetry() {
             }
             // 重启监听后立刻执行检查
             if (element.children.length > 0) {
-                // clearTimeout(g_observerStartupRefreshTimeout);
+                clearTimeout(g_observerStartupRefreshTimeout);
                 g_observerStartupRefreshTimeout = setTimeout(async () => {
                     console.time(g_TIMER_LABLE_NAME_COMPARE);
                     try{
