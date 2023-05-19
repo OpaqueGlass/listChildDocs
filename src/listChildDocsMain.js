@@ -106,11 +106,13 @@ async function getCustomAttr() {
             "id": thisWidgetId,
         },
     };
-    for (let key in response.data) {
-        if (key != "id") {
-            response.data[key] = widgetNodeDom?.getAttribute(key);
-        }else{
-            response.data[key] = widgetNodeDom?.getAttribute("data-node-id");
+    if (widgetNodeDom) {
+        for (let key in response.data) {
+            if (key != "id") {
+                response.data[key] = widgetNodeDom.getAttribute(key);
+            }else{
+                response.data[key] = widgetNodeDom.getAttribute("data-node-id");
+            }
         }
     }
     
@@ -125,7 +127,7 @@ async function getCustomAttr() {
     // 解析挂件设置
     if ('custom-list-child-docs' in response.data) {
         try {
-            attrObject = JSON.parse(response.data['custom-list-child-docs'].replaceAll("&quot;", "\""));
+            attrObject = JSON.parse(response.data['custom-list-child-docs'].replace(new RegExp("&quot;", "g"), "\""));
         }catch(err) {
             console.warn("解析挂件属性json失败", err.message);
             parseErrorFlag = true;
@@ -210,7 +212,7 @@ async function getCustomAttr() {
 //统一写入attr到挂件属性
 async function setCustomAttr() {
     // 载入模式最新设定
-    let modeCustom = myPrinter?.save();
+    let modeCustom = myPrinter.save();
     if (!isInvalidValue(modeCustom)) {
         custom_attr["customModeSettings"] = modeCustom;
     }
@@ -744,7 +746,7 @@ function __refreshPrinter(init = false) {
     custom_attr.printMode = $("#printMode").val();
     let getPrinterFlag = false;
     if (!init) {
-        let resettedCustomAttr = myPrinter?.destory(custom_attr);
+        let resettedCustomAttr = myPrinter ? myPrinter.destory(custom_attr):undefined;
         // 部分修改默认设定的模式，应当在退出时修改到合理的值
         if (!isInvalidValue(resettedCustomAttr)) {
             Object.assign(custom_attr, resettedCustomAttr);
@@ -778,12 +780,12 @@ function __refreshPrinter(init = false) {
     myPrinter.load(custom_attr["customModeSettings"]);
     // 重置默认title
     setDefaultTitle();
-    $(".upperbardiv [disabled]").each(function (index) {
-        let title = $(this).attr("title")??"";
+    $("#outerSetting > [disabled], #innerSetting > [disabled]").each(function (index) {
+        let title = $(this).attr("title") ? $(this).attr("title"):"";
         $(this).attr("title", title + language["disabledBtnHint"]);
     })
     if (myPrinter.write2file && setting.safeMode) {
-        let title = $("#autoMode").attr("title")??"";
+        let title = $("#autoMode").attr("title") ? $("#autoMode").attr("title"):"";
         $("#autoMode").attr("title", title + language["autoNotWork"]);
         $("#autoMode").prop("disabled", true);
         $("#search").css("display", "none");
@@ -871,7 +873,12 @@ function __loadSettingToUI() {
  */
 async function touchstartHandler(touchEvent) {
     clearTimeout(g_longTouchTimeout);
-    let target = touchEvent?.currentTarget ?? touchEvent.target;
+    let target;
+    if (touchEvent.currentTarget){
+        target = touchEvent.currentTarget;
+    }else{
+        target = touchEvent.target;
+    }
     // 多指触摸不触发
     if (touchEvent.touches.length == 1) {
         g_longTouchFlag = false;
@@ -885,7 +892,12 @@ async function touchmoveHandler(touchEvent) {
 
 async function touchendHandler(touchEvent) {
     clearTimeout(g_longTouchTimeout);
-    let target = touchEvent?.currentTarget ?? touchEvent.target;
+    let target;
+    if (touchEvent.currentTarget){
+        target = touchEvent.currentTarget;
+    }else{
+        target = touchEvent.target;
+    }
     touchEvent.stopPropagation();
     // touchEvent.preventDefault();
     // if (!g_longTouchFlag) {
@@ -1195,7 +1207,7 @@ async function __init() {
             }
         });
     }
-    document.getElementById("search")?.addEventListener("click", function () {
+    document.getElementById("search").addEventListener("click", function () {
         findDialog.show(this);
     });
 }

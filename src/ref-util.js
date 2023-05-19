@@ -16,11 +16,18 @@ export {openRefLink, showFloatWnd};
 let openRefLink = function(event, paramId = ""){
     
     let 主界面= window.parent.document
-    let id = event?.currentTarget?.getAttribute("data-id") ?? paramId;
+    let id;
+    if (event && event.currentTarget && event.currentTarget.getAttribute("data-id")) {
+        id = event.currentTarget.getAttribute("data-id");
+    }else{
+        id = paramId;
+    }
     // 处理笔记本等无法跳转的情况
     if (!isValidStr(id)) {return;}
-    event?.preventDefault();
-    event?.stopPropagation();
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
     let 虚拟链接 =  主界面.createElement("span")
     虚拟链接.setAttribute("data-type","block-ref")
     虚拟链接.setAttribute("data-id",id)
@@ -28,9 +35,9 @@ let openRefLink = function(event, paramId = ""){
     let 临时目标 = 主界面.querySelector(".protyle-wysiwyg div[data-node-id] div[contenteditable]")
     临时目标.appendChild(虚拟链接);
     let clickEvent = new MouseEvent("click", {
-        ctrlKey: event?.ctrlKey,
-        shiftKey: event?.shiftKey,
-        altKey: event?.altKey,
+        ctrlKey: event ? event.ctrlKey : undefined,
+        shiftKey: event? event.shiftKey : undefined,
+        altKey: event ? event.altKey : undefined,
         bubbles: true
     });
     虚拟链接.dispatchEvent(clickEvent);
@@ -176,7 +183,7 @@ let 获取元素绝对坐标 = function(element) {
  */
 let 获取文档元素 = function(element) {
     let docElement = {};
-    while (element?.classList && !element.classList.contains("protyle-content")) {
+    while (element && element.classList && !element.classList.contains("protyle-content")) {
         element = element.parentElement;
     }
     docElement = element;

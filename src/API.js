@@ -86,8 +86,9 @@ export async function getSubDocsAPI(notebookId, path, maxListCount = undefined, 
     }
     if (sort != undefined && sort != DOC_SORT_TYPES.FOLLOW_DOC_TREE) {
         body["sort"] = sort;
-    }else{
-        body["sort"] = getNotebookSortModeF(notebookId);
+    }else if (false){
+        let sortMode = getNotebookSortModeF(notebookId);
+        if (sortMode) body["sort"] = sortMode;
     }
     let response = await postRequest(body, url);
     if (response.code != 0 || response.data == null){
@@ -317,7 +318,11 @@ export async function getCurrentDocIdF(){
  */
 export function getCurrentWidgetId(){
     try{
-        return window.frameElement.parentElement.parentElement.dataset.nodeId;
+        if (!window.frameElement.parentElement.parentElement.dataset.nodeId) {
+            return window.frameElement.parentElement.parentElement.dataset.id;
+        }else{
+            return window.frameElement.parentElement.parentElement.dataset.nodeId;
+        }
     }catch(err){
         console.warn("getCurrentWidgetId window...nodeId方法失效");
         return null;
@@ -394,14 +399,18 @@ export async function getNodebookList() {
  * @returns 
  */
 export function getNotebookInfoLocallyF(notebookId = undefined) {
-    if (window?.top?.siyuan?.notebooks) return undefined;
-    if (!notebookId) return window.top?.siyuan?.notebooks;
-    for (let notebookInfo of window.top.siyuan.notebooks) {
-        if (notebookInfo.id == notebookId) {
-            return notebookInfo;
+    try {
+        if (!notebookId) return window.top.siyuan.notebooks;
+        for (let notebookInfo of window.top.siyuan.notebooks) {
+            if (notebookInfo.id == notebookId) {
+                return notebookInfo;
+            }
         }
+        return undefined;
+    }catch(err) {
+        console.error(err);
+        return undefined;
     }
-    return undefined;
 }
 
 /**
@@ -411,13 +420,18 @@ export function getNotebookInfoLocallyF(notebookId = undefined) {
  * @returns 
  */
 export function getNotebookSortModeF(notebookId = undefined) {
-    let fileTreeSort = window.top?.siyuan?.config?.fileTree?.sort;
-    if (!notebookId) return fileTreeSort;
-    let notebookSortMode = getNotebookInfoLocallyF(notebookId)?.sortMode;
-    if (notebookSortMode == DOC_SORT_TYPES.FOLLOW_DOC_TREE) {
-        return fileTreeSort;
+    try {
+        let fileTreeSort = window.top.siyuan.config.fileTree.sort;
+        if (!notebookId) return fileTreeSort;
+        let notebookSortMode = getNotebookInfoLocallyF(notebookId).sortMode;
+        if (notebookSortMode == DOC_SORT_TYPES.FOLLOW_DOC_TREE) {
+            return fileTreeSort;
+        }
+        return notebookSortMode;
+    }catch(err) {
+        console.error(err);
+        return undefined;
     }
-    return notebookSortMode;
 }
 
 /**
@@ -606,5 +620,5 @@ export const DOC_SORT_TYPES = {
     SUB_DOC_COUNT_ASC: 13,
     SUB_DOC_COUNT_DESC: 14,
     CUSTOM_SORT: 6,
-    FOLLOW_DOC_TREE: 15,
+    FOLLOW_DOC_TREE: 15, // 内部使用，用于判断是否跟随文档树
 };  

@@ -496,7 +496,8 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         let widgetAttr = updateAttr.widgetSetting;
         // 匹配移除返回父文档
         textString = textString.replace(new RegExp("\\* \\[../\\][^\\n]*\\n"), "");
-        let docName = window.top.document.querySelector(`li[data-type="tab-header"].item.item--focus .item__text`)?.innerText;
+        let tabHeaderElem = window.top.document.querySelector(`li[data-type="tab-header"].item.item--focus .item__text`);
+        let docName = tabHeaderElem ? tabHeaderElem.innerText : undefined;
         let docNameQuery;
         if (!isValidStr(docName) || isValidStr(widgetAttr["targetId"])) {
             let queryId = isValidStr(widgetAttr["targetId"]) ? widgetAttr["targetId"] : updateAttr.docId;
@@ -540,7 +541,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         markmapElem.style.height = ($(window.frameElement).outerHeight() - $("body").outerHeight() + 125) + "px";
         // 计算层最大宽度
         let markmapConfig = {duration: 0, zoom: false, pan: false, maxWidth: 0};
-        if (widgetAttr?.listDepth != undefined) {
+        if (widgetAttr.listDepth != undefined) {
             if (widgetAttr.listDepth == 0 || widgetAttr.endDocOutline) {
                 markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth + widgetAttr.outlineDepth);
             }else{
@@ -725,7 +726,9 @@ class ContentBlockPrinter extends Printer {
         let jqElem = $("<div>"+text+"</div>");
         jqElem.find(".iframe").remove();
         if (window.top.siyuan.config.export.addTitle) {
-            jqElem.find("h1").get(0)?.remove();
+            if (jqElem.find("h1").get(0)) {
+                jqElem.find("h1").get(0).remove();
+            }
         }
         jqElem.find(".emoji").addClass("iconpic");
         jqElem.find("p").each((index, elem)=>{
@@ -1087,7 +1090,7 @@ function htmlTransferParser(inputStr) {
     let transfer = ["&lt;", "&gt;", "&nbsp;", "&quot;", "&amp;"];
     let original = ["<", ">", " ", `"`, "&"];
     for (let i = 0; i < transfer.length; i++) {
-        inputStr = inputStr.replaceAll(transfer[i], original[i]);
+        inputStr = inputStr.replace(new RegExp(transfer[i], "g"), original[i]);
     }
     return inputStr;
 }
@@ -1102,7 +1105,7 @@ function markdownEmojiPathEncoder(inputStr) {
     let original = ["(", ")", " "];
     let transfer = ["%28", "%29", "&#32;"];
     for (let i = 0; i < original.length; i++) {
-        inputStr = inputStr.replaceAll(original[i], transfer[i]);
+        inputStr = inputStr.replace(new RegExp(original[i], "g"), transfer[i]);
     }
     return inputStr;
 }
@@ -1116,7 +1119,7 @@ function markdownRefBlockDocNameEncoder(inputStr) {
     let original = ["'"];
     let transfer = ["&apos;"];
     for (let i = 0; i < original.length; i++) {
-        inputStr = inputStr.replaceAll(original[i], transfer[i]);
+        inputStr = inputStr.replace(new RegExp(original[i], "g"), transfer[i]);
     }
     return inputStr;
 }

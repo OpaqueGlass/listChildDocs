@@ -110,7 +110,7 @@ export function isInvalidValue(s) {
  */
 export function getUpdateString(){
     let nowDate = new Date();
-    let timeStr = nowDate.toJSON().replaceAll("-","").substring(0, 8) + nowDate.toLocaleTimeString().replaceAll(":", "");
+    let timeStr = nowDate.toJSON().replace(new RegExp("-", "g"),"").substring(0, 8) + nowDate.toLocaleTimeString().replace(new RegExp(":", "g"), "");
     return timeStr;
 }
 

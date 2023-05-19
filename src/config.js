@@ -224,8 +224,8 @@ let zh_CN = {
     endDocOutlineTitle: "启用后，对于目录列表中没有子文档的，将显示大纲",
     hideRefreshBtnTitle: "将刷新按钮搬运到设置中，防止误触",
     outlineDepthTitle: "大纲层级\n大纲层级和h1、h2等无关，以大纲面板显示的层次为准。",
-    sortByTitle: "控制文档的排序方式",
-    maxListCountTitle: "每个文档的子文档显示数量（设置为0则显示全部）不支持思源2.8.5以下版本",
+    sortByTitle: "控制文档的排序方式\n在笔记本排序方式不是'使用文档树排序规则'时，此设置项无效",
+    maxListCountTitle: "每个文档的子文档显示数量（设置为0则显示全部）\n不支持思源2.8.5以下版本",
     // 错误提示词
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
     startRefresh: "开始更新子文档列表---来自listChildDocs挂件的通知",
@@ -415,16 +415,13 @@ if (siyuanLanguage != "zh_CN" && siyuanLanguage != undefined) {
 
 // 导入外部config.js 测试功能，如果您不清楚，请避免修改此部分；
 let allCustomConfig = null;
-let newPlace = false;
-try {
-    // allCustomConfig = await import("/snippets/widget.lcd.custom.js").catch(err=>{});
-    // newPlace = true;
-}catch(err) {
-    console.log("listChildDocs在新位置未找到配置文件");
-}
-
-try {
-    if (!newPlace) allCustomConfig = await import('/widgets/custom.js');
+let syntaxCheck = true;
+// try {
+//     let hello = undefined?.a;
+// }catch(err) {
+//     syntaxCheck = false;
+// }
+function loadCustomSetting(allCustomConfig) {
     let customConfig = null;
     let customConfigName = "listChildDocs";
     if (allCustomConfig[customConfigName] != undefined) {
@@ -467,6 +464,14 @@ try {
         
     }
     console.log("成功从配置文件载入用户配置");
+}
+try {
+    if (syntaxCheck) {
+        allCustomConfig = import('/widgets/custom.js').then((res)=>{
+            loadCustomSetting(res["config"]);
+    });
+    }
+    
 }catch (err) {
     console.warn("导入用户自定义设置时出现错误", err);
 }

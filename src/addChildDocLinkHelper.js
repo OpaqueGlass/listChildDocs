@@ -241,8 +241,8 @@ async function createHandler(msgdata) {
     }
     // 处理插入文档的文本信息，进行关键词替换
     let insertText;
-    insertText = g_docLinkTemplate.replaceAll("%DOC_ID%", msgdata.id)
-                    .replaceAll("%DOC_NAME%", newDocName);
+    insertText = g_docLinkTemplate.replace(new RegExp("%DOC_ID%", "g"), msgdata.id)
+                    .replace(new RegExp("%DOC_NAME%", "g"), newDocName);
     console.log(insertText);
     let addResponse = null;
     if (g_insertAtEnd) {
@@ -514,8 +514,8 @@ async function tabChangeHandler(addedNodes) {
                 docInfos[renameIndexInfo.attrListIndex].docName = docName;
                 // 更新链接
                 let updateText;
-                updateText = g_docLinkTemplate.replaceAll("%DOC_ID%", subDocInfoList[renameIndexInfo.subDocListIndex].id)
-                                .replaceAll("%DOC_NAME%", docName);
+                updateText = g_docLinkTemplate.replace(new RegExp("%DOC_ID%", "g"), subDocInfoList[renameIndexInfo.subDocListIndex].id)
+                                .replace(new RegExp("%DOC_NAME%", "g"), docName);
                 updateText += `\n{: memo=\"${language["helperAddBlockMemo"]}\"}`;
                 let updateResponse = await updateBlockAPI(updateText, docInfos[renameIndexInfo.attrListIndex].linkId);
                 // 更新失败的块，移除
@@ -552,8 +552,8 @@ async function tabChangeHandler(addedNodes) {
                     newDocInfoBlock.docId = subDocInfo.id;
                     newDocInfoBlock.docName = subDocInfo.name.substring(0, subDocInfo.name.length - 3);
                     let insertText;
-                    insertText = g_docLinkTemplate.replaceAll("%DOC_ID%", newDocInfoBlock.docId)
-                                    .replaceAll("%DOC_NAME%", newDocInfoBlock.docName);
+                    insertText = g_docLinkTemplate.replace(new RegExp("%DOC_ID%", "g"), newDocInfoBlock.docId)
+                                    .replace(new RegExp("%DOC_NAME%", "g"), newDocInfoBlock.docName);
                     insertText += `\n{: memo=\"${language["helperAddBlockMemo"]}\"}`;
                     let addResponse;
                     if (g_insertAtEnd) {
@@ -590,7 +590,7 @@ async function getCustomAttr(parentDocId) {
         return null;
     }
     
-    return JSON.parse(docAttrResponse[g_attrName].replaceAll("&quot;", "\""));
+    return JSON.parse(docAttrResponse[g_attrName].replace(new RegExp("&quot;", "g"), "\""));
 }
 
 async function saveCustomAttr(parentDocId, customAttr) {
