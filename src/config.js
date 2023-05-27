@@ -21,7 +21,7 @@ let custom_attr = {//这里列出的是挂件的默认设置，只在创建时�
     endDocOutline: false, // 一并列出叶子文档的大纲？（目录中包括最深层级文档的大纲？）影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
     // 如果需要默认隐藏刷新按钮，请删除下面一行前的双斜杠
     // hideRefreshBtn: true,
-    sortBy: 15, //排序模式，具体取值请参考本文件最下方的DOC_SORT_TYPES，默认值15为跟随文档树排序
+    sortBy: 256, //排序模式，具体取值请参考本文件最下方的DOC_SORT_TYPES，默认值15为跟随文档树排序
     maxListCount: 0,//控制每个文档的子文档显示数量
 };
 // 全局设置
@@ -493,7 +493,7 @@ const SORT_TYPES = {
     SUB_DOC_COUNT_ASC: {type: 13, name: "子文档数量升序", englishName: "Sub-docs Count ASC"},
     SUB_DOC_COUNT_DESC: {type: 14, name: "子文档数量降序", englishName: "Sub-docs Count DESC"},
     CUSTOM_SORT: {type: 6, name: "自定义排序", englishName: "Custom Sorting in the File Tree"},
-    FOLLOW_DOC_TREE: {type: 15, name: "跟随文档树排序", englishName: "Follow Doc Tree Sorting"},
+    FOLLOW_DOC_TREE: {type: 256, name: "跟随文档树排序", englishName: "Follow Doc Tree Sorting"},
 };
 
 

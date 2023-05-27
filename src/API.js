@@ -84,7 +84,7 @@ export async function getSubDocsAPI(notebookId, path, maxListCount = undefined, 
     if (maxListCount != undefined && maxListCount >= 0) {
         body["maxListCount"] = (maxListCount > 32 || maxListCount == 0) ? maxListCount : 32;
     }
-    if (sort != undefined && sort != DOC_SORT_TYPES.FOLLOW_DOC_TREE) {
+    if (sort != undefined && sort != DOC_SORT_TYPES.FOLLOW_DOC_TREE && sort != DOC_SORT_TYPES.UNASSIGNED) {
         body["sort"] = sort;
     }else if (false){
         let sortMode = getNotebookSortModeF(notebookId);
@@ -424,7 +424,7 @@ export function getNotebookSortModeF(notebookId = undefined) {
         let fileTreeSort = window.top.siyuan.config.fileTree.sort;
         if (!notebookId) return fileTreeSort;
         let notebookSortMode = getNotebookInfoLocallyF(notebookId).sortMode;
-        if (notebookSortMode == DOC_SORT_TYPES.FOLLOW_DOC_TREE) {
+        if (notebookSortMode == DOC_SORT_TYPES.UNASSIGNED || notebookSortMode == DOC_SORT_TYPES.FOLLOW_DOC_TREE) {
             return fileTreeSort;
         }
         return notebookSortMode;
@@ -620,5 +620,6 @@ export const DOC_SORT_TYPES = {
     SUB_DOC_COUNT_ASC: 13,
     SUB_DOC_COUNT_DESC: 14,
     CUSTOM_SORT: 6,
-    FOLLOW_DOC_TREE: 15, // 内部使用，用于判断是否跟随文档树
+    FOLLOW_DOC_TREE: 15, 
+    UNASSIGNED: 256,
 };  
