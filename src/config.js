@@ -224,7 +224,7 @@ let zh_CN = {
     endDocOutlineTitle: "启用后，对于目录列表中没有子文档的，将显示大纲",
     hideRefreshBtnTitle: "将刷新按钮搬运到设置中，防止误触",
     outlineDepthTitle: "大纲层级\n大纲层级和h1、h2等无关，以大纲面板显示的层次为准。",
-    sortByTitle: "控制文档的排序方式\n在笔记本排序方式不是'使用文档树排序规则'时，此设置项无效",
+    sortByTitle: "控制文档的排序方式\n请在思源v2.8.8及以上版本使用，较早的版本可能无法排序",
     maxListCountTitle: "每个文档的子文档显示数量（设置为0则显示全部）\n不支持思源2.8.5以下版本",
     // 错误提示词
     getAttrFailedAtInit: "读取挂件属性失败。如果是刚创建挂件，请稍后刷新重试。",
@@ -289,7 +289,7 @@ let zh_CN = {
         SUB_DOC_COUNT_ASC: "子文档数量升序",
         SUB_DOC_COUNT_DESC: "子文档数量降序",
         CUSTOM_SORT: "文档树自定义排序",
-        FOLLOW_DOC_TREE: "跟随文档树排序",
+        UNASSIGNED: "跟随文档树排序",
     },
       
 };
@@ -330,7 +330,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     endDocOutlineTitle: "For the documents that have no subdocuments, display their outline.",
     hideRefreshBtnTitle: "Move refresh button into settings.",
     outlineDepthTitle: "The number of display levels for the doc outine. ",
-    sortByTitle: "child docs sort mode",
+    sortByTitle: "child docs sort mode\n available in siyuan v2.8.8 and later",
     maxListCountTitle: "Maximum number of subdocuments to be displayed for each document. If set to 0, all documents are displayed. Versions earlier than siyuan v2.8.5 are not supported.",
     // 错误提示词error warn
     getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
@@ -396,7 +396,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
         SUB_DOC_COUNT_ASC: "Sub-docs Count ASC",
         SUB_DOC_COUNT_DESC: "Sub-docs Count DESC",
         CUSTOM_SORT: "Custom Sorting in the File Tree",
-        FOLLOW_DOC_TREE: "Follow the File Tree"
+        UNASSIGNED: "Follow the File Tree"
     },
       
 };

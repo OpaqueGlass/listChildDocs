@@ -1036,7 +1036,9 @@ async function __init() {
     }
     // 写排序
     for (let key of Object.keys(DOC_SORT_TYPES)) {
-        $(`<option value="${DOC_SORT_TYPES[key]}">${language["doc_sort_type"][key]}</option>`).appendTo("#sortBy");
+        if (["FOLLOW_DOC_TREE"].indexOf(key) == -1) {
+            $(`<option value="${DOC_SORT_TYPES[key]}">${language["doc_sort_type"][key]}</option>`).appendTo("#sortBy");
+        }
         if (["NAME_NAT_DESC", "MODIFIED_TIME_DESC", "REF_COUNT_DESC", "SUB_DOC_COUNT_DESC"].indexOf(key) != -1) {
             $(`<option disabled }">-------</option>`).appendTo("#sortBy");
         }
