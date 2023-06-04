@@ -269,7 +269,11 @@ async function getText(notebook, nowDocPath) {
         }
         // 处理大纲和子文档两种情况，子文档情况兼容从笔记本级别列出
         if (custom_attr.listDepth == 0) {
-            rawData = await getDocOutlineText(thisDocId, false, rowCountStack);
+            let targetDocId = thisDocId;
+            if (isValidStr(custom_attr["targetId"])) {
+                targetDocId = custom_attr["targetId"];
+            }
+            rawData = await getDocOutlineText(targetDocId, false, rowCountStack);
         } else {
             rawData = await getOneLevelText(notebook, nowDocPath, rawData, rowCountStack);//层级从1开始
         }
