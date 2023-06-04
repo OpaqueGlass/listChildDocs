@@ -31,6 +31,10 @@ import { custom_attr, language, setting } from './config.js';
 import { openRefLink, showFloatWnd } from './ref-util.js';
 import { generateBlockId, isInvalidValue, isSafelyUpdate, isValidStr, pushDebug, transfromAttrToIAL } from './common.js';
 
+const CONSTANTS = {
+    ATTR_NAME_WORK_MODE: "data-work-mode",
+}
+
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = "") {
     if (isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId) == false) {
@@ -113,6 +117,13 @@ async function getCustomAttr() {
             }else{
                 response.data[key] = widgetNodeDom.getAttribute("data-node-id");
             }
+        }
+    }
+
+    // 判断工作方式
+    if (widgetNodeDom.getAttribute(CONSTANTS.ATTR_NAME_WORK_MODE)) {
+        if (widgetNodeDom.getAnimations(CONSTANTS.ATTR_NAME_WORK_MODE).includes("check-attr")) {
+            response = await getblockAttrAPI(thisWidgetId);
         }
     }
     
