@@ -456,11 +456,14 @@ function setColumn() {
  * @param {msgText} 错误信息
  * @param {boolean} clear 输出前是否清空 
  */
-function printError(msgText, clear = true) {
+function errorPush(msgText, clear = true) {
     if (clear) $(".linksContainer *").remove();
     $("#linksContainer").css("column-count", "");//显示错误时不分栏
     $(`<ul><li class="linksListItem errorinfo">${language["error"]}` + msgText + `</li></ul>`).appendTo("#linksContainer");
-    window.frameElement.style.height = "10em";
+    // https://github.com/OpaqueGlass/listChildDocs/issues/39
+    if (myPrinter && myPrinter.write2file == 1) {
+        window.frameElement.style.height = "10em";
+    }
 }
 
 
@@ -567,7 +570,7 @@ async function __main(manual = false, justCreate = false) {
     }
     console.time(`listChildDocs-${thisWidgetId.substring(15)}刷新计时`);
     $("#updateTime").text(language["working"]);
-    let modeDoUpdateFlag;
+    let modeDoUpdateFlag = 1;
     // pushMsgAPI(language["startRefresh"], 4500);
     try {
         //获取挂件参数
@@ -619,7 +622,7 @@ async function __main(manual = false, justCreate = false) {
         }
     } catch (err) {
         console.error(err);
-        printError(err.message);
+        errorPush(err.message);
     }finally{
         console.timeEnd(`listChildDocs-${thisWidgetId.substring(15)}刷新计时`);
     }
@@ -718,7 +721,7 @@ async function __save() {
         $("#updateTime").text(language["saved"]);
     } catch (err) {
         console.error(err);
-        printError(err.message);
+        errorPush(err.message);
     }
     __refreshAppearance();
 }
@@ -785,7 +788,7 @@ function __refreshPrinter(init = false) {
     if (!getPrinterFlag) {
         custom_attr.printMode = "0";
         myPrinter = new DefaultPrinter();
-        printError(language["wrongPrintMode"]);
+        errorPush(language["wrongPrintMode"]);
     }
     // 执行模式初始化
     let newSetCustomAttr = myPrinter.init(custom_attr);
@@ -1041,7 +1044,7 @@ async function __init() {
         await getCustomAttr();
     } catch (err) {
         console.warn(err);
-        printError(language["getAttrFailedAtInit"]);
+        errorPush(language["getAttrFailedAtInit"]);
         justCreate = true;
         // custom_attr.auto = false;//读取错误时关闭auto
     }
