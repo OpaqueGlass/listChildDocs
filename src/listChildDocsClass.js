@@ -1009,7 +1009,8 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData) {
 function getEmojiHtmlStr(iconString, hasChild) {
     if (!setting.emojiEnable) return "";//禁用emoji时直接返回
     if (iconString == undefined || iconString == null) return "";//没有icon属性，不是文档类型，不返回emoji
-    if (iconString == "") return hasChild ? "📑" : "📄";//无icon默认值
+    if (iconString == "") return hasChild ? `<span class="emojitext">📑</span>` : 
+        `<span class="emojitext">📄</span>`;//无icon默认值
     let result = iconString;
     // emoji地址判断逻辑为出现.，但请注意之后的补全
     if (iconString.indexOf(".") != -1) {
