@@ -145,6 +145,9 @@ let setting = {
 
     // 使用Ctrl+F作为搜索快捷键（焦点在挂件内才生效）
     searchHotkeyEnable: false,
+
+    // 悬停显示顶部按钮栏
+    mouseoverButtonArea: true,
 };
 // 自动插入助手设置
 // 自动插入助手和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
@@ -243,6 +246,7 @@ let zh_CN = {
     hideRefreshBtnHint: "隐藏刷新按钮",
     sortByHint: "排序方式",
     maxListCountHint: "子文档最大数量",
+    autoRefreshHint: "自动刷新",
     working: "执行中……",
     loadingCache: "载入缓存中",
     cacheLoaded: "已载入缓存",
@@ -349,6 +353,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     hideRefreshBtnHint: "Hide refresh button",
     sortByHint: "Sort Mode",
     maxListCountHint: "Maximum of sub-docs",
+    autoRefreshHint: "Auto refresh",
     // 
     working: "Running...",
     loadingCache: "Loading...",

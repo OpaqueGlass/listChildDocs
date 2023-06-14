@@ -752,6 +752,7 @@ function setDefaultTitle() {
     $("#hideRefreshBtnHint").text(language["hideRefreshBtnHint"]);
     $("#sortByHint").text(language["sortByHint"]);
     $("#maxListCountHint").text(language["maxListCountHint"]);
+    $("#autoRefreshHint").text(language["autoRefreshHint"]);
 
     $("#autoMode").prop("disabled", false);
 }
@@ -1039,6 +1040,8 @@ async function __init() {
     thisDocId = await getCurrentDocIdF();
     // 记录是否是刚刚创建的挂件
     let justCreate = false;
+    // 顶部按钮栏，用于控制悬停显示和隐藏时按钮栏不可用
+    const topBtnElement = document.getElementById('outerSetting');
     //载入挂件属性
     try {
         await getCustomAttr();
@@ -1069,8 +1072,23 @@ async function __init() {
     }else if ("hideRefreshBtn" in custom_attr && custom_attr.hideRefreshBtn == false) {
         delete custom_attr.hideRefreshBtn;
     }
-    document.getElementById("refresh").onclick = async function () { clearTimeout(refreshBtnTimeout); refreshBtnTimeout = setTimeout(async function () { await __main(true) }, 300); };
-    document.getElementById("refresh").ondblclick = async function () { clearTimeout(refreshBtnTimeout); await __save(); };
+    document.getElementById("refresh").onclick = async function () { 
+        // 由于按钮栏隐藏是通过透明度实现的，需要确保隐藏时不可点击
+        if (setting.mouseoverButtonArea && !topBtnElement.classList.contains("outerSetting-show")) {
+            return;
+        }
+        clearTimeout(refreshBtnTimeout); 
+        refreshBtnTimeout = setTimeout(async function () { 
+            await __main(true) 
+        }, 300); 
+    };
+    document.getElementById("refresh").ondblclick = async function () { 
+        if (setting.mouseoverButtonArea && !topBtnElement.classList.contains("outerSetting-show")) {
+            return;
+        }
+        clearTimeout(refreshBtnTimeout); 
+        await __save(); 
+    };
     // 将属性设置载入到显示中
     __loadSettingToUI();
     //通用刷新Printer操作，必须在获取属性、写入挂件之后
@@ -1079,6 +1097,9 @@ async function __init() {
     //绑定按钮事件
     // 刷新按钮绑定事件移动到Init
     document.getElementById("setting").onclick = function () {
+        if (setting.mouseoverButtonArea && !topBtnElement.classList.contains("outerSetting-show")) {
+            return;
+        }
         showSettingChanger(!g_showSetting);
     };
     // 监视Input变化，设置为显示大纲时，显示大纲层级选项
@@ -1110,6 +1131,40 @@ async function __init() {
     g_showSetting = setting.showSettingOnStartUp;
     showSettingChanger(g_showSetting);
     console.log("屏幕宽度" + window.screen.availWidth);
+    
+    // 隐藏顶部按钮栏 https://github.com/OpaqueGlass/listChildDocs/issues/40
+    // topBtnElement.classList.add("outerSetting-hide");
+    let mouseOverTimeout, mouseOutTimeout;
+    console.log("gggg", setting.mouseoverButtonArea);
+    if (!setting.mouseoverButtonArea) {
+        topBtnElement.classList.remove("outerSetting-hide");
+    }else{
+        // 监听鼠标移入事件
+        topBtnElement.addEventListener('mouseover', function() {
+            if (topBtnElement.style.opacity != 1.0 && !mouseOverTimeout) {
+                mouseOverTimeout = setTimeout(function() {
+                    // 显示元素
+                    topBtnElement.classList.add("outerSetting-show");
+                    mouseOverTimeout = undefined;
+                }, 500);
+            }
+        });
+
+        // 监听鼠标移出事件
+        topBtnElement.addEventListener('mouseout', function() {
+            clearTimeout(mouseOutTimeout);
+            clearTimeout(mouseOverTimeout);
+            mouseOverTimeout = undefined;
+            // 3秒后隐藏元素
+            mouseOutTimeout = setTimeout(function() {
+                topBtnElement.classList.remove("outerSetting-show");
+            }, 2000);
+        });
+    }
+    
+    
+
+
     //初始化时设定列数
     if (custom_attr.listColumn > 1) {
         setColumn();
@@ -1228,6 +1283,7 @@ async function __init() {
         });
     }
     document.getElementById("search").addEventListener("click", function () {
+        if (setting.mouseoverButtonArea && !topBtnElement.classList.contains("outerSetting-show")) return;
         findDialog.show(this);
     });
 }
