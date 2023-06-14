@@ -160,3 +160,41 @@ export function pushDebug(text) {
     areaElem.value = areaElem.value + `\n${new Date().toLocaleTimeString()}` + text;
     areaElem.scrollTop = areaElem.scrollHeight;
 }
+
+
+// debug push
+let g_DEBUG = 0;
+const g_NAME = "列出子文档";
+
+export function commonPush(str, ...args) {
+    if (g_DEBUG == 0 && (window.top["OpaqueGlassDebug"] != true)) {
+        return false;
+    }
+    // let parsedArgsStr = "";
+    // for (let arg of args) {
+    //     parsedArgsStr += arg;
+    // }
+    return true;
+}
+
+export function debugPush(str, ...args) {
+    pushDebug(str);
+    if (commonPush(str, ...args) && 
+         (window["OpaqueGlassDebugLevel"] == undefined || window["OpaqueGlassDebugLevel"] >= 1)) {
+        console.log(`${g_NAME} ${str}`, ...args);
+    }
+}
+
+export function errorPush(str, ... args) {
+    if (
+         (window["OpaqueGlassDebugLevel"] == undefined || window["OpaqueGlassDebugLevel"] >= 1)) {
+        console.error(`${g_NAME} ${str}`, ...args);
+    }
+}
+
+export function warnPush(str, ... args) {
+    if (commonPush(str, ...args) && 
+         (window["OpaqueGlassDebugLevel"] == undefined || window["OpaqueGlassDebugLevel"] >= 1)) {
+        console.warn(`${g_NAME} ${str}`, ...args);
+    }
+}

@@ -29,7 +29,7 @@ import {
 } from './API.js';
 import { custom_attr, language, setting } from './config.js';
 import { openRefLink, showFloatWnd } from './ref-util.js';
-import { generateBlockId, isInvalidValue, isSafelyUpdate, isValidStr, pushDebug, transfromAttrToIAL } from './common.js';
+import { generateBlockId, isInvalidValue, isSafelyUpdate, isValidStr, pushDebug, transfromAttrToIAL, debugPush, warnPush, errorPush } from './common.js';
 
 const CONSTANTS = {
     ATTR_NAME_WORK_MODE: "data-work-mode",
@@ -46,11 +46,11 @@ async function addText2File(markdownText, blockid = "") {
         //判断是否是分列的目录块（是否是超级块）
         // let subLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id IN (SELECT id from blocks where parent_id = '${blockid}' and type = 's')`);
         let subDirectLists = await queryAPI(`SELECT id FROM blocks WHERE type = 'l' AND parent_id = '${blockid}'`);
-        // console.log("超级块内超级块下的列表数？", subLists.length);
-        // console.log("超级块下直接的列表数", subDirectLists.length);
+        // debugPush("超级块内超级块下的列表数？", subLists.length);
+        // debugPush("超级块下直接的列表数", subDirectLists.length);
         //如果是分列的目录块，那么以超级块中一个随机的无序列表的属性为基准，应用于更新后的块
         attrData = await getblockAttrAPI(subDirectLists.length >= 1 ? subDirectLists[0].id : blockid);
-        // console.log("更新前，", subDirectLists, "attrGet", attrData);
+        // debugPush("更新前，", subDirectLists, "attrGet", attrData);
         attrData = attrData.data;
         //避免重新写入id和updated信息
         delete attrData.id;
@@ -86,11 +86,11 @@ async function addText2File(markdownText, blockid = "") {
     } else if (response == null || response.id == "") {
         //找不到块，移除原有属性
         custom_attr['childListId'] = "";
-        console.warn("更新失败，下次将创建新块", blockid);
+        warnPush("更新失败，下次将创建新块", blockid);
         await setCustomAttr();//移除id属性后需要保存
         throw Error(language["refreshNeeded"]);
     } else {
-        console.error("插入/更新块失败", response.id);
+        errorPush("插入/更新块失败", response.id);
         throw Error(language["insertBlockFailed"]);
     }
 }
@@ -128,7 +128,7 @@ async function getCustomAttr() {
     }
     
     if (response.data['custom-lcd-cache'] == undefined && response.data["custom-list-child-docs"] == undefined) {
-        console.warn("无法从DOM读取挂件属性，改为使用API", response);
+        warnPush("无法从DOM读取挂件属性，改为使用API", response);
         response = await getblockAttrAPI(thisWidgetId);
     }
     let attrObject = {};
@@ -140,7 +140,7 @@ async function getCustomAttr() {
         try {
             attrObject = JSON.parse(response.data['custom-list-child-docs'].replace(new RegExp("&quot;", "g"), "\""));
         }catch(err) {
-            console.warn("解析挂件属性json失败", err.message);
+            warnPush("解析挂件属性json失败", err.message);
             parseErrorFlag = true;
         }
     }
@@ -205,11 +205,11 @@ async function getCustomAttr() {
             }else{
                 newWidgetKramdown = widgetKramdown.replace(new RegExp("><\/iframe>", ""), ` style="${setting.saveDefaultWidgetStyle}"><\/iframe>`);
             }
-            console.log("【挂件更新自身样式信息】!", newWidgetKramdown);
+            debugPush("【挂件更新自身样式信息】!", newWidgetKramdown);
             await updateBlockAPI(newWidgetKramdown, thisWidgetId);
         }else{
-            console.log(widgetKramdown);
-            console.warn("当前id不对应listChildDocs挂件，不设定挂件样式", thisWidgetId);
+            debugPush(widgetKramdown);
+            warnPush("当前id不对应listChildDocs挂件，不设定挂件样式", thisWidgetId);
         }
         throw new Error(language["saveDefaultStyleFailed"]);
     }
@@ -217,7 +217,7 @@ async function getCustomAttr() {
     if (!("id" in response.data)) {
         throw Error(language["getAttrFailed"]);
     }
-    // console.log("请求到的属性", JSON.stringify(response.data));
+    // debugPush("请求到的属性", JSON.stringify(response.data));
 }
 
 //统一写入attr到挂件属性
@@ -237,7 +237,7 @@ async function setCustomAttr() {
 //获取子文档层级目录输出文本
 async function getText(notebook, nowDocPath) {
     if (myPrinter == undefined) {
-        console.error("输出类Printer错误", myPrinter);
+        errorPush("输出类Printer错误", myPrinter);
         throw Error(language["wrongPrintMode"]);
     }
     let insertData = myPrinter.beforeAll();
@@ -375,7 +375,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) 
  */
 async function getDocOutlineText(docId, distinguish, rowCountStack) {
     let outlines = await getDocOutlineAPI(docId);
-    if (outlines == null) { console.warn("获取大纲失败"); return ""; }
+    if (outlines == null) { warnPush("获取大纲失败"); return ""; }
     let result = "";
     result += getOneLevelOutline(outlines, distinguish, rowCountStack);
     return result;
@@ -415,14 +415,14 @@ function getOneLevelOutline(outlines, distinguish, rowCountStack) {
             rowCountStack.pop();
             result += myPrinter.afterChildDocs();
         } else if (outline.type != "outline" && outline.type != "NodeHeading") {
-            console.warn("未被处理的大纲情况");
+            warnPush("未被处理的大纲情况");
         }
         rowCountStack[rowCountStack.length - 1]++;
     }
     return result;
 }
 
-function debugPush(text, delay = 7000) {
+function debugPushAPI(text, delay = 7000) {
     pushMsgAPI(text, 7000);
 }
 
@@ -456,7 +456,7 @@ function setColumn() {
  * @param {msgText} 错误信息
  * @param {boolean} clear 输出前是否清空 
  */
-function errorPush(msgText, clear = true) {
+function errorShow(msgText, clear = true) {
     if (clear) $(".linksContainer *").remove();
     $("#linksContainer").css("column-count", "");//显示错误时不分栏
     $(`<ul><li class="linksListItem errorinfo">${language["error"]}` + msgText + `</li></ul>`).appendTo("#linksContainer");
@@ -470,7 +470,7 @@ function errorPush(msgText, clear = true) {
 function saveContentCache(textString = g_contentCache) {
     console.info("[SAVE]保存缓存中");
     if (isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId) == false) {
-        console.warn("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
+        warnPush("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
     }
     let response = addblockAttrAPI({ "custom-lcd-cache": textString }, thisWidgetId);
 }
@@ -547,7 +547,7 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
  */
 function adjustHeight(modeDoUpdateFlag) {
     if (setting.autoHeight && modeDoUpdateFlag != 1 && myPrinter.write2file != 1) {
-        // console.log("挂件高度应当设为", $("body").outerHeight());
+        // debugPush("挂件高度应当设为", $("body").outerHeight());
         let tempHeight = $("body").outerHeight() + 50;
         if (setting.height_2widget_min && tempHeight < setting.height_2widget_min) tempHeight = setting.height_2widget_min;
         if (setting.height_2widget_max && tempHeight > setting.height_2widget_max) tempHeight = setting.height_2widget_max;
@@ -618,11 +618,11 @@ async function __main(manual = false, justCreate = false) {
         if ((manual || setting.saveCacheWhileAutoEnable) && myPrinter.write2file == 0 && isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId)) {
             saveContentCache(textString);
         }else if (myPrinter.write2file == 0){
-            console.log("只读模式，或未启用只读安全模式，不进行缓存。");
+            debugPush("只读模式，或未启用只读安全模式，不进行缓存。");
         }
     } catch (err) {
-        console.error(err);
-        errorPush(err.message);
+        errorPush(err);
+        errorShow(err.message);
         modeDoUpdateFlag = 1;
     }finally{
         console.timeEnd(`listChildDocs-${thisWidgetId.substring(15)}刷新计时`);
@@ -663,7 +663,7 @@ async function getTargetBlockBoxPath() {
     try {
         g_notebooks = window.top.siyuan.notebooks;
     }catch (err) {
-        console.error("获取笔记本方法过时，请@开发者修复此问题！");
+        errorPush("获取笔记本方法过时，请@开发者修复此问题！");
     }
     // 若id已指定：
     // 若指定的是从笔记本上级列出
@@ -710,7 +710,7 @@ async function getTargetBlockBoxPath() {
 //保存设置项
 async function __save() {
     if (isSafelyUpdate(thisDocId, {widgetMode: true}, thisWidgetId) == false) {
-        console.warn("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
+        warnPush("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
     }
     //获取最新设置
     await __refresh();
@@ -721,8 +721,8 @@ async function __save() {
         console.info("[SAVE]保存设置项");
         $("#updateTime").text(language["saved"]);
     } catch (err) {
-        console.error(err);
-        errorPush(err.message);
+        errorPush(err);
+        errorShow(err.message);
     }
     __refreshAppearance();
 }
@@ -762,7 +762,7 @@ function setDefaultTitle() {
  * 调用前确定已经获得了printMode
  */
 function __refreshPrinter(init = false) {
-    console.log("响应模式变化");
+    debugPush("响应模式变化");
     custom_attr.printMode = $("#printMode").val();
     let getPrinterFlag = false;
     if (!init) {
@@ -790,7 +790,7 @@ function __refreshPrinter(init = false) {
     if (!getPrinterFlag) {
         custom_attr.printMode = "0";
         myPrinter = new DefaultPrinter();
-        errorPush(language["wrongPrintMode"]);
+        errorShow(language["wrongPrintMode"]);
     }
     // 执行模式初始化
     let newSetCustomAttr = myPrinter.init(custom_attr);
@@ -1012,7 +1012,7 @@ try{
                     if (okBtn.length == 1) {
                         okBtn.click();
                     }else{
-                        console.warn("回车匹配到多个按钮，已停止操作");
+                        warnPush("回车匹配到多个按钮，已停止操作");
                     }
                 }
             })
@@ -1030,7 +1030,7 @@ try{
     }
 }catch(err) {
     pushDebug(err);
-    console.error(err);
+    errowPush(err);
 }
 }
 
@@ -1047,8 +1047,8 @@ async function __init() {
     try {
         await getCustomAttr();
     } catch (err) {
-        console.warn(err);
-        errorPush(language["getAttrFailedAtInit"]);
+        warnPush(err);
+        errorShow(language["getAttrFailedAtInit"]);
         justCreate = true;
         // custom_attr.auto = false;//读取错误时关闭auto
     }
@@ -1131,12 +1131,11 @@ async function __init() {
     }
     g_showSetting = setting.showSettingOnStartUp;
     showSettingChanger(g_showSetting);
-    console.log("屏幕宽度" + window.screen.availWidth);
+    debugPush("屏幕宽度" + window.screen.availWidth);
     
     // 隐藏顶部按钮栏 https://github.com/OpaqueGlass/listChildDocs/issues/40
     // topBtnElement.classList.add("outerSetting-hide");
     let mouseOverTimeout, mouseOutTimeout;
-    console.log("gggg", setting.mouseoverButtonArea);
     if (!setting.mouseoverButtonArea) {
         topBtnElement.classList.remove("outerSetting-hide");
     }else{
@@ -1176,7 +1175,7 @@ async function __init() {
         try{
             loadResult = await loadContentCache(g_contentCache);
         }catch(err) {
-            console.error(err);
+            errorPush(err);
         }
         if (loadResult) {
             $("#updateTime").text(language["cacheLoaded"]);
@@ -1268,7 +1267,7 @@ async function __init() {
                     if (okBtn.length == 1) {
                         okBtn.click();
                     }else{
-                        console.warn("回车匹配到多个按钮，已停止操作");
+                        warnPush("回车匹配到多个按钮，已停止操作");
                     }
                 }
             })
@@ -1309,7 +1308,7 @@ function __setObserver() {
         }
     } catch (err) {
         // printError("监听点击页签事件失败", false);//监听页签将作为附加功能，不再向用户展示错误提示
-        console.error("监视点击页签事件失败" + err);
+        errorPush("监视点击页签事件失败" + err);
     }
 }
 pushDebug("开始载入");
@@ -1331,10 +1330,11 @@ let g_notebooksIDList = null;
 let g_contentCache;
 let g_longTouchTimeout;
 let g_longTouchFlag;
+let g_window;
 try {
     g_notebooks = window.top.siyuan.notebooks;
 }catch (err) {
-    console.error("获取笔记本方法过时，请@开发者修复此问题！");
+    errorPush("获取笔记本方法过时，请@开发者修复此问题！");
 }
 
 //延时初始化 过快的进行insertblock将会导致思源(v2.1.5)运行时错误
@@ -1343,7 +1343,7 @@ pushDebug("A基本功能载入成功，开始init");
 try{
     __init();
 }catch(err) {
-    console.error(err);
+    errorPush(err);
     pushDebug(err);
 }
 
@@ -1360,10 +1360,10 @@ try {
         }
         mutationObserver2.observe(targetNode, { "attributes": true, "attributeFilter": ["aria-label"] });
     }
-    // window.top.addEventListener("change", ()=>{console.log("changed")});
+    // window.top.addEventListener("change", ()=>{debugPush("changed")});
 
 } catch (err) {
-    console.error(err);
-    console.warn("监视外观切换事件失败");
+    errorPush(err);
+    warnPush("监视外观切换事件失败");
     pushDebug("监视外观切换事件失败");
 }
