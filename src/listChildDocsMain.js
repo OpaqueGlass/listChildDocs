@@ -1142,11 +1142,13 @@ async function __init() {
         // 监听鼠标移入事件
         topBtnElement.addEventListener('mouseover', function() {
             if (topBtnElement.style.opacity != 1.0 && !mouseOverTimeout) {
+                clearTimeout(mouseOutTimeout);
                 mouseOverTimeout = setTimeout(function() {
                     // 显示元素
                     topBtnElement.classList.add("outerSetting-show");
                     mouseOverTimeout = undefined;
-                }, 500);
+                    clearTimeout(mouseOutTimeout);
+                }, 220);
             }
         });
 
@@ -1158,7 +1160,7 @@ async function __init() {
             // 3秒后隐藏元素
             mouseOutTimeout = setTimeout(function() {
                 topBtnElement.classList.remove("outerSetting-show");
-            }, 2000);
+            }, 1000);
         });
     }
     

@@ -418,11 +418,15 @@ body {
 
 .outerSetting-hide {
     opacity: 0;
-    transition: opacity 0.25s ease, max-height 0.25s ease;
-    max-height: 5px;
+    transition: opacity 0.1s ease;
+    /* max-height: px; */
+    margin-top: 0px;
+    margin-bottom: 5px;
 }
 
 .outerSetting-show {
     opacity: 1;
-    max-height: none;
+    /* max-height: none; */
+    /* margin-top: inherit;
+    margin-bottom: inherit; */
 }
