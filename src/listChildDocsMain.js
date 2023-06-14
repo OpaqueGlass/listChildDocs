@@ -623,6 +623,7 @@ async function __main(manual = false, justCreate = false) {
     } catch (err) {
         console.error(err);
         errorPush(err.message);
+        modeDoUpdateFlag = 1;
     }finally{
         console.timeEnd(`listChildDocs-${thisWidgetId.substring(15)}刷新计时`);
     }
