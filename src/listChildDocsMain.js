@@ -1159,13 +1159,11 @@ async function __init() {
             mouseOverTimeout = undefined;
             // 3秒后隐藏元素
             mouseOutTimeout = setTimeout(function() {
+                if (g_showSetting) return;
                 topBtnElement.classList.remove("outerSetting-show");
             }, 1000);
         });
     }
-    
-    
-
 
     //初始化时设定列数
     if (custom_attr.listColumn > 1) {
