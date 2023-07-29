@@ -42,7 +42,7 @@ let setting = {
 
     // 安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块
     // 可以避免此挂件自行刷新导致可能的同步覆盖问题。
-    safeMode: true,
+    safeMode: false,
     // 安全模式PLUS【!可能因为思源版本更新而失效或导致bug，但部分情况下建议开启】
     // 避免在历史预览界面、编辑器只读时执行文档更改操作(目前允许挂件设置保存，请注意只读情况下设置保存的风险)
     // 【如果您使用自动插入助手，请启用此功能】
@@ -76,7 +76,7 @@ let setting = {
     // 在模式“默认”“挂件beta”下，使得挂件高度跟随目录长度自动调整
     autoHeight: false,
     // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最小高度（单位px），若不限制，请设为undefined
-    height_2widget_min: 300,
+    height_2widget_min: undefined,
     // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最大高度（单位px），若不限制，请设为undefined
     height_2widget_max: undefined,
 
@@ -147,7 +147,7 @@ let setting = {
     searchHotkeyEnable: false,
 
     // 悬停显示顶部按钮栏
-    mouseoverButtonArea: true,
+    mouseoverButtonArea: false,
 };
 // 自动插入助手设置
 // 自动插入助手和挂件本体共用setting.safeModePlus（只读安全模式检查设置项），如果您使用自动插入助手，请启用此功能。
