@@ -1,5 +1,11 @@
 ## 更新日志
 
+### v0.2.2 
+
+- 新增：只在鼠标悬停时显示按钮栏；（默认禁用，需修改config.js `mouseoverButtonArea`）
+- 改进：出错时避免更改挂件高度；
+- 改进：css中emoji字体匹配顺序（`'Twemoji Mozilla', 'Noto Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'Apple Color Emoji', 'Noto Color Emoji', 'Android Emoji'`），如果出现黑白Emoji，[请下载安装Twemoji Mozilla字体](https://github.com/mozilla/twemoji-colr/releases)；
+
 ### v0.2.1 (2023-6-4)
 
 - 改进：支持设置最大子文档数量；
