@@ -600,6 +600,47 @@ export async function createDocWithPath(notebookid, path, title = "Untitled") {
     return false;
 }
 
+/**
+ * 将对象保存为JSON文件
+ * @param {*} path 
+ * @param {*} object 
+ * @returns 
+ */
+export async function putJSONFile(path, object) {
+    const url = "/api/file/putFile";
+    const pathSplited = path.split("/");
+    // File的文件名实际上无关，但这里考虑到兼容，将上传文件按照路径进行了重命名
+    const file = new File([JSON.stringify(object)], pathSplited[pathSplited.length - 1], {type: "text/plain"});
+    const data = new FormData();
+    data.append("path", path);
+    data.append("isDir", false);
+    data.append("modTime", new Date().valueOf());
+    data.append("file", file);
+    return fetch(url, {
+        body: data,
+        method: 'POST',
+        headers: {
+            "Authorization": "Token "+ token
+        }
+    }).then((response) => {
+        return response.json();
+    });
+}
+
+/**
+ * 从JSON文件中读取对象
+ * @param {*} path 
+ * @returns 
+ */
+export async function getJSONFile(path) {
+    const url = "/api/file/getFile";
+    let response = await postRequest({"path": path}, url);
+    if (response.code == 404) {
+        return null;
+    }
+    return response;
+}
+
 export function isMobile() {
     return window.top.document.getElementById("sidebar") ? true : false;
 };

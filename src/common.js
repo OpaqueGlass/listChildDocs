@@ -1,7 +1,6 @@
 /**
  * common.js 一些可能常用的方法
  */
-import { setting } from "./config.js";
 /**
  * 检查窗口状况，防止在历史预览页面刷新更改文档
  * @param thisDocId 待判断的文档id
@@ -11,7 +10,6 @@ import { setting } from "./config.js";
  * UNSTABLE: !此方法大量依赖jQuery定位页面元素
  */
 export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = "") {
-    if (setting.safeModePlus == false) return true;
     let config = {
         "history": true, // 检查历史页面
         "targetDoc": true, // 检查目标文档是否已经打开，并且未启用只读模式
@@ -162,39 +160,89 @@ export function pushDebug(text) {
 }
 
 
-// debug push
-let g_DEBUG = 0;
-const g_NAME = "列出子文档";
+export function isFileNameIllegal(str) {
+    let regex = /[\\/:*?"<>|]/;
+    return regex.test(str);
+}
 
-export function commonPush(str, ...args) {
-    if (g_DEBUG == 0 && (window.top["OpaqueGlassDebug"] != true)) {
-        return false;
+
+// debug push
+let g_DEBUG = 2;
+const g_NAME = "lcd";
+const g_FULLNAME = "列出子文档";
+
+/*
+LEVEL 0 忽略所有
+LEVEL 1 仅Error
+LEVEL 2 Err + Warn
+LEVEL 3 Err + Warn + Info
+LEVEL 4 Err + Warn + Info + Log
+LEVEL 5 Err + Warn + Info + Log + Debug
+*/
+export function commonPushCheck() {
+    if (window.top["OpaqueGlassDebugV2"] == undefined || window.top["OpaqueGlassDebugV2"][g_NAME] == undefined) {
+        return g_DEBUG;
     }
-    // let parsedArgsStr = "";
-    // for (let arg of args) {
-    //     parsedArgsStr += arg;
-    // }
-    return true;
+    return window.top["OpaqueGlassDebugV2"][g_NAME];
 }
 
 export function debugPush(str, ...args) {
     pushDebug(str);
-    if (commonPush(str, ...args) && 
-         (window["OpaqueGlassDebugLevel"] == undefined || window["OpaqueGlassDebugLevel"] >= 1)) {
-        console.log(`${g_NAME} ${str}`, ...args);
+    if (commonPushCheck() >= 5) {
+        console.debug(`${g_FULLNAME}[D]  ${str}`, ...args);
+    }
+}
+
+export function logPush(str, ...args) {
+    pushDebug(str);
+    if (commonPushCheck() >= 4) {
+        console.log(`${g_FULLNAME}[L] ${str}`, ...args);
     }
 }
 
 export function errorPush(str, ... args) {
-    if (
-         (window["OpaqueGlassDebugLevel"] == undefined || window["OpaqueGlassDebugLevel"] >= 1)) {
-        console.error(`${g_NAME} ${str}`, ...args);
+    if (commonPushCheck() >= 1) {
+        console.error(`${g_FULLNAME}[E] ${str}`, ...args);
     }
 }
 
 export function warnPush(str, ... args) {
-    if (commonPush(str, ...args) && 
-         (window["OpaqueGlassDebugLevel"] == undefined || window["OpaqueGlassDebugLevel"] >= 1)) {
-        console.warn(`${g_NAME} ${str}`, ...args);
+    if (commonPushCheck() >= 2) {
+        console.warn(`${g_FULLNAME}[W] ${str}`, ...args);
     }
+}
+
+export function checkWorkEnvironment() {
+    if (window.siyuan == null && window.top.siyuan == null) {
+        if (window.frameElement) {
+            return WORK_ENVIRONMENT.IFRAME;
+        }
+        return WORK_ENVIRONMENT.SINGLE;
+    }
+    let widgetId = "";
+
+    try {
+        let widgetNodeDataset = window.frameElement.parentElement.parentElement.dataset;
+        if (isValidStr(widgetNodeDataset["nodeId"]) || isValidStr(widgetNodeDataset["id"])) {
+            widgetId = widgetNodeDataset["nodeId"];
+            if (widgetNodeDataset["workEnviroment"]) {
+                return widgetNodeDataset["workEnviroment"];
+            } else {
+                return WORK_ENVIRONMENT.WIDGET;
+            }
+        } else {
+            return WORK_ENVIRONMENT.PLUGIN;
+        }
+    }catch{
+
+    }
+    return WORK_ENVIRONMENT.UNKNOWN;
+}
+
+export const WORK_ENVIRONMENT = {
+    "UNKNOWN": -1, // 未知
+    "SINGLE": 0, // 在单独页面
+    "PLUGIN": 1, // 在思源页面，有window.siyuan上下文
+    "WIDGET": 2, // 在挂件中，有挂件上下文
+    "IFRAME":3, // 在页面中嵌入，但无window.siyuan上下文
 }
