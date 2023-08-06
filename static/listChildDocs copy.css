@@ -1,4 +1,4 @@
-.upperbar button {
+.app button {
     border: 0px;
     /* font-weight: 300; */
     width: 25px;
@@ -23,6 +23,8 @@
     }
 }
 
+.app select,
+.app input,
 .ui-dialog input {
     border: 1px solid sandybrown;
     font-weight: 300;
@@ -46,15 +48,39 @@
 }
 
 /* 聚焦选中 */
+.app select:focus-visible,
+.app input:focus-visible,
 .ui-dialog input:focus-visible {
     outline: 0px;
     border-width: 2px;
+}
+
+.app input[type="number"], .app input[type="text"]{
+    cursor: text;
 }
 
 .ui-dialog input {
     width: 100%;
     cursor: text;
     text-align: left;
+}
+
+.app select:disabled,
+.app input:disabled {
+    border: 1px solid rgba(118, 118, 118, 0.3);
+    color: rgba(84, 84, 84, 0.3);
+    /* background-color:darkslategray
+    color: white; */
+}
+
+.app input[type="checkbox"] {
+    width: 1em;
+    height: 1em;
+    margin-top: 0.25em;
+    cursor: pointer;
+    /* box-sizing: border-box; */
+    /* text-align: center;
+    display: inline-block; */
 }
 
 .upperbar>* {
@@ -108,6 +134,7 @@ input:hover {
 }
 
 .upperbar {
+    float: left;
     width: 100%;
     display: flex;
     text-align: center;
@@ -126,18 +153,6 @@ input:hover {
 
 .linksList {
     margin-top: 0px;
-    /* 依次为 type, image, position */
-    list-style: disc none outside;
-    margin-left: 30px;
-}
-
-.linksList ul {
-    margin-left: 3em;
-}
-
-.linksList li {
-    /* 依次为 type, image, position */
-    list-style: disc none outside;
 }
 
 .noListStyle {

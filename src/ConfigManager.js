@@ -47,7 +47,129 @@ export class ConfigSaveManager {
         savedData: {}
     }
     defaultGlobalConfig ={
-        allSaveToFile: false
+        allSaveToFile: false,
+        // 将列表写入文件时，此项控制挂件的宽
+        width_2file: "20em",
+        // 将列表写入文件时，此项控制挂件的高
+        height_2file: "4em",
+        // 将列表写入文件时，此项控制显示设置时挂件的高
+        height_2file_setting: "9em",
+
+        // 在挂件中显示自动刷新选项，设定true启用、false禁用【！自动刷新可能导致同步覆盖问题，详见README】
+        showAutoBtn: true,
+        // 在启动时显示所有设置项，设定true启用
+        showSettingOnStartUp: false, 
+        // 显示搜索按钮
+        showSearchBtn: true,
+
+        // 安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块
+        // 可以避免此挂件自行刷新导致可能的同步覆盖问题。
+        safeMode: false,
+        // 安全模式PLUS【!可能因为思源版本更新而失效或导致bug，但部分情况下建议开启】
+        // 避免在历史预览界面、编辑器只读时执行文档更改操作(目前允许挂件设置保存，请注意只读情况下设置保存的风险)
+        // 【如果您使用自动插入助手，请启用此功能】
+        safeModePlus: true,
+
+        // 分列截断提示词（仅用于写入文档模式：url、引用块）
+        divideIndentWord: "(续)",
+
+        // 分列截断方式（仅用于写入文档模式：url、引用块
+        // 为true: 多层级时，在缩进处截断，使每列行数相同，但层级>=2时体验不佳; 
+        // 为false，按照第一层级分列，每列行数不等
+        divideColumnAtIndent: false,
+
+        // 为true启用挂件内浮窗（挂件beta模式）
+        floatWindowEnable: true,
+
+        // 使用玄学的超级块创建方式。如果出现问题，请设置为false（测试中）
+        superBlockBeta: true,
+
+        // 混合列出时区分提示词（启用叶子文档大纲时，该提示词将被加载大纲的前面）
+        outlineDistinguishingWords: "@",
+
+        // 刷新列表后重写属性
+        inheritAttrs: true,
+
+        // 为true则一并写入文档icon Emoji
+        emojiEnable: true,
+        // 文档使用自定义emoji时，写入自定义emoji图片
+        customEmojiEnable: true,
+
+        // 在模式“默认”“挂件beta”下，使得挂件高度跟随目录长度自动调整
+        autoHeight: false,
+        // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最小高度（单位px），若不限制，请设为undefined
+        height_2widget_min: undefined,
+        // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最大高度（单位px），若不限制，请设为undefined
+        height_2widget_max: undefined,
+
+        // 【在插入挂件时表现不稳定，可能在第二次打开时设定、保存样式】挂件保存1次自身的显示样式，设置为undefined以禁用
+        // issue #30 https://github.com/OpaqueGlass/listChildDocs/issues/30
+        // 示例 "width: 2000px; height: 303px;"
+        saveDefaultWidgetStyle: undefined,
+
+        /*  挂件配置批量操作 
+        issue #31 https://github.com/OpaqueGlass/listChildDocs/issues/31
+        ！同步用户请注意：以下两个配置启用后挂件将在载入后更新挂件属性，未同步时可能导致同步覆盖
+        */
+        // 载入挂件后以配置文件为准重写独立设置
+        overwriteIndependentSettings: false,
+        // 载入挂件后移除独立设置
+        removeIndependentSettings: false,
+        // 重载/移除设置时一并删除文档中的原目录列表块；(如果重载为文档中模式，不会执行删除)
+        deleteChildListBlockWhileReset: true,
+        // 独立设置重载或移除白名单
+        // 在这里列出的文档下的挂件，不会执行独立设置重载或移除
+        // 示例["20220815001720-4xjvir0"]
+        overwriteOrRemoveWhiteDocList: [],
+
+        // 未完成功能 插入https:// 或 http:// 协议的emoji，
+        webEmojiEnable: false,
+
+        // 在目录列表第一个加入“../”（前往父文档）（仅挂件内目录），此设定项的类型为字符串，"true"（启用）"false"（禁用）"auto"（仅窄屏设备展示）
+        backToParent: "auto",
+
+        // 挂件内时，扩大点击响应范围为整行
+        extendClickArea: true,
+
+        // 适配挂件插入辅助（addChildDocLinkHelper.js）的属性检测模式，为所在文档插入属性（不建议一直开启，请开启此功能后几天关闭）
+        // 默认情况下，无需打开此功能
+        addChildDocLinkHelperEnable: false,
+
+        // 首次创建目录块时插入的目录属性
+        // 请注意，您写入的属性如果是自定义属性，应当以"custom-"开头，示例 "custom-type": "map"
+        // 请不要写入"id"，"update"等块固有属性
+        blockInitAttrs: {
+            
+        },
+
+        // 在页签切换文档时自动刷新功能将在列出的操作系统上启用，不支持不显示页签的客户端
+        // 若要禁用，值应当为[]；如要在windows启用，["windows"]；如要在多个操作系统上启用，示例：["linux", "windows"]
+        includeOs: ["windows"],
+
+        // 导图模式Markmap配置项，详见https://markmap.js.org/docs/json-options
+        markmapConfig: {},
+        // 导图模式：响应挂件大小变化
+        markmapResizeHandlerEnable: true,
+
+        // 按时间分组模式，显示日期的格式，yyyy将被替换为4位年，MM将被替换为两位数月份，dd将被替换为两位数日
+        dateTemplate: "MM-dd",
+        // 按时间分组模式，显示时间的格式，设置为""则不显示时间，HH将被替换为小时（24小时制），mm将被替换为分钟
+        timeTemplate: "(HH:mm)",
+
+        // 缓存只对挂件中显示的模式有效
+        // 先载入缓存，再执行自动刷新
+        loadCacheWhileAutoEnable: false,
+        // 在自动刷新时也自动保存缓存（!同步用户请注意：多端同步未完成时保存缓存，可能导致同步覆盖）
+        saveCacheWhileAutoEnable: false,
+
+        // 右键重命名或删除操作
+        deleteOrRenameEnable: true,
+
+        // 使用Ctrl+F作为搜索快捷键（焦点在挂件内才生效）
+        searchHotkeyEnable: false,
+
+        // 悬停显示顶部按钮栏
+        mouseoverButtonArea: false,
     };
     constructor(saveMode, relateId, saveDirPath = "/data/storage/listChildDocs/") {
         // 载入全局配置
@@ -310,20 +432,23 @@ export class ConfigViewManager {
     }
     // 从设置项界面收集数据，转换为allData/Config格式
     submitDistinctConfigData(submitData) {
-        const distinctConfig = this.loadUISettings(submitData.field, submitData.form);
+        const distinctConfig = this.loadUISettings(submitData.form, submitData.field);
         // 保存设置项
         this.configSaveManager.saveDistinctConfig(distinctConfig);
         return false; // 阻止默认 form 跳转
     }
     submitDefaultConfigData(submitData) {
-        const distinctConfig = this.loadUISettings(submitData.field, submitData.form);
+        const distinctConfig = this.loadUISettings(submitData.form, submitData.field);
         // 保存设置项
         this.configSaveManager.saveUserConfigDefault(distinctConfig);
         return false; // 阻止默认 form 跳转
     }
     // 转换数据
-    loadUISettings(formData, formElement) {
+    loadUISettings(formElement, formData = null) {
         let data = formData;
+        if (data == null) {
+            data = new FormData(formElement);
+        }
         // 扫描标准元素 input[]
         let result = {};
         for(const key in data) {
