@@ -116,7 +116,7 @@ export class ConfigSaveManager {
                 allDataLocal["config"] = Object.assign(userDefaultConfig, configData);
             }
             if (response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE]) {
-                const cache = JSON.parse(response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE].replace(new RegExp("&quot;", "g"), "\""));
+                const cache = response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE];
                 allDataLocal["cacheHTML"] = cache;
             }
             if (response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_SAVED_DATA]) {
@@ -133,18 +133,33 @@ export class ConfigSaveManager {
             if (inputData["config"]) {
                 attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG] = JSON.stringify(inputData["config"]);
             }
-            if (response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE]) {
-                attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE] = JSON.stringify(inputData["cacheHTML"])
+            if (inputData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE]) {
+                attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE] = inputData["cacheHTML"];
             }
-            if (response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_SAVED_DATA]) {
+            if (inputData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_SAVED_DATA]) {
                 attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_SAVED_DATA] = JSON.stringify(inputData["savedData"]);
             }
+            logPush("saveDistinct", attrData);
             await addblockAttrAPI(attrData, this.relateId);
         } else {
+            logPush("saveDistinct", inputData);
             await putJSONFile(this.dataSavePath, inputData);
         }
     }
-    // 
+    // 保存独立设置
+    async saveDistinctConfig(distinctConfig) {
+        if (this.saveMode == CONSTANTS_CONFIG_SAVE_MODE.WIDGET && !this.globalConfig.allSaveToFile) {
+            let attrData = {};
+            attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG] = JSON.stringify(distinctConfig);
+            logPush("saveDistinctConfig", attrData);
+            await addblockAttrAPI(attrData, this.relateId);
+        } else {
+            let inputData = Object.assign({}, this.allData);
+            inputData["config"] = distinctConfig;
+            logPush("saveDistinctConfig", inputData);
+            await putJSONFile(this.dataSavePath, inputData);
+        }
+    }
     async readSavedData() {
         
     }
@@ -245,6 +260,9 @@ export class ConfigSaveManager {
         filePathName += ".json";
         return filePathName;
     }
+    getDistinctConfig() {
+        return this.allData["config"];
+    }
 }
 
 
@@ -264,28 +282,67 @@ const CONFIG_MANAGER_CONSTANTS = {
 
 /* 设置项HTML显示元素，表单控制和收集 */
 
-class ConfigViewManager {
+export class ConfigViewManager {
     settingElem = null;
+    configSaveManager = null;
     // elem 接管的element
-    constructor(elem) {
+    constructor(configSaveManager = null, elem = null) {
+        this.configSaveManager = configSaveManager;
         this.settingElem = elem;
+        // main中初始化绑定表单提交
+        let form = layui.form;
+        let layer = layui.layer;
+        form.on("submit(save)", this.submitDistinctConfigData.bind(this));
+        // TODO: 赋值，将设置项载入界面
+        form.val("general-config", this.configSaveManager.getDistinctConfig());
     }
 
-
-
-}
-
-class OneConfigItem {
-    label;
-    name;
-    type;
-    constructor(label, name, type) {
-        this.label = label;
-        this.name = name;
-        this.type = type;
+    // 重新载入设置项语言
+    reloadLanguage() {
     }
-}
+    // 从设置项界面收集数据，转换为allData/Config格式
+    submitDistinctConfigData(submitData) {
+        console.log("saved", submitData);
+        const distinctConfig = this.loadUISettings(submitData.field, submitData.form);
+        // TODO: 保存设置项
+        this.configSaveManager.saveDistinctConfig(distinctConfig);
+        return false; // 阻止默认 form 跳转
+    }
+    // 转换数据
+    loadUISettings(formData, formElement) {
+        let data = formData;
+        // 扫描标准元素 input[]
+        let result = {};
+        for(const key in data) {
+            const value = data[key];
+            result[key] = value;
+            if (value === "on") {
+                result[key] = true;
+            }else if (value === "null" || value == "false") {
+                result[key] = "";
+            }
+        }
+        let checkboxes = formElement.querySelectorAll('input[type="checkbox"]');
+        for (let i = 0; i < checkboxes.length; i++) {
+            let checkbox = checkboxes[i];
+            // console.log(checkbox, checkbox.name, data[checkbox.name], checkbox.name);
+            if (result[checkbox.name] == undefined) {
+                result[checkbox.name] = false;
+            }
+        }
+    
+        let numbers = formElement.querySelectorAll("input[type='number']");
+        // console.log(numbers);
+        for (let number of numbers) {
+            result[number.name] = parseFloat(number.value);
+        }
+    
+        logPush("UI SETTING", result);
+        return result;
+    }
+    // 将独立设置载入至设置项界面
+    async loadDistinctConfig(configData) {
 
-class SelectConfigItem extends OneConfigItem {
+    }
 
 }

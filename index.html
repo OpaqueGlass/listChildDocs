@@ -5,57 +5,176 @@
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>list Child Docs for sy</title>
+    <link rel="stylesheet" href="static/layui-v2.8.12/css/layui.css">
+    <link id="layui_theme_css" rel="stylesheet" href="static/layui-v2.8.12/css/layui.css">
+    <!-- <link rel="stylesheet" href="static/listChildDocs.css" /> -->
     <script src="./static/jquery-3.6.0.min.js"></script>
     <script src="./src/listChildDocsClass.js" type="module"></script>
     <script src="./static/d3.js"></script>
     <script src="./static/dayjs.min.js"></script>
-    <script src="./static/markmap-lib.js" ></script>
+    <script src="./static/markmap-lib.js"></script>
     <script src="./static/markmap-view.js"></script>
     <script src="./static/artdialog.js"></script>
-    <script src="./static/layui-v2.8.11/layui.js"></script>
+    <script src="./static/layui-v2.8.12/layui.js"></script>
 </head>
 
 <body>
-    测试ONLY<br/>
+    测试ONLY<br />
     <div class="app">
         <div class="upperbardiv">
             <p class="upperbar outerSetting" id="outerSetting">
-                <button id="refresh"><svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.91,4.09a1,1,0,0,0-1.07.16L19.48,5.46A9.81,9.81,0,0,0,12,2a10,10,0,1,0,9.42,13.33,1,1,0,0,0-1.89-.66A8,8,0,1,1,12,4a7.86,7.86,0,0,1,6,2.78L16.34,8.25a1,1,0,0,0-.27,1.11A1,1,0,0,0,17,10h4.5a1,1,0,0,0,1-1V5A1,1,0,0,0,21.91,4.09Z" fill="#3ca1eb"/></svg></button>
-                <button id="setting"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3ca1eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="4" x2="14" y2="4"></line><line x1="10" y1="4" x2="3" y2="4"></line><line x1="21" y1="12" x2="12" y2="12"></line><line x1="8" y1="12" x2="3" y2="12"></line><line x1="21" y1="20" x2="16" y2="20"></line><line x1="12" y1="20" x2="3" y2="20"></line><line x1="14" y1="2" x2="14" y2="6"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="16" y1="18" x2="16" y2="22"></line></svg></button>
-                <button id="search"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3ca1eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-                
-                
+                <button id="refresh"><svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M21.91,4.09a1,1,0,0,0-1.07.16L19.48,5.46A9.81,9.81,0,0,0,12,2a10,10,0,1,0,9.42,13.33,1,1,0,0,0-1.89-.66A8,8,0,1,1,12,4a7.86,7.86,0,0,1,6,2.78L16.34,8.25a1,1,0,0,0-.27,1.11A1,1,0,0,0,17,10h4.5a1,1,0,0,0,1-1V5A1,1,0,0,0,21.91,4.09Z"
+                            fill="#3ca1eb" />
+                    </svg></button>
+                <button id="setting"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="#3ca1eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="21" y1="4" x2="14" y2="4"></line>
+                        <line x1="10" y1="4" x2="3" y2="4"></line>
+                        <line x1="21" y1="12" x2="12" y2="12"></line>
+                        <line x1="8" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="20" x2="16" y2="20"></line>
+                        <line x1="12" y1="20" x2="3" y2="20"></line>
+                        <line x1="14" y1="2" x2="14" y2="6"></line>
+                        <line x1="8" y1="10" x2="8" y2="14"></line>
+                        <line x1="16" y1="18" x2="16" y2="22"></line>
+                    </svg></button>
+                <button id="search"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="#3ca1eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg></button>
+
+
                 <span id="updateTime"></span>
             </p>
-            <p id="innerSetting">
-                <span id="depthhint"></span>
-                <input id="listDepth" type="number" name="depth" title="showDepth" min="0" value="1">
-                <span id="columnhint"></span>
-                <input id="listColumn" type="number" name="column" title="showColumn" min="1" value="1">
-                <select id="printMode" name="mode"></select>
-                <span id="outlinedepthhint"></span>
-                <input id="outlinedepth" type="number" name="outlineDepth" title="outlineDepth" min="0" value="1">
-                <span id="targetIdhint"></span>
-                <input id="targetId" type="text" name="targetId" title="targetId">
-                <span id="targetDocName"></span><br/>
-                <span id="endDocOutlineHint"></span>
-                <input type="checkbox" name="endDocOutline" value="0" id="endDocOutline" title="endDocOutline">
-                <span id="maxListCountHint"></span>
-                <input id="maxListCount" type="number" name="outlineDepth" title="outlineDepth" min="0" max="512" value="0">
-                <br/>
-                <span id="hideRefreshBtnHint"></span>
-                <input type="checkbox" name="hideRefreshBtn" value="0" id="hideRefreshBtn" title="hideRefreshBtn">
-                <span id="sortByHint"></span>
-                <select id="sortBy" name="sortMode"></select>
-                <span id="autoRefreshHint"></span>
-                <input type="checkbox" name="auto" value="0" id="autoMode" title="AutoRefresh?">
-            </p>
-            <p id="modeSetting"></p>
+            <div id="innerSetting">
+                <div class="layui-tab" lay-filter="setting-tab" id="setting-tab">
+                    <ul class="layui-tab-title">
+                        <li class="layui-this" lay-id="11">常规设置</li>
+                        <li lay-id="22">全局设置</li>
+                        <li lay-id="33">模式设置</li>
+                    </ul>
+                    <div class="layui-tab-content">
+                        <div class="layui-tab-item layui-show">
+                            <form class="layui-form" lay-filter="general-config">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">层级</label>
+                                    <div class="layui-input-inline">
+                                        <input type="number" name="listDepth" placeholder="请输入" lay-verify="required"
+                                            autocomplete="off" class="layui-input" min="0" value="1">
+                                    </div>
+                                    <label class="layui-form-label">分列</label>
+                                    <div class="layui-input-inline">
+                                        <input type="number" name="listColumn" placeholder="请输入" lay-verify="required"
+                                            autocomplete="off" class="layui-input" min="1" value="1">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">模式</label>
+                                    <div class="layui-input-inline">
+                                        <select name="printMode" lay-filter="mode">
+                                            <optgroup label="挂件内 | In widget">
+                                                <option value="0" selected>默认</option>
+                                                <option value="5">1.默认</option>
+                                                <option value="1">1.1.默认</option>
+                                            </optgroup>>
+                                            <optgroup label="引用块 | Ref Link">
+                                                <option value="3">引用块</option>
+                                                <option value="4">1.引用块</option>
+                                            </optgroup>
+                                            <optgroup label="siyuan:// URL">
+                                                <option value="2">URL</option>
+                                                <option value="6">1.URL</option>
+                                                <option value="8">1.1.URL</option>
+                                            </optgroup>
+                                            <optgroup label="其他 | Other">
+                                                <option value="9">任务列表</option>
+                                                <option value="10">导图</option>
+                                                <option value="11">预览方格</option>
+                                                <option value="12">按日期分组</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">叶子文档大纲</label>
+                                        <div class="layui-input-block">
+                                            <input type="checkbox" checked name="endDocOutline" lay-skin="switch"
+                                                lay-filter="switchTest" title="✓|✕">
+                                        </div>
+                                    </div>
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">自动刷新</label>
+                                        <div class="layui-input-block">
+                                            <input type="checkbox" checked name="auto" lay-skin="switch"
+                                                lay-filter="switchTest" title="✓|✕">
+                                        </div>
+                                    </div>
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">子文档最大数量</label>
+                                        <div class="layui-input-block">
+                                            <input type="number" name="maxListCount" placeholder="请输入" autocomplete="off"
+                                                class="layui-input" min="0" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">排序方式</label>
+                                    <div class="layui-input-inline">
+                                        <select name="sortBy" lay-filter="order">
+                                            <option value="">名称字母升序</option>
+                                            <option value="0">名称字母降序</option>
+                                            <option value="1">名称自然升序</option>
+                                            <option value="2">名称自然降序</option>
+                                            <option value="3">修改时间升序</option>
+                                            <option value="4">修改时间降序</option>
+                                            <option value="4">创建时间升序</option>
+                                            <option value="4">创建时间降序</option>
+                                            <option value="4">引用次数升序</option>
+                                            <option value="4">引用次数降序</option>
+                                            <option value="4">文档大小升序</option>
+                                            <option value="4">文档大小降序</option>
+                                            <option value="4">子文档数量升序</option>
+                                            <option value="4">子文档数量降序</option>
+                                            <option value="4">文档树自定义排序</option>
+                                            <option value="256">跟随文档树排序</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block">
+                                        <button type="submit" class="layui-btn" lay-submit lay-filter="save">保存</button>
+                                        <button type="submit" class="layui-btn  layui-btn-primary" lay-submit
+                                            lay-filter="savedefault">保存为默认</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="layui-tab-item">
+                            🚧施工中……<br/>
+                            还没写到这里(＠_＠;) 
+                        </div>
+                        <div class="layui-tab-item">
+                            🚧施工中……<br/>
+                            还没写到这里(＠_＠;) 
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="modeSetting">
+
+            </div>
         </div>
         <div class="linksContainer" id="linksContainer">
-            
+
         </div>
-        <textarea id="debugArea" col="100" row="10" style="width: 518px; height: 37px; display: none;" disabled></textarea>
+        <textarea id="debugArea" col="100" row="10" style="width: 518px; height: 37px; display: none;"
+            disabled></textarea>
     </div>
     <script type="module" src="./src/listChildDocsMainV2.js"></script>
 </body>
