@@ -94,10 +94,6 @@
 #sortBy {
     width: 9em;
 }
-/* 
-#innerSetting > * {
-    display: none;
-} */
 
 #innerSetting select:disabled, #innerSetting input:disabled {
     cursor: not-allowed;

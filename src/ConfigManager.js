@@ -61,6 +61,7 @@ export class ConfigSaveManager {
         this.globalConfig = await this.loadGlobalConfig();
         // 载入默认设置
         let userDefaultConfig = await this.loadUserConfigDefault();
+        logPush("userDefaultConfig", userDefaultConfig);
         // 读取独立设置（和数据等）
         const distinctAll = await this.loadDistinct(userDefaultConfig);
         this.allData = distinctAll;
@@ -106,7 +107,7 @@ export class ConfigSaveManager {
                 }
                 return response;
             } else {
-                return {};
+                return userDefaultConfig;
             }
         } else {
             let response = await getblockAttrAPI(this.relateId);
@@ -114,6 +115,8 @@ export class ConfigSaveManager {
             if (response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG]) {
                 const configData = JSON.parse(response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG].replace(new RegExp("&quot;", "g"), "\""));
                 allDataLocal["config"] = Object.assign(userDefaultConfig, configData);
+            } else {
+                allDataLocal["config"] = userDefaultConfig;
             }
             if (response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE]) {
                 const cache = response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE];
@@ -126,6 +129,7 @@ export class ConfigSaveManager {
             return allDataLocal;
         }
     }
+    // WARN: 请注意，通过这里读入的更新设置，必须在此方法内同步到this.allData / this.globalConfig，否则下次读入将出现问题
     // 保存全部设置
     async saveDistinct(inputData) {
         if (this.saveMode == CONSTANTS_CONFIG_SAVE_MODE.WIDGET && !this.globalConfig.allSaveToFile) {
@@ -139,15 +143,18 @@ export class ConfigSaveManager {
             if (inputData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_SAVED_DATA]) {
                 attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_SAVED_DATA] = JSON.stringify(inputData["savedData"]);
             }
+            this.allData = inputData;
             logPush("saveDistinct", attrData);
             await addblockAttrAPI(attrData, this.relateId);
         } else {
+            this.allData = inputData;
             logPush("saveDistinct", inputData);
             await putJSONFile(this.dataSavePath, inputData);
         }
     }
     // 保存独立设置
     async saveDistinctConfig(distinctConfig) {
+        this.allData["config"] = distinctConfig;
         if (this.saveMode == CONSTANTS_CONFIG_SAVE_MODE.WIDGET && !this.globalConfig.allSaveToFile) {
             let attrData = {};
             attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG] = JSON.stringify(distinctConfig);
@@ -177,7 +184,7 @@ export class ConfigSaveManager {
     // 载入用户设定config的默认值（挂件创建时默认值）
     async loadUserConfigDefault() {
         const filePathName = this.saveDirPath + "schema/" + CONFIG_MANAGER_CONSTANTS.DEFAULT;
-        const response = getJSONFile(filePathName);
+        const response = await getJSONFile(filePathName);
         let temp = Object.assign({}, this.defaultConfig);
         if (!response) {
             return temp;
@@ -293,6 +300,7 @@ export class ConfigViewManager {
         let form = layui.form;
         let layer = layui.layer;
         form.on("submit(save)", this.submitDistinctConfigData.bind(this));
+        form.on("submit(savedefault)", this.submitDefaultConfigData.bind(this));
         // TODO: 赋值，将设置项载入界面
         form.val("general-config", this.configSaveManager.getDistinctConfig());
     }
@@ -302,10 +310,15 @@ export class ConfigViewManager {
     }
     // 从设置项界面收集数据，转换为allData/Config格式
     submitDistinctConfigData(submitData) {
-        console.log("saved", submitData);
         const distinctConfig = this.loadUISettings(submitData.field, submitData.form);
-        // TODO: 保存设置项
+        // 保存设置项
         this.configSaveManager.saveDistinctConfig(distinctConfig);
+        return false; // 阻止默认 form 跳转
+    }
+    submitDefaultConfigData(submitData) {
+        const distinctConfig = this.loadUISettings(submitData.field, submitData.form);
+        // 保存设置项
+        this.configSaveManager.saveUserConfigDefault(distinctConfig);
         return false; // 阻止默认 form 跳转
     }
     // 转换数据
