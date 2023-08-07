@@ -58,44 +58,57 @@
                     </ul>
                     <div class="layui-tab-content">
                         <div class="layui-tab-item layui-show">
-                            <form class="layui-form" lay-filter="general-config" id="distinct-config-form">
+                            <form class="layui-form" lay-filter="general-config" id="general-config">
                                 <div class="layui-form-item">
-                                    <label class="layui-form-label">层级</label>
-                                    <div class="layui-input-inline">
-                                        <input type="number" name="listDepth" placeholder="请输入" lay-verify="required"
-                                            autocomplete="off" class="layui-input" min="0" value="1">
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">层级</label>
+                                        <div class="layui-input-inline">
+                                            <input type="number" name="listDepth" placeholder="请输入" lay-verify="required" id="listDepth"
+                                                autocomplete="off" class="layui-input" min="0" value="1">
+                                        </div>
                                     </div>
-                                    <label class="layui-form-label">分列</label>
-                                    <div class="layui-input-inline">
-                                        <input type="number" name="listColumn" placeholder="请输入" lay-verify="required"
-                                            autocomplete="off" class="layui-input" min="1" value="1">
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">分列</label>
+                                        <div class="layui-input-inline">
+                                            <input type="number" name="listColumn" placeholder="请输入" lay-verify="required" id="listColumn"
+                                                autocomplete="off" class="layui-input" min="1" value="1">
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="layui-form-item">
-                                    <label class="layui-form-label">模式</label>
-                                    <div class="layui-input-inline">
-                                        <select name="printMode" lay-filter="mode">
-                                            <optgroup label="挂件内 | In widget">
-                                                <option value="0" selected>默认</option>
-                                                <option value="5">1.默认</option>
-                                                <option value="1">1.1.默认</option>
-                                            </optgroup>>
-                                            <optgroup label="引用块 | Ref Link">
-                                                <option value="3">引用块</option>
-                                                <option value="4">1.引用块</option>
-                                            </optgroup>
-                                            <optgroup label="siyuan:// URL">
-                                                <option value="2">URL</option>
-                                                <option value="6">1.URL</option>
-                                                <option value="8">1.1.URL</option>
-                                            </optgroup>
-                                            <optgroup label="其他 | Other">
-                                                <option value="9">任务列表</option>
-                                                <option value="10">导图</option>
-                                                <option value="11">预览方格</option>
-                                                <option value="12">按日期分组</option>
-                                            </optgroup>
-                                        </select>
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">模式</label>
+                                        <div class="layui-input-inline">
+                                            <select name="printMode" id="printMode" lay-filter="mode">
+                                                <optgroup label="挂件内 | In widget">
+                                                    <option value="0" selected>默认</option>
+                                                    <option value="5">1.默认</option>
+                                                    <option value="1">1.1.默认</option>
+                                                </optgroup>>
+                                                <optgroup label="引用块 | Ref Link">
+                                                    <option value="3">引用块</option>
+                                                    <option value="4">1.引用块</option>
+                                                </optgroup>
+                                                <optgroup label="siyuan:// URL">
+                                                    <option value="2">URL</option>
+                                                    <option value="6">1.URL</option>
+                                                    <option value="8">1.1.URL</option>
+                                                </optgroup>
+                                                <optgroup label="其他 | Other">
+                                                    <option value="9">任务列表</option>
+                                                    <option value="10">导图</option>
+                                                    <option value="11">预览方格</option>
+                                                    <option value="12">按日期分组</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">目标文档id</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="targetId" placeholder="默认为当前文档" autocomplete="off" id="targetId"
+                                                class="layui-input" value="">
+                                        </div>
                                     </div>
                                 </div>
 
@@ -104,20 +117,20 @@
                                         <label class="layui-form-label">叶子文档大纲</label>
                                         <div class="layui-input-block">
                                             <input type="checkbox" checked name="endDocOutline" lay-skin="switch"
-                                                lay-filter="switchTest" title="✓|✕">
+                                                lay-filter="switchTest" id="endDocOutline" title="✓|✕">
                                         </div>
                                     </div>
                                     <div class="layui-inline">
                                         <label class="layui-form-label">自动刷新</label>
                                         <div class="layui-input-block">
-                                            <input type="checkbox" checked name="auto" lay-skin="switch"
+                                            <input type="checkbox" checked name="auto" id="auto" lay-skin="switch"
                                                 lay-filter="switchTest" title="✓|✕">
                                         </div>
                                     </div>
                                     <div class="layui-inline">
                                         <label class="layui-form-label">子文档最大数量</label>
                                         <div class="layui-input-block">
-                                            <input type="number" name="maxListCount" placeholder="请输入" autocomplete="off"
+                                            <input type="number" name="maxListCount" id="maxListCount" placeholder="请输入" autocomplete="off"
                                                 class="layui-input" min="0" value="0">
                                         </div>
                                     </div>
@@ -126,7 +139,7 @@
                                 <div class="layui-form-item">
                                     <label class="layui-form-label">排序方式</label>
                                     <div class="layui-input-inline">
-                                        <select name="sortBy" lay-filter="order">
+                                        <select name="sortBy" id="sortBy" lay-filter="order">
                                             <option value="">名称字母升序</option>
                                             <option value="0">名称字母降序</option>
                                             <option value="1">名称自然升序</option>
@@ -162,13 +175,14 @@
                         <div class="layui-tab-item">
                             🚧施工中……<br/>
                             还没写到这里(＠_＠;) 
+                            <div id="modeSetting">
+
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div id="modeSetting">
-
-            </div>
+            
         </div>
         <div class="linksContainer" id="linksContainer">
 

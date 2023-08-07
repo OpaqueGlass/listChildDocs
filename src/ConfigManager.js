@@ -2,7 +2,7 @@
  * 读取或保存配置
  */
 import { getJSONFile, putJSONFile, addblockAttrAPI, getblockAttrAPI } from "./API.js";
-import { isFileNameIllegal, logPush } from "./common.js";
+import { debugPush, isFileNameIllegal, logPush } from "./common.js";
 /**
  * 负责配置文件的读取和写入
  */
@@ -53,7 +53,8 @@ export class ConfigSaveManager {
         // 将列表写入文件时，此项控制挂件的高
         height_2file: "4em",
         // 将列表写入文件时，此项控制显示设置时挂件的高
-        height_2file_setting: "9em",
+        height_2file_setting: "20em",
+        width_2file_setting: "50em",
 
         // 在挂件中显示自动刷新选项，设定true启用、false禁用【！自动刷新可能导致同步覆盖问题，详见README】
         showAutoBtn: true,
@@ -392,6 +393,9 @@ export class ConfigSaveManager {
     getDistinctConfig() {
         return this.allData["config"];
     }
+    getAllData() {
+        return this.allData;
+    }
 }
 
 
@@ -414,9 +418,11 @@ const CONFIG_MANAGER_CONSTANTS = {
 export class ConfigViewManager {
     settingElem = null;
     configSaveManager = null;
+    refreshCallBack = null;
     // elem 接管的element
-    constructor(configSaveManager = null, elem = null) {
+    constructor(configSaveManager, refreshCallBack, elem = null) {
         this.configSaveManager = configSaveManager;
+        this.refreshCallBack = refreshCallBack;
         this.settingElem = elem;
         // main中初始化绑定表单提交
         let form = layui.form;
@@ -435,20 +441,25 @@ export class ConfigViewManager {
         const distinctConfig = this.loadUISettings(submitData.form, submitData.field);
         // 保存设置项
         this.configSaveManager.saveDistinctConfig(distinctConfig);
+        this.refreshCallBack();
         return false; // 阻止默认 form 跳转
     }
     submitDefaultConfigData(submitData) {
         const distinctConfig = this.loadUISettings(submitData.form, submitData.field);
         // 保存设置项
         this.configSaveManager.saveUserConfigDefault(distinctConfig);
+        this.refreshCallBack();
         return false; // 阻止默认 form 跳转
     }
     // 转换数据
-    loadUISettings(formElement, formData = null) {
+    loadUISettings(formElement, formData) {
         let data = formData;
-        if (data == null) {
-            data = new FormData(formElement);
-        }
+        // if (data == null) {
+        //     // FIXME: formData获取失败
+        //     data = new FormData(formElement);
+        //     debugPush("getFromFormElem", new FormData(formElement));
+        // }
+        debugPush("loadUISettings", data, formElement);
         // 扫描标准元素 input[]
         let result = {};
         for(const key in data) {

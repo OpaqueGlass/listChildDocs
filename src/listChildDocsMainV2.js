@@ -1,7 +1,7 @@
 /**
  * listChildDocs main V2
  */
-import { logPush, errorPush, warnPush, checkWorkEnvironment, commonPushCheck, WORK_ENVIRONMENT, isValidStr, debugPush, isInvalidValue, isSafelyUpdate } from "./common.js";
+import { logPush, errorPush, warnPush, checkWorkEnvironment, commonPushCheck, WORK_ENVIRONMENT, isValidStr, debugPush, isInvalidValue, isSafelyUpdate, transfromAttrToIAL } from "./common.js";
 import { ConfigSaveManager, CONSTANTS_CONFIG_SAVE_MODE, ConfigViewManager } from "./ConfigManager.js";
 import { 
     queryAPI,
@@ -32,7 +32,7 @@ import { openRefLink, showFloatWnd } from './ref-util.js';
 
 //将Markdown文本写入文件(当前挂件之后的块)
 async function addText2File(markdownText, blockid = "") {
-    if (isSafelyUpdate(thisDocId, {widgetMode: true}, g_workEnvId) == false) {
+    if (isSafelyUpdate(g_currentDocId, {widgetMode: true}, g_workEnvId) == false) {
         throw new Error(language["readonly"]);
     }
     let attrData = {};
@@ -78,15 +78,17 @@ async function addText2File(markdownText, blockid = "") {
     if (response != null && isValidStr(response.id)) {
         //将子文档无序列表块id写入属性
         g_allData["config"]['childListId'] = response.id;
+        g_configManager.saveDistinctConfig(g_allData["config"]);
     } else if (response == null || response.id == "") {
         //找不到块，移除原有属性
         g_allData["config"]['childListId'] = "";
         warnPush("更新失败，下次将创建新块", blockid);
         // FIXME: 创建或更新块后需要更新id，将id保存
-        await setCustomAttr();//移除id属性后需要保存
+        g_configManager.saveDistinctConfig(g_allData["config"]);
+        // await setCustomAttr();//移除id属性后需要保存
         throw Error(language["refreshNeeded"]);
     } else {
-        errorPush("插入/更新块失败", response.id);
+        console.error("插入/更新块失败", response.id);
         throw Error(language["insertBlockFailed"]);
     }
 }
@@ -145,7 +147,7 @@ async function getCustomAttr() {
     // 处理设置重设/移除请求
     if (g_globalConfig.overwriteIndependentSettings && "id" in response.data
             && 'custom-list-child-docs' in response.data
-            && g_globalConfig.overwriteOrRemoveWhiteDocList.indexOf(thisDocId) == -1){
+            && g_globalConfig.overwriteOrRemoveWhiteDocList.indexOf(g_currentDocId) == -1){
         console.info("重载挂件独立配置", thisWidgetId);
         if (g_globalConfig.deleteChildListBlockWhileReset) {
             __refreshPrinter();
@@ -162,7 +164,7 @@ async function getCustomAttr() {
         attrResetFlag = true;
     }else if (g_globalConfig.removeIndependentSettings && "id" in response.data
             && 'custom-list-child-docs' in response.data
-            && g_globalConfig.overwriteOrRemoveWhiteDocList.indexOf(thisDocId) == -1){
+            && g_globalConfig.overwriteOrRemoveWhiteDocList.indexOf(g_currentDocId) == -1){
         if (g_globalConfig.deleteChildListBlockWhileReset) deleteBlockFlag = true;
         console.info("移除挂件独立配置", thisWidgetId);
         await addblockAttrAPI({ "custom-list-child-docs": "" }, thisWidgetId);
@@ -236,7 +238,7 @@ async function setCustomAttr() {
 //获取子文档层级目录输出文本
 async function getText(notebook, nowDocPath) {
     if (g_myPrinter == undefined) {
-        errorPush("输出类Printer错误", g_myPrinter);
+        console.error("输出类Printer错误", g_myPrinter);
         throw Error(language["wrongPrintMode"]);
     }
     let insertData = g_myPrinter.beforeAll();
@@ -268,7 +270,8 @@ async function getText(notebook, nowDocPath) {
         }
         // 处理大纲和子文档两种情况，子文档情况兼容从笔记本级别列出
         if (g_allData["config"].listDepth == 0) {
-            let targetDocId = thisDocId;
+            // FIXME: 这个当前文档id获取这里看怎样全局化一下？
+            let targetDocId = g_currentDocId;
             if (isValidStr(g_allData["config"]["targetId"])) {
                 targetDocId = g_allData["config"]["targetId"];
             }
@@ -462,11 +465,13 @@ function errorShow(msgText, clear = true) {
 
 
 function saveContentCache(textString = g_contentCache) {
-    console.info("[SAVE]保存缓存中");
-    if (isSafelyUpdate(thisDocId, {widgetMode: true}, g_workEnvId) == false) {
+    logPush("保存缓存cacheHTML");
+    if (isSafelyUpdate(g_currentDocId, {widgetMode: true}, g_workEnvId) == false) {
         warnPush("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
     }
-    let response = addblockAttrAPI({ "custom-lcd-cache": textString }, g_workEnvId);
+    g_allData["cacheHTML"] = textString;
+    g_configManager.saveDistinct(g_allData);
+    // let response = addblockAttrAPI({ "custom-lcd-cache": textString }, g_workEnvId);
 }
 
 /**
@@ -482,19 +487,20 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
     }
     let updateAttr = {
         "widgetId": g_workEnvId,
-        "docId": thisDocId,
+        "docId": g_currentDocId,
         "targetDocName": targetDocName,
         "targetNotebook": notebook,
         "targetDocPath": targetDocPath,
         "widgetSetting": g_allData["config"]
     };
+    logPush("updateAttr", updateAttr);
     let loadCacheFlag = false;
     if (modeDoUpdateFlag == undefined) loadCacheFlag = true;
     if (!modeDoUpdateFlag) {
         modeDoUpdateFlag = await g_myPrinter.doUpdate(textString, updateAttr)
     };
     if (modeDoUpdateFlag == 0){
-        $(textString).appendTo("#linksContainer");
+        $("<div>" + textString + "</div>").appendTo("#linksContainer");
         // 处理响应范围，挂引用块点击事件
         if (g_globalConfig.extendClickArea) {
             $(".linksListItem").addClass("itemHoverHighLight handle-ref-click");
@@ -553,7 +559,6 @@ function adjustHeight(modeDoUpdateFlag) {
 /**
  * 功能主函数
  * @param {boolean} manual 手动模式：只在手动模式下重载用户设置、保存缓存
- * @param {boolean} justCreate 挂件刚创建标志：刚加入挂件时不进行块创建
  * 
  */
 async function __main(manual = false, justCreate = false) {
@@ -577,7 +582,7 @@ async function __main(manual = false, justCreate = false) {
         // 交由模式的参数
         let updateAttr = {
             "widgetId": g_workEnvId,
-            "docId": thisDocId,
+            "docId": g_currentDocId,
             "targetDocName": targetDocName,
             "targetNotebook": notebook,
             "targetDocPath": targetDocPath,
@@ -610,13 +615,13 @@ async function __main(manual = false, justCreate = false) {
         }
         await loadContentCache(textString, modeDoUpdateFlag, notebook, targetDocPath);
         if (g_myPrinter.write2file == 0) g_contentCache = textString;
-        if ((manual || g_globalConfig.saveCacheWhileAutoEnable) && g_myPrinter.write2file == 0 && isSafelyUpdate(thisDocId, {widgetMode: true}, g_workEnvId)) {
+        if ((manual || g_globalConfig.saveCacheWhileAutoEnable) && g_myPrinter.write2file == 0 && isSafelyUpdate(g_currentDocId, {widgetMode: true}, g_workEnvId)) {
             saveContentCache(textString);
         }else if (g_myPrinter.write2file == 0){
             debugPush("只读模式，或未启用只读安全模式，不进行缓存。");
         }
     } catch (err) {
-        errorPush(err);
+        console.error(err);
         errorShow(err.message);
         modeDoUpdateFlag = 1;
     }finally{
@@ -644,7 +649,7 @@ async function getTargetBlockBoxPath() {
         //以当前页面id查询当前页面所属笔记本和路径（优先使用widegtId，因为docId可能获取的不准）
         let queryResult = await queryAPI(`SELECT * FROM blocks WHERE id = '${g_workEnvId}'`);
         if (queryResult == null || queryResult.length < 1) {
-            queryResult = await queryAPI(`SELECT * FROM blocks WHERE id = '${thisDocId}'`);
+            queryResult = await queryAPI(`SELECT * FROM blocks WHERE id = '${g_currentDocId}'`);
             if (queryResult == null || queryResult.length < 1) {
                 throw Error(language["getPathFailed"]); 
             }
@@ -658,7 +663,7 @@ async function getTargetBlockBoxPath() {
     try {
         g_notebooks = window.top.siyuan.notebooks;
     }catch (err) {
-        errorPush("获取笔记本方法过时，请@开发者修复此问题！");
+        console.error("获取笔记本方法过时，请@开发者修复此问题！");
     }
     // 若id已指定：
     // 若指定的是从笔记本上级列出
@@ -704,7 +709,7 @@ async function getTargetBlockBoxPath() {
 
 //保存设置项
 async function __save() {
-    if (isSafelyUpdate(thisDocId, {widgetMode: true}, g_workEnvId) == false) {
+    if (isSafelyUpdate(g_currentDocId, {widgetMode: true}, g_workEnvId) == false) {
         warnPush("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
     }
     //获取最新设置
@@ -716,7 +721,7 @@ async function __save() {
         console.info("[SAVE]保存设置项");
         $("#updateTime").text(language["saved"]);
     } catch (err) {
-        errorPush(err);
+        console.error(err);
         errorShow(err.message);
     }
     __refreshAppearance();
@@ -727,6 +732,7 @@ async function __save() {
  */
 function __refreshPrinter(init = false) {
     let getPrinterFlag = false;
+    // 非初始状态，需要清空上一个Printer的数据
     if (!init) {
         let resettedCustomAttr = g_myPrinter ? g_myPrinter.destory(g_allData["config"]):undefined;
         // 部分修改默认设定的模式，应当在退出时修改到合理的值
@@ -737,11 +743,12 @@ function __refreshPrinter(init = false) {
         if (g_allData["config"]["customModeSettings"] != undefined) {
             delete g_allData["config"]["customModeSettings"];
         }
-        // FIXME: 切换模式后清空缓存
-        // saveContentCache("");
+        // 切换模式后清空缓存
+        saveContentCache("");
     }
     // $("#modeSetting").html("");
     //重新获取Printer
+    logPush("refreshP中输入的id", g_allData["config"].printMode);
     for (let printer of printerList) {
         if (printer.id == g_allData["config"].printMode) {
             g_myPrinter = new printer();
@@ -774,18 +781,6 @@ function __refreshPrinter(init = false) {
         g_allData["config"].auto = false;
     }else{
         $("#search").css("display", "");
-    }
-}
-//重新从html读取设定，读取id，更改自动模式//解耦，不再更改外观
-async function __refresh() {
-    let nowAutoMode = true;
-    if (nowAutoMode != g_allData["config"]["auto"]) {
-        if (nowAutoMode) {
-            __setObserver();
-        } else {
-            mutationObserver.disconnect();
-        }
-        g_allData["config"]["auto"] = nowAutoMode;
     }
 }
 
@@ -950,14 +945,14 @@ try{
     }
 }catch(err) {
     pushDebug(err);
-    errorPush(err);
+    console.error(err);
 }
 }
 
 async function __init() {
     //获取id，用于在载入页面时获取挂件属性
     g_workEnvId = getCurrentWidgetId();
-    thisDocId = await getCurrentDocIdF();
+    g_currentDocId = await getCurrentDocIdF();
     // 记录是否是刚刚创建的挂件
     let justCreate = false;
     // 顶部按钮栏，用于控制悬停显示和隐藏时按钮栏不可用
@@ -1050,7 +1045,7 @@ async function __init() {
         try{
             loadResult = await loadContentCache(g_contentCache);
         }catch(err) {
-            errorPush(err);
+            console.error(err);
         }
         if (loadResult) {
             $("#updateTime").text(language["cacheLoaded"]);
@@ -1162,14 +1157,13 @@ function __setObserver() {
         }
     } catch (err) {
         // printError("监听点击页签事件失败", false);//监听页签将作为附加功能，不再向用户展示错误提示
-        errorPush("监视点击页签事件失败" + err);
+        console.error("监视点击页签事件失败" + err);
     }
 }
 let mutationObserver = new MutationObserver(() => { __main(false) });//避免频繁刷新id
 let mutationObserver2 = new MutationObserver(() => { setTimeout(__refreshAppearance, 1500); });
 let refreshBtnTimeout;
 
-let thisDocId = "";
 let thisWidgetId = "";
 let targetDocName = "";
 let mutex = 0;
@@ -1186,7 +1180,7 @@ let g_window;
 try {
     g_notebooks = window.top.siyuan.notebooks;
 }catch (err) {
-    errorPush("获取笔记本方法过时，请@开发者修复此问题！");
+    console.error("获取笔记本方法过时，请@开发者修复此问题！");
 }
 
 
@@ -1208,12 +1202,23 @@ async function __init__() {
     switch (workEnviroment) {
         case WORK_ENVIRONMENT.WIDGET: {
             g_workEnvId = getCurrentWidgetId();
+            g_currentDocId = await getCurrentDocIdF();
             g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.WIDGET, g_workEnvId);
+            try {
+                const tempWidgetAttr = await getblockAttrAPI(g_workEnvId);
+                if (!isValidStr(tempWidgetAttr.id)) {
+                    g_justCreate = true;
+                }
+            }catch (err) {
+                logPush("初始化时获取挂件属性err", err);
+            } 
+            
             break;
         }
         case WORK_ENVIRONMENT.PLUGIN: {
             // 解析路径参数？
-            g_workEnvId = getCurrentDocIdF();
+            g_workEnvId = await getCurrentDocIdF();
+            g_currentDocId = g_workEnvId;;
             if (!isValidStr(g_workEnvId)) {
 
             }
@@ -1225,13 +1230,28 @@ async function __init__() {
     logPush("allData", g_allData);
     logPush("globalConfig", g_globalConfig);
     
-    g_configViewManager = new ConfigViewManager(g_configManager);
+    g_configViewManager = new ConfigViewManager(g_configManager, __refresh);
+    // 绑定及时响应的相关事件
+    __formInputChangeBinder();
     // 绑定快捷键
     __shortcutBinder();
     // 绑定基本按钮栏
     __buttonBinder();
-    // TODO: 刷新printer，可能需要绑定ob
+    // 刷新printer，可能需要绑定监视器在切换后及时响应
     __refreshPrinter();
+    // 对不同的Printer，刷新挂件高度
+    if (g_myPrinter.write2file == 1) {
+        window.frameElement.style.width = g_globalConfig.width_2file;
+        window.frameElement.style.height = g_globalConfig.height_2file;
+    }
+    // 自动刷新处理
+    if (g_allData["config"]["auto"]) {
+        //在更新/写入文档时截停操作（安全模式）
+        if (g_globalConfig.safeMode && g_myPrinter.write2file == 1) return;
+        // 挂件刚创建，且写入文档，禁止操作，因为widgetId未入库，无法创建；
+        if (g_justCreate && g_myPrinter.write2file == 1) return;
+        __main(false, g_justCreate);//初始化模式
+    }
 }
 
 function __changeAppearance() {
@@ -1275,6 +1295,7 @@ function __shortcutBinder(bindFlag = true) {
             event.preventDefault();
             logPush("刷新快捷键已被按下");
             // TODO: 刷新
+            __main(true);
             return;
         }
         if (event.code == "KeyO" && event.ctrlKey == true) {
@@ -1287,8 +1308,22 @@ function __shortcutBinder(bindFlag = true) {
     }
 }
 
+function __formInputChangeBinder() {
+    layui.form.on('select(mode)', function(){
+        logPush("changePrintMode");
+        g_allData["config"].printMode = layui.form.val("general-config")["printMode"];
+        __refreshPrinter();
+    });
+    document.getElementById("listColumn").addEventListener("change", function(){
+        logPush("changeListColumn");
+        if (g_myPrinter.write2file == 0) {
+            g_allData["config"].listColumn = layui.form.val("general-config")["listColumn"];
+            setColumn();
+        }
+    });
+}
+
 function __buttonBinder() {
-    // FIXME: 刷新按钮事件绑定需要移动
     document.getElementById("refresh").onclick = async function () { 
         // 由于按钮栏隐藏是通过透明度实现的，需要确保隐藏时不可点击
         if (g_globalConfig.mouseoverButtonArea && !topBtnElement.classList.contains("outerSetting-show")) {
@@ -1296,7 +1331,7 @@ function __buttonBinder() {
         }
         clearTimeout(refreshBtnTimeout); 
         refreshBtnTimeout = setTimeout(async function () { 
-            await __main(true) 
+            await __main(true);
         }, 300); 
     };
     document.getElementById("refresh").ondblclick = async function () { 
@@ -1304,11 +1339,34 @@ function __buttonBinder() {
             return;
         }
         clearTimeout(refreshBtnTimeout); 
-        const distinctConfig = g_configViewManager.loadUISettings(document.getElementById("distinct-config-form"));
+        const distinctConfig = g_configViewManager.loadUISettings(document.getElementById("general-config"), layui.form.val("general-config"));
+        debugPush("双击刷新按钮，保存设置项", distinctConfig);
+        g_allData["config"] = distinctConfig;
         // 保存设置项
-        g_configManager.saveDistinctConfig(distinctConfig);
+        g_configManager.saveDistinctConfig(distinctConfig).then(()=>{
+            __refreshPrinter();
+        });
     };
     document.getElementById("setting").onclick = _showSetting;
+}
+
+// 读取ConfigManager中缓存的设定，重新设定自动模式、刷新printer
+async function __refresh() {
+    // 重新读取设定
+    let tempNewData = g_configManager.getAllData();
+    let nowAutoMode = tempNewData["config"]["auto"];
+    if (nowAutoMode != g_allData["config"]["auto"]) {
+        if (nowAutoMode) {
+            __setObserver();
+        } else {
+            mutationObserver.disconnect();
+        }
+    }
+    // 正式载入新设定
+    g_allData = tempNewData;
+    // 刷新printer
+    __refreshPrinter();
+
 }
 
 /**
@@ -1319,17 +1377,20 @@ function _showSetting(flag = null) {
     debugPush("innerSetting display", $("#innerSetting").css("display"));
     if (flag == true || $("#innerSetting").css("display") == "none") {
         $("#innerSetting").css("display", "");
+        flag = true;
     } else {
         $("#innerSetting").css("display", "none");
+        flag = false;
     }
     // let display = showBtn ? "inline" : "none";
     // $("#innerSetting *, #modeSetting *").css("display", display);
     // if ((g_allData["config"].listDepth != 0 && !g_allData["config"].endDocOutline) && showBtn) {//层级不为0时不显示大纲层级
     //     $("#outlinedepth, #outlinedepthhint").css("display", "none");
     // }
-    // if (g_myPrinter.write2file == 1) {//写入文档时重设挂件大小
-    //     window.frameElement.style.height = showBtn ? g_globalConfig.height_2file_setting : g_globalConfig.height_2file;
-    // }
+    if (g_myPrinter.write2file == 1) {//写入文档时重设挂件大小
+        window.frameElement.style.height = flag ? g_globalConfig.height_2file_setting : g_globalConfig.height_2file;
+        window.frameElement.style.width = flag ? g_globalConfig.width_2file_setting : g_globalConfig.width_2file;
+    }
 }
 
 function __mutationObserverBinder() {
@@ -1349,7 +1410,7 @@ function __mutationObserverBinder() {
         // window.top.addEventListener("change", ()=>{debugPush("changed")});
     
     } catch (err) {
-        errorPush(err);
+        console.error(err);
         warnPush("监视外观切换事件失败");
         pushDebug("监视外观切换事件失败");
     }
@@ -1362,6 +1423,8 @@ let g_workEnvId = null;
 let g_allData = null;
 let g_globalConfig = null;
 let g_myPrinter = null;
+let g_currentDocId = null;
+let g_justCreate = false;
 
 // 旧全局变量
 
