@@ -606,11 +606,17 @@ export async function createDocWithPath(notebookid, path, title = "Untitled") {
  * @param {*} object 
  * @returns 
  */
-export async function putJSONFile(path, object) {
+export async function putJSONFile(path, object, format = false) {
     const url = "/api/file/putFile";
     const pathSplited = path.split("/");
+    let fileContent = "";
+    if (format) {
+        fileContent = JSON.stringify(object, null, 4);
+    } else {
+        fileContent = JSON.stringify(object);
+    }
     // File的文件名实际上无关，但这里考虑到兼容，将上传文件按照路径进行了重命名
-    const file = new File([JSON.stringify(object)], pathSplited[pathSplited.length - 1], {type: "text/plain"});
+    const file = new File([fileContent], pathSplited[pathSplited.length - 1], {type: "text/plain"});
     const data = new FormData();
     data.append("path", path);
     data.append("isDir", false);

@@ -50,6 +50,8 @@ async function addText2File(markdownText, blockid = "") {
         //避免重新写入id和updated信息
         delete attrData.id;
         delete attrData.updated;
+        // 避免切换模式继承无序列表下的有序列表属性
+        delete attrData["custom-list-style"];
     }else if (g_globalConfig.blockInitAttrs != undefined){ // 为新创建的列表获取默认属性
         attrData = Object.assign({}, g_globalConfig.blockInitAttrs);
     }
@@ -524,7 +526,8 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
             $("#refContainer .refLinks, .childDocLinks").addClass("linkTextHoverHightLight handle-ref-click");
         }
         //挂一下事件，处理引用块浮窗
-        if (g_globalConfig["floatWindowEnable"]) $("#refContainer .floatWindow").mouseover(showFloatWnd);
+        // 浮窗问题？？
+        $("#refContainer .floatWindow").mouseover(showFloatWnd);
         //设定分列值
         setColumn();
     }
@@ -586,6 +589,9 @@ async function __main(manual = false, justCreate = false) {
     g_allData["config"] = await g_configManager.getDistinctConfig();
     console.time(`listChildDocs-${g_workEnvId.substring(15)}刷新计时`);
     $("#updateTime").text(language["working"]);
+    if (g_globalConfig["showBtnArea"] != "true") {
+        layui.layer.msg(language["working"], {icon: 0, time: 0, offset: "t"});
+    }
     let modeDoUpdateFlag = 1;
     // pushMsgAPI(language["startRefresh"], 4500);
     try {
@@ -646,6 +652,9 @@ async function __main(manual = false, justCreate = false) {
     //写入更新时间
     let updateTime = new Date();
     $("#updateTime").text(language["updateTime"] + updateTime.toLocaleTimeString());
+    if (g_globalConfig["showBtnArea"] != "true") {
+        layui.layer.msg(language["refreshFinish"], {icon: 1, time: 1000, offset: "t"});
+    }
     //issue #13 挂件自动高度
     // 挂件内自动高度
     adjustHeight(modeDoUpdateFlag);
@@ -1254,6 +1263,11 @@ async function __init__() {
     logPush("globalConfig", g_globalConfig);
     
     g_configViewManager = new ConfigViewManager(g_configManager, __reloadSettings);
+    if (g_globalConfig["showBtnArea"] == "true") {
+        _showBtnArea(true);
+    } else if (g_globalConfig["showBtnArea"] == "hover") {
+        _hoverBtnAreaBinder(true);
+    }
     // 绑定及时响应的相关事件
     __formInputChangeBinder();
     // 绑定快捷键
@@ -1455,12 +1469,15 @@ function __buttonBinder() {
     let form = layui.form;
     form.on("submit(save)", _saveDistinctConfig);
     form.on("submit(savedefault)", _saveDefaultConfigData);
+    form.on("submit(saveglobal)", _saveGlobalConfigData);
 }
 
 function _saveDistinctConfig(submitData) {
     const distinctConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
     // 保存设置项
     g_configManager.saveDistinctConfig(Object.assign(g_allData["config"], distinctConfig));
+    // TODO: 保存时获取printer的独立设置
+    // TODO: 也要在载入部分做处理
     __reloadSettings();
     return false; // 阻止默认 form 跳转
 }
@@ -1471,6 +1488,13 @@ function _saveDefaultConfigData(submitData) {
     g_configManager.saveUserConfigDefault(distinctConfig);
     __reloadSettings();
     return false; // 阻止默认 form 跳转
+}
+
+function _saveGlobalConfigData(submitData) {
+    const globalConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
+
+    g_configManager.saveGlobalConfig(globalConfig);
+    return false;
 }
 
 // 读取ConfigManager中缓存的设定，重新设定自动模式、刷新printer
@@ -1513,6 +1537,53 @@ function _showSetting(flag = null) {
     if (g_myPrinter.write2file == 1) {//写入文档时重设挂件大小
         window.frameElement.style.height = flag ? g_globalConfig.height_2file_setting : g_globalConfig.height_2file;
         window.frameElement.style.width = flag ? g_globalConfig.width_2file_setting : g_globalConfig.width_2file;
+    }
+    if (g_globalConfig.showBtnArea == "false") {
+        _showBtnArea(flag);
+    }
+}
+
+function _showBtnArea(flag = null) {
+    if (flag == true || $("#outerSetting").hasClass("outerSetting-hide")) {
+        $("#outerSetting").removeClass("outerSetting-hide");
+    } else {
+        $("#outerSetting").addClass("outerSetting-hide");
+    }
+}
+
+function _hoverBtnAreaBinder(flag = null) {
+    if (g_globalConfig["showBtnArea"] != "hover") return;
+    const topBtnElement = document.getElementById("outerSetting");
+    let mouseOverTimeout, mouseOutTimeout;
+    if (flag == true || flag == null) {
+        // 监听鼠标移入事件
+        topBtnElement.addEventListener('mouseover', mouseoverCallBack);
+        // 监听鼠标移出事件
+        topBtnElement.addEventListener('mouseout', mouseoutCallBack);
+    } else {
+        topBtnElement.removeEventListener('mouseover', mouseoverCallBack);
+        topBtnElement.removeEventListener('mouseout', mouseoutCallBack);
+    }
+    function mouseoverCallBack() {
+        if (topBtnElement.style.opacity != 1.0 && !mouseOverTimeout) {
+            clearTimeout(mouseOutTimeout);
+            mouseOverTimeout = setTimeout(function() {
+                // 显示元素
+                topBtnElement.classList.remove("outerSetting-hide");
+                mouseOverTimeout = undefined;
+                clearTimeout(mouseOutTimeout);
+            }, 220);
+        }
+    }
+    function mouseoutCallBack() {
+        clearTimeout(mouseOutTimeout);
+        clearTimeout(mouseOverTimeout);
+        mouseOverTimeout = undefined;
+        // 3秒后隐藏元素
+        mouseOutTimeout = setTimeout(function() {
+            if ($("#innerSetting").css("display") != "none") return;
+            topBtnElement.classList.add("outerSetting-hide");
+        }, 1000);
     }
 }
 

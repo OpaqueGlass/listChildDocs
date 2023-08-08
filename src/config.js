@@ -254,6 +254,7 @@ let zh_CN = {
     wrongTargetId: "错误的目标id。目标id应为存在的文档块id、开启的笔记本id或/",
     readonly: "检测到只读模式，已停止对文档的更改操作。",
     saveDefaultStyleFailed: "保存默认挂件样式设定失败，如反复出现此问题，请禁用saveDefaultWidgetStyle。",
+    refreshFinish: "刷新完成",
     // 自动插入助手提示
     helperAddBlockMemo: "自动插入的子文档链接块：在此块下的编辑将在文档变化时被覆盖",
     queryFilePathFailed: "获取文档路径失败，文档可能刚创建",
@@ -336,6 +337,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     outlineDepthTitle: "The number of display levels for the doc outine. ",
     sortByTitle: "child docs sort mode\n available in siyuan v2.8.7 and later",
     maxListCountTitle: "Maximum number of subdocuments to be displayed for each document. If set to 0, all documents are displayed. Versions earlier than siyuan v2.8.5 are not supported.",
+    refreshFinish: "Refreshed",
     // 错误提示词error warn
     getAttrFailedAtInit: "Failed to read widget properties. If you just created the widget, please ignore this error and refresh again later.",
     startRefresh: "Updating child-doc-list ... --- list child docs widget",

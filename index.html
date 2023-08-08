@@ -22,7 +22,7 @@
     测试ONLY<br />
     <div class="app">
         <div class="upperbardiv">
-            <p class="upperbar outerSetting" id="outerSetting">
+            <p class="upperbar outerSetting outerSetting-hide" id="outerSetting">
                 <button id="refresh"><svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M21.91,4.09a1,1,0,0,0-1.07.16L19.48,5.46A9.81,9.81,0,0,0,12,2a10,10,0,1,0,9.42,13.33,1,1,0,0,0-1.89-.66A8,8,0,1,1,12,4a7.86,7.86,0,0,1,6,2.78L16.34,8.25a1,1,0,0,0-.27,1.11A1,1,0,0,0,17,10h4.5a1,1,0,0,0,1-1V5A1,1,0,0,0,21.91,4.09Z"
@@ -49,7 +49,7 @@
 
                 <span id="updateTime"></span>
             </p>
-            <div id="innerSetting">
+            <div id="innerSetting" style="display: none;">
                 <div class="layui-tab" lay-filter="setting-tab" id="setting-tab">
                     <ul class="layui-tab-title">
                         <li class="layui-this" lay-id="11">常规设置</li>
@@ -185,26 +185,106 @@
                             还没写到这里(＠_＠;) 
                             <form class="layui-form" lay-filter="global-config" id="global-config">
 
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">显示按钮栏</label>
-                                    <div class="layui-input-inline">
-                                        <select name="showBtnArea" id="showBtnArea" lay-filter="showBtnArea">
-                                            <option value="0">始终隐藏</option>
-                                            <option value="1">始终显示</option>
-                                            <option value="2">悬停显示</option>
-                                        </select>
+                                <fieldset class="layui-elem-field">
+                                    <legend>常规</legend>
+                                    <div class="layui-field-box">
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">显示按钮栏</label>
+                                                <div class="layui-input-inline">
+                                                    <select name="showBtnArea" id="showBtnArea" lay-filter="showBtnArea">
+                                                        <option value="false">始终隐藏</option>
+                                                        <option value="true">始终显示</option>
+                                                        <option value="hover">悬停显示</option>
+                                                    </select>
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    如果选择隐藏按钮栏，可以在窗口聚焦于挂件的情况下，使用快捷键操作：<br/>
+                                                    F5 刷新<br/>
+                                                    Ctrl + O 打开或关闭设置面板<br/>
+                                                    Ctrl + F 打开搜索面板"></i>
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">安全模式</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="checkbox" checked name="safeMode" lay-skin="switch"
+                                                    lay-filter="switchTest" id="safeMode" title="✓|✕">
+                                                    <i class="layui-icon layui-icon-tips-fill layui-font-red" lay-tips="
+                                                    安全模式阻止对文档内目录的自动刷新。
+                                                    <br/>如果不使用同步，可关闭安全模式。<br/>
+                                                    <span class='layui-font-red'>如果使用同步，不建议关闭</span>：在同步未完成期间，对文档内目录列表的自动刷新可能导致同步覆盖或冲突。"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">显示返回父文档</label>
+                                                <div class="layui-input-inline">
+                                                    <select name="" id="showBtnArea" lay-filter="showBtnArea">
+                                                        <option value="false">禁用</option>
+                                                        <option value="true">始终显示</option>
+                                                        <option value="auto">仅窄屏设备</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">插入文档图标(emoji)</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="checkbox" checked name="emojiEnable" lay-skin="switch"
+                                                    lay-filter="switchTest" id="safeMode" title="✓|✕">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">安全模式</label>
-                                    <div class="layui-input-inline">
-                                        <select name="showBtnArea" id="showBtnArea" lay-filter="showBtnArea">
-                                            <option value="0">始终隐藏</option>
-                                            <option value="1">始终显示</option>
-                                            <option value="2">悬停显示</option>
-                                        </select>
+                                </fieldset>
+
+                                <fieldset class="layui-elem-field">
+                                    <legend>模式相关</legend>
+                                    <div class="layui-field-box">
+                                      
                                     </div>
-                                </div>
+                                </fieldset>
+
+                                <fieldset class="layui-elem-field">
+                                    <legend>挂件大小</legend>
+                                    <div class="layui-field-box">
+                                        <div class="layui-inline">
+                                            <label class="layui-form-label">列表插入文档时,挂件宽</label>
+                                            <div class="layui-input-inline">
+                                                <input type="text" name="width_2file" placeholder="请输入" autocomplete="off"
+                                                    class="layui-input">
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline">
+                                            <label class="layui-form-label">列表插入文档时,挂件高</label>
+                                            <div class="layui-input-inline">
+                                                <input type="text" name="height_2file" placeholder="请输入(带单位)" autocomplete="off"
+                                                    class="layui-input">
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline">
+                                            <label class="layui-form-label">显示设置时,挂件宽</label>
+                                            <div class="layui-input-inline">
+                                                <input type="text" name="width_2file_setting" placeholder="请输入(带单位)" autocomplete="off"
+                                                    class="layui-input">
+                                            </div>
+                                        </div>
+                                        <div class="layui-inline">
+                                            <label class="layui-form-label">显示设置时,挂件高</label>
+                                            <div class="layui-input-inline">
+                                                <input type="text" name="height_2file_setting" placeholder="请输入(带单位)" autocomplete="off"
+                                                    class="layui-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset class="layui-elem-field">
+                                    <legend>重置和重载</legend>
+                                    <div class="layui-field-box">
+                                      常规设置
+                                    </div>
+                                </fieldset>
 
                                 <div class="layui-form-item">
                                     <div class="layui-input-block">
@@ -214,8 +294,9 @@
                             </form>
                         </div>
                         <div class="layui-tab-item">
-                            🚧施工中……<br/>
-                            还没写到这里(＠_＠;) 
+                            <blockquote class="layui-elem-quote">
+                                和模式有关，目前只有“按日期分组”有模式独立设置。
+                            </blockquote>
                             <div id="modeSetting">
 
                             </div>

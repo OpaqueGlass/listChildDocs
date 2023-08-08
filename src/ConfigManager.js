@@ -49,6 +49,7 @@ export class ConfigSaveManager {
         savedData: {}
     }
     defaultGlobalConfig ={
+        // 即使是挂件模式,也将设置保存到文档
         allSaveToFile: false,
         // 将列表写入文件时，此项控制挂件的宽
         width_2file: "20em",
@@ -59,15 +60,15 @@ export class ConfigSaveManager {
         width_2file_setting: "50em",
 
         // 在挂件中显示自动刷新选项，设定true启用、false禁用【！自动刷新可能导致同步覆盖问题，详见README】
-        showAutoBtn: true,
+        // showAutoBtn: true,
         // 在启动时显示所有设置项，设定true启用
-        showSettingOnStartUp: false, 
+        // showSettingOnStartUp: false, 
         // 显示搜索按钮
         showSearchBtn: true,
 
         // 安全模式【!建议开启，设定为true】：安全模式将禁止打开文档时自动刷新文档中的目录列表块
         // 可以避免此挂件自行刷新导致可能的同步覆盖问题。
-        safeMode: false,
+        safeMode: true,
         // 安全模式PLUS【!可能因为思源版本更新而失效或导致bug，但部分情况下建议开启】
         // 避免在历史预览界面、编辑器只读时执行文档更改操作(目前允许挂件设置保存，请注意只读情况下设置保存的风险)
         // 【如果您使用自动插入助手，请启用此功能】
@@ -82,7 +83,7 @@ export class ConfigSaveManager {
         divideColumnAtIndent: false,
 
         // 为true启用挂件内浮窗（挂件beta模式）
-        floatWindowEnable: true,
+        // floatWindowEnable: true,
 
         // 使用玄学的超级块创建方式。如果出现问题，请设置为false（测试中）
         superBlockBeta: true,
@@ -136,7 +137,7 @@ export class ConfigSaveManager {
 
         // 适配挂件插入辅助（addChildDocLinkHelper.js）的属性检测模式，为所在文档插入属性（不建议一直开启，请开启此功能后几天关闭）
         // 默认情况下，无需打开此功能
-        addChildDocLinkHelperEnable: false,
+        // addChildDocLinkHelperEnable: false,
 
         // 首次创建目录块时插入的目录属性
         // 请注意，您写入的属性如果是自定义属性，应当以"custom-"开头，示例 "custom-type": "map"
@@ -172,7 +173,7 @@ export class ConfigSaveManager {
         searchHotkeyEnable: false,
 
         // 悬停显示顶部按钮栏
-        mouseoverButtonArea: false,
+        showBtnArea: "true",
     };
     constructor(saveMode, relateId, saveDirPath = "/data/storage/listChildDocs/") {
         // 载入全局配置
@@ -184,6 +185,7 @@ export class ConfigSaveManager {
     async loadAll(pathVariable = null) {
         // 载入全局设置
         this.globalConfig = await this.loadGlobalConfig();
+        debugPush("loadAll载入的全局设置", this.globalConfig);
         // 载入默认设置
         let userDefaultConfig = await this.loadUserConfigDefault();
         logPush("userDefaultConfig", userDefaultConfig);
@@ -327,7 +329,7 @@ export class ConfigSaveManager {
     // 全局设置
     async loadGlobalConfig() {
         const filePathName = this.saveDirPath + CONFIG_MANAGER_CONSTANTS.GLOBAL;
-        const response = getJSONFile(filePathName);
+        const response = await getJSONFile(filePathName);
         if (response == null) {
             return Object.assign({}, this.defaultGlobalConfig);
         } else {
@@ -398,6 +400,9 @@ export class ConfigSaveManager {
     getAllData() {
         return this.allData;
     }
+    getGlobalConfig() {
+        return this.globalConfig;
+    }
 }
 
 
@@ -431,6 +436,22 @@ export class ConfigViewManager {
         let layer = layui.layer;
         // TODO: 赋值，将设置项载入界面
         form.val("general-config", this.configSaveManager.getDistinctConfig());
+        form.val("global-config", this.configSaveManager.getGlobalConfig());
+        debugPush("viewSetting", this.configSaveManager.getGlobalConfig());
+        // 提示组
+        $("[lay-tips]").on("mouseover", function(othis){
+            // logPush("lay-tips", this, othis);
+            layer.tips(this.getAttribute("lay-tips"), this, {time: 0});
+        });
+        $("[lay-tips]").on("mouseout", function(){layui.layer.closeAll();});
+        // // 普通事件
+        // layui.util.on('lay-tips', {
+        //     // 悬停显示提示
+        //     "info": function(othis){
+        //         console.log(othis);
+        //         layer.tips(othis.context.getAttribute("lay-tips-content"), othis)
+        //         }
+        // }, "click");
     }
 
     // 重新载入设置项语言
@@ -467,7 +488,8 @@ export class ConfigViewManager {
             result[key] = value;
             if (value === "on") {
                 result[key] = true;
-            }else if (value === "null" || value == "false") {
+            }else if (value === "null") {
+                // TODO: 这里为什么对false充值为空字符串？
                 result[key] = "";
             }
         }
