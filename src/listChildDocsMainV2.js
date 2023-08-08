@@ -270,7 +270,7 @@ async function getText(notebook, nowDocPath) {
         }
         // 处理大纲和子文档两种情况，子文档情况兼容从笔记本级别列出
         if (g_allData["config"].listDepth == 0) {
-            // FIXME: 这个当前文档id获取这里看怎样全局化一下？
+            // 判断起始文档id
             let targetDocId = g_currentDocId;
             if (isValidStr(g_allData["config"]["targetId"])) {
                 targetDocId = g_allData["config"]["targetId"];
@@ -392,34 +392,50 @@ async function getDocOutlineText(docId, distinguish, rowCountStack) {
  */
 function getOneLevelOutline(outlines, distinguish, rowCountStack) {
     //大纲层级是由API返回值确定的，混合列出时不受“层级”listDepth控制
-    if (outlines == null || outlines == undefined || outlines.length <= 0
-        || outlines[0].depth >= g_allData["config"].outlineDepth) return "";
+    if (outlines == null || outlines == undefined || outlines.length <= 0) return "";
     let result = "";
     for (let outline of outlines) {
-        if (!isValidStr(outline.name)) {//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
-            outline.name = outline.content;
+        // 直接比较subType，如果超出结束层级，则由于其下层级都会超出，不必处理，直接跳过
+        if (outline.subType > g_allData["config"]["outlineEndAt"]) {
+            continue;
         }
-        if (distinguish) {
-            outline.name = g_globalConfig.outlineDistinguishingWords + outline.name;
+        // 如果当前层级未达到开始层级，不记录标记rowCountStack，直接递归处理深层级
+        if (outline.subType < g_allData["config"]["outlineStartAt"]) {
+            if (outline.type === "outline" && outline.blocks != null) {
+                result += getOneLevelOutline(outline.blocks, distinguish, rowCountStack);
+            } else if (outline.type == "NodeHeading" && outline.children != null) {
+                result += getOneLevelOutline(outline.children, distinguish, rowCountStack);
+            } else if (outline.type != "outline" && outline.type != "NodeHeading") {
+                warnPush("未被处理的大纲情况");
+            }
+        } else { // 已到达开始层级~结束层级，正常处理
+            if (!isValidStr(outline.name)) {//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
+                outline.name = outline.content;
+            }
+            if (distinguish) {
+                outline.name = g_globalConfig.outlineDistinguishingWords + outline.name;
+            }
+            result += g_myPrinter.align(rowCountStack.length);
+            result += g_myPrinter.oneDocLink(outline, rowCountStack);
+            if (outline.type === "outline" && outline.blocks != null) {
+                result += g_myPrinter.beforeChildDocs();
+                rowCountStack.push(1);
+                result += getOneLevelOutline(outline.blocks, distinguish, rowCountStack);
+                rowCountStack.pop();
+                result += g_myPrinter.afterChildDocs();
+            } else if (outline.type == "NodeHeading" && outline.children != null) {
+                result += g_myPrinter.beforeChildDocs();
+                rowCountStack.push(1);
+                result += getOneLevelOutline(outline.children, distinguish, rowCountStack);
+                rowCountStack.pop();
+                result += g_myPrinter.afterChildDocs();
+            } else if (outline.type != "outline" && outline.type != "NodeHeading") {
+                warnPush("未被处理的大纲情况");
+            }
+            rowCountStack[rowCountStack.length - 1]++;
         }
-        result += g_myPrinter.align(rowCountStack.length);
-        result += g_myPrinter.oneDocLink(outline, rowCountStack);
-        if (outline.type === "outline" && outline.blocks != null) {
-            result += g_myPrinter.beforeChildDocs();
-            rowCountStack.push(1);
-            result += getOneLevelOutline(outline.blocks, distinguish, rowCountStack);
-            rowCountStack.pop();
-            result += g_myPrinter.afterChildDocs();
-        } else if (outline.type == "NodeHeading" && outline.children != null) {
-            result += g_myPrinter.beforeChildDocs();
-            rowCountStack.push(1);
-            result += getOneLevelOutline(outline.children, distinguish, rowCountStack);
-            rowCountStack.pop();
-            result += g_myPrinter.afterChildDocs();
-        } else if (outline.type != "outline" && outline.type != "NodeHeading") {
-            warnPush("未被处理的大纲情况");
-        }
-        rowCountStack[rowCountStack.length - 1]++;
+        
+        
     }
     return result;
 }
@@ -575,7 +591,7 @@ async function __main(manual = false, justCreate = false) {
     try {
         //获取挂件参数
         if (manual) {
-            await __refresh();
+            await __reloadSettings();
         }
         // 获取targetId文档所在的box笔记本、笔记本下路径
         let [notebook, targetDocPath] = await getTargetBlockBoxPath();
@@ -713,7 +729,7 @@ async function __save() {
         warnPush("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
     }
     //获取最新设置
-    await __refresh();
+    await __reloadSettings();
     showSettingChanger(false);
     //写入挂件属性
     try {
@@ -868,7 +884,9 @@ try{
             await removeDocAPI(queryResponse[0].box, queryResponse[0].path);
             __main(true);
         },
-        cancel: function() {return true;},
+        cancel: function() {
+            this.remove();
+            return true;},
         autofocus: false,
         okValue: language["dialog_confirm"],
         cancelValue: language["dialog_cancel"],
@@ -909,7 +927,9 @@ try{
             setTimeout(function(){__main(true)}, 300);
             return true;
         },
-        cancel: function() {return true;},
+        cancel: function() {
+            this.remove();
+            return true;},
         cancelDisplay: false,
         okValue: language["dialog_rename"],
         cancelValue: language["dialog_cancel"],
@@ -996,7 +1016,7 @@ async function __init() {
     // 及时响应模式变化
     // document.getElementById("printMode").onchange = ()=>{__refreshPrinter(false)};
     //跟随软件字号设定
-    $("#linksContainer").css("font-size", window.top.siyuan.config.editor.fontSize + "px");
+    // $("#linksContainer").css("font-size", window.top.siyuan.config.editor.fontSize + "px");
     //控制自动刷新选项是否显示
     if (!g_globalConfig.showAutoBtn) {
         $("#autoMode").attr("type", "hidden");
@@ -1092,6 +1112,7 @@ async function __init() {
             });
             if (matchAnyFlag) {
                 this.close();
+                this.remove();
                 return false;
             }else{
                 $(".search_dialog button[i-id='ok']").text(language["dialog_search_nomatch"]);
@@ -1106,11 +1127,13 @@ async function __init() {
                 // $(".search_target").removeClass("search_target");
                 $(".search_highlight").removeClass("search_highlight");
                 this.close();
+                this.remove();
                 return false;
             }
         }],
         cancel: function(){
             this.close();
+            this.remove();
             return false;
         },
         okValue: language["dialog_search"],
@@ -1230,7 +1253,7 @@ async function __init__() {
     logPush("allData", g_allData);
     logPush("globalConfig", g_globalConfig);
     
-    g_configViewManager = new ConfigViewManager(g_configManager, __refresh);
+    g_configViewManager = new ConfigViewManager(g_configManager, __reloadSettings);
     // 绑定及时响应的相关事件
     __formInputChangeBinder();
     // 绑定快捷键
@@ -1287,7 +1310,7 @@ function __shortcutBinder(bindFlag = true) {
             event.preventDefault();
             logPush("检索快捷键已被按下");
             // TODO: 检索
-            // findDialog.show();
+            findDialogCreate();
             return;
         }
         if (event.code == "F5") {
@@ -1306,6 +1329,85 @@ function __shortcutBinder(bindFlag = true) {
             return;
         }
     }
+}
+
+/**
+ * 创建搜索对话框
+ * @returns 
+ */
+function findDialogCreate() {
+    if (g_myPrinter.write2file == 1) return;
+    /* search对话框面板 */
+    let findDialog = dialog({
+        title: language["dialog_search_panel"],
+        content: `<input id="dialog_find_input" type="text"" autofocus onfocus="this.select();" />`,
+        quickClose: true,
+        ok: function() {
+            let searchText = $("#dialog_find_input").val().toLowerCase().split(" ");
+            let matchAnyFlag = false;
+            $(".search_highlight").removeClass("search_highlight");
+            $("#linksList li, .needSearch").each(function() {
+                let liHtml = $(this).html();
+                let liText = $(this).text().toLowerCase();
+                let matchFlag = false;
+                for (let i = 0; i < searchText.length; i++) {
+                    if (liText.indexOf(searchText[i]) == -1) {
+                        break;
+                    }
+                    if (i == searchText.length - 1) {
+                        matchFlag = true;
+                    }
+                }
+                if (matchFlag) {
+                    $(this).addClass("search_highlight");
+                    matchAnyFlag = true;
+                }
+            });
+            if (matchAnyFlag) {
+                this.close();
+                this.remove();
+                return false;
+            }else{
+                $(".search_dialog button[i-id='ok']").text(language["dialog_search_nomatch"]);
+                setTimeout(()=>{$(".search_dialog button[i-id='ok']").text(language["dialog_search"]);}, 2000);
+                return false;
+            }
+            
+        },
+        button: [{
+            value: language["dialog_search_cancel"],
+            callback:  function() {
+                // $(".search_target").removeClass("search_target");
+                $(".search_highlight").removeClass("search_highlight");
+                this.close();
+                this.remove();
+                return false;
+            }
+        }],
+        cancel: function(){
+            this.close();
+            this.remove();
+            return false;
+        },
+        okValue: language["dialog_search"],
+        cancelDisplay: false,
+        skin: isDarkMode()?"dark_dialog search_dialog":"search_dialog",
+        onshow: function() {
+            $("#dialog_find_input").on("keyup", (event)=>{
+                if (event.keyCode == 13) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    let okBtn = $(".search_dialog button[i-id='ok']");
+                    if (okBtn.length == 1) {
+                        okBtn.click();
+                    }else{
+                        warnPush("回车匹配到多个按钮，已停止操作");
+                    }
+                }
+            })
+        }
+    });
+    findDialog.show(this);
 }
 
 function __formInputChangeBinder() {
@@ -1339,19 +1441,40 @@ function __buttonBinder() {
             return;
         }
         clearTimeout(refreshBtnTimeout); 
-        const distinctConfig = g_configViewManager.loadUISettings(document.getElementById("general-config"), layui.form.val("general-config"));
-        debugPush("双击刷新按钮，保存设置项", distinctConfig);
-        g_allData["config"] = distinctConfig;
-        // 保存设置项
-        g_configManager.saveDistinctConfig(distinctConfig).then(()=>{
-            __refreshPrinter();
-        });
+        _saveDistinctConfig({"form": document.getElementById("general-config"), "field": layui.form.val("general-config")});
+        // const distinctConfig = g_configViewManager.loadUISettings(document.getElementById("general-config"), layui.form.val("general-config"));
+        // debugPush("双击刷新按钮，保存设置项", distinctConfig);
+        // g_allData["config"] = distinctConfig;
+        // // 保存设置项
+        // g_configManager.saveDistinctConfig(distinctConfig).then(()=>{
+        //     __refreshPrinter();
+        // });
     };
+    document.getElementById("search").onclick = findDialogCreate;
     document.getElementById("setting").onclick = _showSetting;
+    let form = layui.form;
+    form.on("submit(save)", _saveDistinctConfig);
+    form.on("submit(savedefault)", _saveDefaultConfigData);
+}
+
+function _saveDistinctConfig(submitData) {
+    const distinctConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
+    // 保存设置项
+    g_configManager.saveDistinctConfig(Object.assign(g_allData["config"], distinctConfig));
+    __reloadSettings();
+    return false; // 阻止默认 form 跳转
+}
+
+function _saveDefaultConfigData(submitData) {
+    const distinctConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
+    // 保存设置项
+    g_configManager.saveUserConfigDefault(distinctConfig);
+    __reloadSettings();
+    return false; // 阻止默认 form 跳转
 }
 
 // 读取ConfigManager中缓存的设定，重新设定自动模式、刷新printer
-async function __refresh() {
+async function __reloadSettings() {
     // 重新读取设定
     let tempNewData = g_configManager.getAllData();
     let nowAutoMode = tempNewData["config"]["auto"];

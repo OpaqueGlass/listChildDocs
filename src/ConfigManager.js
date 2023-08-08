@@ -27,6 +27,8 @@ export class ConfigSaveManager {
         listColumn: 1,//子文档列表列数，过多的列数将导致显示问题
         outlineDepth: 3,//大纲列出层级数，混合列出时此项只控制大纲部分
         targetId: "", //统计对象id，统计的目标应当为文档块或笔记本
+        outlineStartAt: "h3",
+        outlineEndAt: "h4",
         endDocOutline: false, // 一并列出叶子文档的大纲？（目录中包括最深层级文档的大纲？）影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
         // 如果需要默认隐藏刷新按钮，请删除下面一行前的双斜杠
         // hideRefreshBtn: true,
@@ -427,8 +429,6 @@ export class ConfigViewManager {
         // main中初始化绑定表单提交
         let form = layui.form;
         let layer = layui.layer;
-        form.on("submit(save)", this.submitDistinctConfigData.bind(this));
-        form.on("submit(savedefault)", this.submitDefaultConfigData.bind(this));
         // TODO: 赋值，将设置项载入界面
         form.val("general-config", this.configSaveManager.getDistinctConfig());
     }

@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>list Child Docs for sy</title>
     <link rel="stylesheet" href="static/layui-v2.8.12/css/layui.css">
-    <link id="layui_theme_css" rel="stylesheet" href="static/layui-v2.8.12/css/layui.css">
+    <link id="layui_theme_css" rel="stylesheet">
     <link rel="stylesheet" href="static/listChildDocs.css" />
     <script src="./static/jquery-3.6.0.min.js"></script>
     <script src="./src/listChildDocsClass.js" type="module"></script>
@@ -49,7 +49,7 @@
 
                 <span id="updateTime"></span>
             </p>
-            <div id="innerSetting" style="display: none;">
+            <div id="innerSetting">
                 <div class="layui-tab" lay-filter="setting-tab" id="setting-tab">
                     <ul class="layui-tab-title">
                         <li class="layui-this" lay-id="11">常规设置</li>
@@ -87,7 +87,7 @@
                                                 </optgroup>>
                                                 <optgroup label="引用块 | Ref Link">
                                                     <option value="3">引用块</option>
-                                                    <option value="4">1.引用块</option>
+                                                    <option value="7">1.引用块</option>
                                                 </optgroup>
                                                 <optgroup label="siyuan:// URL">
                                                     <option value="2">URL</option>
@@ -105,7 +105,7 @@
                                     </div>
                                     <div class="layui-inline">
                                         <label class="layui-form-label">目标文档id</label>
-                                        <div class="layui-input-block">
+                                        <div class="layui-input-inline">
                                             <input type="text" name="targetId" placeholder="默认为当前文档" autocomplete="off" id="targetId"
                                                 class="layui-input" value="">
                                         </div>
@@ -115,21 +115,21 @@
                                 <div class="layui-form-item">
                                     <div class="layui-inline">
                                         <label class="layui-form-label">叶子文档大纲</label>
-                                        <div class="layui-input-block">
+                                        <div class="layui-input-inline">
                                             <input type="checkbox" checked name="endDocOutline" lay-skin="switch"
                                                 lay-filter="switchTest" id="endDocOutline" title="✓|✕">
                                         </div>
                                     </div>
                                     <div class="layui-inline">
                                         <label class="layui-form-label">自动刷新</label>
-                                        <div class="layui-input-block">
+                                        <div class="layui-input-inline">
                                             <input type="checkbox" checked name="auto" id="auto" lay-skin="switch"
                                                 lay-filter="switchTest" title="✓|✕">
                                         </div>
                                     </div>
                                     <div class="layui-inline">
                                         <label class="layui-form-label">子文档最大数量</label>
-                                        <div class="layui-input-block">
+                                        <div class="layui-input-inline">
                                             <input type="number" name="maxListCount" id="maxListCount" placeholder="请输入" autocomplete="off"
                                                 class="layui-input" min="0" value="0">
                                         </div>
@@ -140,22 +140,34 @@
                                     <label class="layui-form-label">排序方式</label>
                                     <div class="layui-input-inline">
                                         <select name="sortBy" id="sortBy" lay-filter="order">
-                                            <option value="">名称字母升序</option>
-                                            <option value="0">名称字母降序</option>
-                                            <option value="1">名称自然升序</option>
-                                            <option value="2">名称自然降序</option>
-                                            <option value="3">修改时间升序</option>
-                                            <option value="4">修改时间降序</option>
-                                            <option value="4">创建时间升序</option>
-                                            <option value="4">创建时间降序</option>
-                                            <option value="4">引用次数升序</option>
-                                            <option value="4">引用次数降序</option>
-                                            <option value="4">文档大小升序</option>
-                                            <option value="4">文档大小降序</option>
-                                            <option value="4">子文档数量升序</option>
-                                            <option value="4">子文档数量降序</option>
-                                            <option value="4">文档树自定义排序</option>
-                                            <option value="256">跟随文档树排序</option>
+                                            <optgroup label="文档名">
+                                                <option value="0">名称字母升序</option>
+                                                <option value="1">名称字母降序</option>
+                                                <option value="4">名称自然升序</option>
+                                                <option value="5">名称自然降序</option>
+                                            </optgroup>
+                                            <optgroup label="时间">
+                                                <option value="2">修改时间升序</option>
+                                                <option value="3">修改时间降序</option>
+                                                <option value="9">创建时间升序</option>
+                                                <option value="10">创建时间降序</option>
+                                            </optgroup>
+                                            <optgroup label="引用">
+                                                <option value="7">引用次数升序</option>
+                                                <option value="8">引用次数降序</option>
+                                            </optgroup>
+                                            <optgroup label="文档大小">
+                                                <option value="11">文档大小升序</option>
+                                                <option value="12">文档大小降序</option>
+                                            </optgroup>
+                                            <optgroup label="子文档数量">
+                                                <option value="13">子文档数量升序</option>
+                                                <option value="14">子文档数量降序</option>
+                                            </optgroup>
+                                            <optgroup label="特殊">
+                                                <option value="6">文档树自定义排序</option>
+                                                <option value="256">跟随文档树排序</option>
+                                            </optgroup>
                                         </select>
                                     </div>
                                 </div>
@@ -171,6 +183,35 @@
                         <div class="layui-tab-item">
                             🚧施工中……<br/>
                             还没写到这里(＠_＠;) 
+                            <form class="layui-form" lay-filter="global-config" id="global-config">
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">显示按钮栏</label>
+                                    <div class="layui-input-inline">
+                                        <select name="showBtnArea" id="showBtnArea" lay-filter="showBtnArea">
+                                            <option value="0">始终隐藏</option>
+                                            <option value="1">始终显示</option>
+                                            <option value="2">悬停显示</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">安全模式</label>
+                                    <div class="layui-input-inline">
+                                        <select name="showBtnArea" id="showBtnArea" lay-filter="showBtnArea">
+                                            <option value="0">始终隐藏</option>
+                                            <option value="1">始终显示</option>
+                                            <option value="2">悬停显示</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block">
+                                        <button type="submit" class="layui-btn" lay-submit lay-filter="saveglobal">保存</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                         <div class="layui-tab-item">
                             🚧施工中……<br/>
