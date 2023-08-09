@@ -103,7 +103,7 @@ input:hover {
 }
 
 /* 深夜模式下普通文本颜色 */
-.ordinaryText_dark, [data-darkmode] .upperbardiv span, [data-darkmode] #linksContainer, [data-darkmode] .mode12_date_text{
+.ordinaryText_dark, .dark-mode .upperbardiv span, .dark-mode #linksContainer, .dark-mode .mode12_date_text{
     color: #C9D1D9;
 }
 
@@ -118,11 +118,6 @@ input:hover {
     display: block;
 }
 
-/* 按钮夜间样式 */
-.button_dark, [data-darkmode] .upperbardiv input, [data-darkmode] .upperbardiv select, .dark_dialog input  {
-    background-color: darkslategray;
-    color: white;
-}
 
 .linksList {
     margin-top: 0px;
@@ -159,7 +154,7 @@ input:hover {
 }
 
 /* 列表单项（深色）*/
-[data-darkmode] .linksListItem {
+.dark-mode .linksListItem {
     padding: 4px 0px;
     color: #C9D1D9;
 }
@@ -186,7 +181,7 @@ input:hover {
 }
 
 /* 暗黑模式下，链接文字样式 */
-[data-darkmode] .linksList {
+.dark-mode .linksList {
     color: #C9D1D9;
 }
 
@@ -252,7 +247,7 @@ input:hover {
     font-size: 0.9;
 }
 /* 预览内链接内容 */
-[data-darkmode] .mode11-doc-content a {
+.dark-mode .mode11-doc-content a {
     color: #7aa7d4 !important;
 }
 
@@ -299,12 +294,12 @@ input:hover {
 }
 
 /* mode11 深色模式方块*/
-[data-darkmode] .mode11-note-box {
+.dark-mode .mode11-note-box {
     background-color: #efefef15;
     color: #C9D1D9;
 }
 /* mode11 深色模式方块悬停*/
-[data-darkmode] .mode11-note-box:hover {
+.dark-mode .mode11-note-box:hover {
     background-color: #efefef25;
 }
 
@@ -325,18 +320,18 @@ input:hover {
 }
 
 /* 思维导图普通文字深色样式 */
-[data-darkmode] .markmap {
+.dark-mode .markmap {
     color: #C9D1D9 !important;
 }
 /* 思维导图链接深色样式 */
-[data-darkmode] .markmap_a {
+.dark-mode .markmap_a {
     color: #C9D1D9 !important;
     text-decoration: none !important;
     /* white-space: nowrap; */
 }
 
 /* 思维导图悬停样式*/
-[data-darkmode] .markmap_a:hover{
+.dark-mode .markmap_a:hover{
     color: #1186d9 !important;
     border-bottom: 1px dashed #4CB0F9 !important;
 }
@@ -387,7 +382,7 @@ input:hover {
     background-color: #efc52f5e;
 }
 
-[data-darkmode] .search_highlight {
+.dark-mode .search_highlight {
     background-color: #85d0a35e;
 }
 

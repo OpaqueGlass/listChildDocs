@@ -565,7 +565,12 @@ export async function renameDocAPI(notebookid, path, title) {
 }
 
 export function isDarkMode() {
-    return window.top.siyuan.config.appearance.mode == 1 ? true : false;
+    if (window.top.siyuan) {
+        return window.top.siyuan.config.appearance.mode == 1 ? true : false;
+    } else {
+        let isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        return isDarkMode;
+    }
 }
 
 /**
@@ -604,6 +609,7 @@ export async function createDocWithPath(notebookid, path, title = "Untitled") {
  * 将对象保存为JSON文件
  * @param {*} path 
  * @param {*} object 
+ * @param {boolean} format
  * @returns 
  */
 export async function putJSONFile(path, object, format = false) {

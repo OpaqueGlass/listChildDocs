@@ -186,7 +186,7 @@ async function getCustomAttr() {
         Object.assign(g_allData["config"], attrObject);
     }
     if ('custom-lcd-cache' in response.data && !attrResetFlag) {
-        g_contentCache = response.data["custom-lcd-cache"];
+        g_allData["cacheHTML"] = response.data["custom-lcd-cache"];
     }
     // Resize设定默认宽高
     if (!("custom-resize-flag" in response.data) && isValidStr(g_globalConfig.saveDefaultWidgetStyle) && ("id" in response.data)) {
@@ -480,7 +480,7 @@ function errorShow(msgText, clear = true) {
 }
 
 
-function saveContentCache(textString = g_contentCache) {
+function saveContentCache(textString = g_allData["cacheHTML"]) {
     logPush("保存缓存cacheHTML");
     if (isSafelyUpdate(g_currentDocId, {widgetMode: true}, g_workEnvId) == false) {
         warnPush("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
@@ -495,7 +495,7 @@ function saveContentCache(textString = g_contentCache) {
  * 也用于直接刷新
  * 内部使用modeDoUpdateFlag undefined与否判断是否载入的缓存，请注意
  */
-async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = undefined, notebook = undefined, targetDocPath = undefined) {
+async function loadContentCache(textString = g_allData["cacheHTML"], modeDoUpdateFlag = undefined, notebook = undefined, targetDocPath = undefined) {
     if (g_myPrinter.write2file) return false;
     if (!isValidStr(textString)) return false;
     if (notebook == undefined || targetDocPath == undefined) {
@@ -548,9 +548,8 @@ async function loadContentCache(textString = g_contentCache, modeDoUpdateFlag = 
         });
     }
     //链接颜色需要另外写入，由于不是已存在的元素、且貌似无法继承
-    if (window.top.siyuan.config.appearance.mode == 1) {
+    if (isDarkMode()) {
         $("#linksList").addClass("childDocLinks_dark");
-        $(".app").attr("data-darkmode", "true");
     }
     if (loadCacheFlag) {
         adjustHeight(modeDoUpdateFlag);
@@ -634,7 +633,7 @@ async function __main(manual = false, justCreate = false) {
             }
         }
         await loadContentCache(textString, modeDoUpdateFlag, notebook, targetDocPath);
-        if (g_myPrinter.write2file == 0) g_contentCache = textString;
+        if (g_myPrinter.write2file == 0) g_allData["cacheHTML"] = textString;
         if ((manual || g_globalConfig.saveCacheWhileAutoEnable) && g_myPrinter.write2file == 0 && isSafelyUpdate(g_currentDocId, {widgetMode: true}, g_workEnvId)) {
             saveContentCache(textString);
         }else if (g_myPrinter.write2file == 0){
@@ -736,8 +735,8 @@ async function getTargetBlockBoxPath() {
  */
 function __refreshPrinter(init = false) {
     let getPrinterFlag = false;
-    // 非初始状态，需要清空上一个Printer的数据
-    if (!init) {
+    // 非初始状态，需要清空上一个Printer的数据，（实际上没有切换Printer将不予处理）
+    if (!init || (g_myPrinter != null && g_myPrinter.id != g_allData["config"].printMode)) {
         let resettedCustomAttr = g_myPrinter ? g_myPrinter.destory(g_allData["config"]):undefined;
         // 部分修改默认设定的模式，应当在退出时修改到合理的值
         if (!isInvalidValue(resettedCustomAttr)) {
@@ -767,8 +766,12 @@ function __refreshPrinter(init = false) {
     let newSetCustomAttr = g_myPrinter.init(g_allData["config"]);
     if (!isInvalidValue(newSetCustomAttr)) {
         Object.assign(g_allData["config"], newSetCustomAttr);
+        // 由模式在后台更新的参数，需要反映到UI界面中
+        g_configViewManager.setSettingsToUI(g_allData["config"]);
     }
     debugPush("载入Printer独立设置", g_allData["config"]);
+    // 由于全局设置不从文件读入，不方便export，这里需要将全局设置传递给printer
+    g_myPrinter.setGlobalConfig(g_globalConfig);
     g_myPrinter.load(g_allData["config"]["customModeSettings"]);
     // TODO: 禁用或提示部分设置项无效
     // $("#outerSetting > [disabled], #innerSetting > [disabled]").each(function (index) {
@@ -1049,7 +1052,7 @@ async function __init() {
         $("#updateTime").text(language["loading"]);
         let loadResult = false;
         try{
-            loadResult = await loadContentCache(g_contentCache);
+            loadResult = await loadContentCache(g_allData["cacheHTML"]);
         }catch(err) {
             console.error(err);
         }
@@ -1145,46 +1148,17 @@ async function __init() {
         findDialog.show(this);
     });
 }
-// UNSTABLE: 此方法通过现实页面定位页签
-function __setObserver() {
-    try {
-        //排除操作系统：
-        if (!checkOs()) {
-            return;
-        }
-        //(思源主窗口)可见性变化时更新列表（导致在删除插件时仍然触发的错误）
-        // document.addEventListener('visibilitychange', __main);
-        //页签切换时更新列表
-        // 获取当前文档用于前端展示的data-id
-        let dataId = $(window.parent.document).find(`div.protyle:has(div[data-node-id="${g_workEnvId}")`).attr("data-id");
-        //由dataId找所在文档的页签
-        let target = $(window.parent.document).find(`.layout-tab-bar .item[data-id=${dataId}]`);
-        console.assert(target.length == 1, "无法监听页签切换", target, dataId);
-        //不能观察class变化，class会在每次编辑、操作时变更
-        if (target.length == 1){
-            mutationObserver.observe(target[0], { "attributes": true, "attributeFilter": ["data-activetime"] });
-        }
-    } catch (err) {
-        // printError("监听点击页签事件失败", false);//监听页签将作为附加功能，不再向用户展示错误提示
-        console.error("监视点击页签事件失败" + err);
-    }
-}
-let mutationObserver = new MutationObserver(() => { __main(false) });//避免频繁刷新id
-let mutationObserver2 = new MutationObserver(() => { setTimeout(__refreshAppearance, 1500); });
+
+
 let refreshBtnTimeout;
 
 let thisWidgetId = "";
 let targetDocName = "";
 let mutex = 0;
 let g_targetDocPath;
-let g_targetDocId;
-let g_targetMode;
 let g_notebooks = null;
 let g_notebooksIDList = null;
-let g_contentCache;
 let g_longTouchTimeout;
-let g_longTouchFlag;
-let g_window;
 // FIXME: 笔记本获取方式
 try {
     g_notebooks = window.top.siyuan.notebooks;
@@ -1221,7 +1195,7 @@ async function __init__() {
             }catch (err) {
                 logPush("初始化时获取挂件属性err", err);
             } 
-            
+            __setObserver();
             break;
         }
         case WORK_ENVIRONMENT.PLUGIN: {
@@ -1260,6 +1234,21 @@ async function __init__() {
         window.frameElement.style.width = g_globalConfig.width_2file;
         window.frameElement.style.height = g_globalConfig.height_2file;
     }
+    // 载入缓存处理
+    if (g_myPrinter.write2file == 0 && (!g_allData["config"].auto || g_globalConfig.loadCacheWhileAutoEnable) ) {
+        $("#updateTime").text(language["loading"]);
+        let loadResult = false;
+        try{
+            loadResult = await loadContentCache(g_allData["cacheHTML"]);
+        }catch(err) {
+            console.error(err);
+        }
+        if (loadResult) {
+            $("#updateTime").text(language["cacheLoaded"]);
+        }else{
+            $("#updateTime").text(language["loadCacheFailed"]);
+        }
+    }
     // 自动刷新处理
     if (g_allData["config"]["auto"]) {
         //在更新/写入文档时截停操作（安全模式）
@@ -1272,10 +1261,10 @@ async function __init__() {
 
 function __changeAppearance() {
     if (isDarkMode()) {
-        document.body.classList.add("dark");
+        document.body.classList.add("dark-mode");
         document.getElementById('layui_theme_css').setAttribute('href','static/layui-v2.8.12/css/layui-dark-230803.css');
     } else {
-        document.body.classList.remove("dark");
+        document.body.classList.remove("dark-mode");
         document.getElementById('layui_theme_css').removeAttribute('href');
     }
     if (g_workEnvTypeCode != WORK_ENVIRONMENT.PLUGIN && g_workEnvTypeCode != WORK_ENVIRONMENT.WIDGET) {
@@ -1419,9 +1408,10 @@ function __formInputChangeBinder() {
 }
 
 function __buttonBinder() {
+    const topBtnElement = document.getElementById("outerSetting");
     document.getElementById("refresh").onclick = async function () { 
         // 由于按钮栏隐藏是通过透明度实现的，需要确保隐藏时不可点击
-        if (g_globalConfig.mouseoverButtonArea && !topBtnElement.classList.contains("outerSetting-show")) {
+        if (topBtnElement.classList.contains("outerSetting-hide")) {
             return;
         }
         clearTimeout(refreshBtnTimeout); 
@@ -1430,11 +1420,12 @@ function __buttonBinder() {
         }, 300); 
     };
     document.getElementById("refresh").ondblclick = async function () { 
-        if (g_globalConfig.mouseoverButtonArea && !topBtnElement.classList.contains("outerSetting-show")) {
+        if (topBtnElement.classList.contains("outerSetting-hide")) {
             return;
         }
         clearTimeout(refreshBtnTimeout); 
         _saveDistinctConfig({"form": document.getElementById("general-config"), "field": layui.form.val("general-config")});
+        _showSetting(false);
         // const distinctConfig = g_configViewManager.loadUISettings(document.getElementById("general-config"), layui.form.val("general-config"));
         // debugPush("双击刷新按钮，保存设置项", distinctConfig);
         // g_allData["config"] = distinctConfig;
@@ -1443,8 +1434,18 @@ function __buttonBinder() {
         //     __refreshPrinter();
         // });
     };
-    document.getElementById("search").onclick = findDialogCreate;
-    document.getElementById("setting").onclick = _showSetting;
+    document.getElementById("search").onclick = function(){
+        if (topBtnElement.classList.contains("outerSetting-hide")) {
+            return;
+        }
+        findDialogCreate();
+    };
+    document.getElementById("setting").onclick = function(){
+        if (topBtnElement.classList.contains("outerSetting-hide")) {
+            return;
+        }
+        _showSetting();
+    };
     let form = layui.form;
     form.on("submit(save)", _saveDistinctConfig);
     form.on("submit(savedefault)", _saveDefaultConfigData);
@@ -1480,7 +1481,9 @@ function _saveDefaultConfigData(submitData) {
 function _saveGlobalConfigData(submitData) {
     const globalConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
 
-    g_configManager.saveGlobalConfig(globalConfig);
+    g_configManager.saveGlobalConfig(globalConfig).then(()=>{
+        __reloadSettings(); // 修改全局设置后，需要printer重载全局设置
+    });
     return false;
 }
 
@@ -1551,6 +1554,9 @@ function _hoverBtnAreaBinder(flag = null) {
     const topBtnElement = document.getElementById("outerSetting");
     let mouseOverTimeout, mouseOutTimeout;
     if (flag == true || flag == null) {
+        // 重置一下，使得绑定后按钮栏隐藏
+        $("#outerSetting").removeClass("outerSetting-none");
+        $("#outerSetting").addClass("outerSetting-hide");
         // 监听鼠标移入事件
         topBtnElement.addEventListener('mouseover', mouseoverCallBack);
         // 监听鼠标移出事件
@@ -1560,7 +1566,7 @@ function _hoverBtnAreaBinder(flag = null) {
         topBtnElement.removeEventListener('mouseout', mouseoutCallBack);
     }
     function mouseoverCallBack() {
-        if (topBtnElement.style.opacity != 1.0 && !mouseOverTimeout) {
+        // if (topBtnElement.style.opacity != 1.0 && !mouseOverTimeout) {
             clearTimeout(mouseOutTimeout);
             mouseOverTimeout = setTimeout(function() {
                 // 显示元素
@@ -1568,7 +1574,7 @@ function _hoverBtnAreaBinder(flag = null) {
                 mouseOverTimeout = undefined;
                 clearTimeout(mouseOutTimeout);
             }, 220);
-        }
+        // }
     }
     function mouseoutCallBack() {
         clearTimeout(mouseOutTimeout);
@@ -1604,6 +1610,33 @@ function __mutationObserverBinder() {
         pushDebug("监视外观切换事件失败");
     }
 }
+// UNSTABLE: 此方法通过显示的页面定位页签
+function __setObserver() {
+    try {
+        //排除操作系统：
+        if (!checkOs()) {
+            return;
+        }
+        //(思源主窗口)可见性变化时更新列表（导致在删除插件时仍然触发的错误）
+        // document.addEventListener('visibilitychange', __main);
+        //页签切换时更新列表
+        // 获取当前文档用于前端展示的data-id
+        let dataId = $(window.parent.document).find(`div.protyle:has(div[data-node-id="${g_workEnvId}")`).attr("data-id");
+        //由dataId找所在文档的页签
+        let target = $(window.parent.document).find(`.layout-tab-bar .item[data-id=${dataId}]`);
+        console.assert(target.length == 1, "无法监听页签切换", target, dataId);
+        //不能观察class变化，class会在每次编辑、操作时变更
+        if (target.length == 1){
+            mutationObserver.observe(target[0], { "attributes": true, "attributeFilter": ["data-activetime"] });
+        }
+    } catch (err) {
+        // printError("监听点击页签事件失败", false);//监听页签将作为附加功能，不再向用户展示错误提示
+        console.error("监视点击页签事件失败" + err);
+    }
+}
+
+let mutationObserver = new MutationObserver(() => { __main(false) });//避免频繁刷新id
+let mutationObserver2 = new MutationObserver(() => { setTimeout(__refreshAppearance, 1500); });
 
 let g_configManager = null;
 let g_configViewManager = null;

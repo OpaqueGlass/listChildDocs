@@ -262,16 +262,16 @@ export class ConfigSaveManager {
     // WARN: 请注意，通过这里读入的更新设置，必须在此方法内同步到this.allData / this.globalConfig，否则下次读入将出现问题
     // 保存全部设置
     async saveDistinct(inputData) {
-        console.log("saveDistinct&&&&", inputData);
+        debugPush("saveDistinct&&&&", inputData);
         if (this.saveMode == CONSTANTS_CONFIG_SAVE_MODE.WIDGET && !this.globalConfig.allSaveToFile) {
             let attrData = {};
             if (inputData["config"]) {
                 attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG] = JSON.stringify(inputData["config"]);
             }
-            if (inputData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE]) {
+            if (inputData["cacheHTML"]) {
                 attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE] = inputData["cacheHTML"];
             }
-            if (inputData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_SAVED_DATA]) {
+            if (inputData["savedData"]) {
                 attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_SAVED_DATA] = JSON.stringify(inputData["savedData"]);
             }
             this.allData = inputData;
@@ -343,7 +343,7 @@ export class ConfigSaveManager {
     }
     async saveGlobalConfig(globalConfig) {
         const filePathName = this.saveDirPath + CONFIG_MANAGER_CONSTANTS.GLOBAL;
-        return putJSONFile(filePathName, globalConfig);
+        return putJSONFile(filePathName, globalConfig, true);
     }
     // TODO: schema
     async loadSchema() {
@@ -397,6 +397,12 @@ export class ConfigSaveManager {
         }
         filePathName += ".json";
         return filePathName;
+    }
+    setDistinctConfig(distinctConfig) {
+        Object.assign(this.allData["config"], distinctConfig);
+    }
+    setGlobalConfig(globalConfig) {
+        Object.assign(this.globalConfig, globalConfig);
     }
     getDistinctConfig() {
         return this.allData["config"];
@@ -457,7 +463,15 @@ export class ConfigViewManager {
         //         }
         // }, "click");
     }
-
+    setSettingsToUI(distinct, global = null) {
+        let form = layui.form;
+        this.configSaveManager.setDistinctConfig(distinct);
+        form.val("general-config", this.configSaveManager.getDistinctConfig());
+        if (global) {
+            this.configSaveManager.setGlobalConfig(distinct);
+            form.val("global-config", this.configSaveManager.getGlobalConfig());
+        }
+    }
     // 重新载入设置项语言
     reloadLanguage() {
     }

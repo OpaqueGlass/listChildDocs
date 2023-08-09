@@ -2,7 +2,7 @@
  * listChildDocsClass.js
  * 用于生成子文档目录文本的Printer。
  */
-import { language, setting } from './config.js';
+import { language} from './config.js';
 import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue } from "./common.js";
 import { openRefLink } from './ref-util.js';
 import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode } from './API.js';
@@ -13,9 +13,13 @@ import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, po
 class Printer {
     //写入到文件or写入到挂件
     //0写入到挂件（以HTML格式），1写入到当前文档（以Markdown格式）
-    static mode = -1;
+    static id = -1;
     write2file = 1;
+    globalConfig = null;
 
+    setGlobalConfig(config) {
+        this.globalConfig = Object.assign({}, config);
+    }
     /**
      * 输出对齐、缩进文本
      * 它在输出当前文档链接之前调用
@@ -168,7 +172,7 @@ class Printer {
         return `</ul>`;
     }
     oneDocLink(doc, rowCountStack) {
-        let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+        let emojiStr = this.globalConfig.emojiEnable ? getEmojiHtmlStr(doc.icon, doc.subFileCount != 0) : "";
         return `<li class="linksListItem" data-id="${doc.id}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
     }
     //在所有输出文本写入之前
@@ -193,7 +197,7 @@ class HtmlReflinkPrinter extends Printer {
         return `</ul>`;
     }
     oneDocLink(doc, rowCountStack) {
-        let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+        let emojiStr = this.globalConfig.emojiEnable ? getEmojiHtmlStr(doc.icon, doc.subFileCount != 0) : "";
         return `<li class="linksListItem" data-id="${doc.id}"><span class="refLinks childDocLinks floatWindow" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
     }
     //在所有输出文本写入之前
@@ -223,16 +227,20 @@ class MarkdownUrlUnorderListPrinter extends Printer {
             docName = docName.substring(0, docName.length - 3);
         }
         docName = htmlTransferParser(docName);
-        if (!isValidStr(doc.id)) {
-            return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
+        let emoji = "";
+        if (this.globalConfig.emojiEnable) {
+            emoji = getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0);
         }
-        return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
+        if (!isValidStr(doc.id)) {
+            return `* ${emoji}${docName}\n`;
+        }
+        return `* ${emoji}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
     noneString(emptyText) {
         return "* " + emptyText;
     }
     splitColumns(originalText, nColumns, nDepth, blockAttrData) {
-        return generateSuperBlock(originalText, nColumns, nDepth, blockAttrData);
+        return generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, this.globalConfig);
     }
 }
 /**
@@ -254,17 +262,21 @@ class MarkdownDChainUnorderListPrinter extends Printer {
         if (doc.name.indexOf(".sy") >= 0) {
             docName = docName.substring(0, docName.length - 3);
         }
+        let emoji = "";
+        if (this.globalConfig.emojiEnable) {
+            emoji = getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0);
+        }
         if (!isValidStr(doc.id)) {
-            return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
+            return `* ${emoji}${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
-        return `* ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${markdownRefBlockDocNameEncoder(docName)}'))\n`;
+        return `* ${emoji}((${doc.id} '${markdownRefBlockDocNameEncoder(docName)}'))\n`;
     }
     noneString(emptyText) {
         return "* " + emptyText;
     }
     splitColumns(originalText, nColumns, nDepth, blockAttrData) {
-        return generateSuperBlock(originalText, nColumns, nDepth, blockAttrData);
+        return generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, this.globalConfig);
     }
 }
 
@@ -327,7 +339,7 @@ class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
         for (let num of rowCountStack) {
             countStr += num + ".";
         }
-        let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+        let emojiStr = this.globalConfig.emojiEnable ? getEmojiHtmlStr(doc.icon, doc.subFileCount != 0) : "";
         return `<li class="linksListItem" data-id="${doc.id}">　${spaces}　${countStr}<span class="refLinks floatWindow childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
     }
 }
@@ -360,7 +372,7 @@ class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
         for (let num of rowCountStack) {
             countStr += num + ".";
         }
-        let emojiStr = getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
+        let emojiStr = this.globalConfig.emojiEnable ? getEmojiHtmlStr(doc.icon, doc.subFileCount != 0) : "";
         return `<li class="linksListItem" data-id="${doc.id}">　${spaces}　${countStr}<span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name.replace(".sy", "")}</span></li>`;
     }
 }
@@ -381,10 +393,14 @@ class MarkdownUrlOrderListPrinter extends MarkdownUrlUnorderListPrinter {
             docName = docName.substring(0, docName.length - 3);
         }
         docName = htmlTransferParser(docName);
-        if (!isValidStr(doc.id)) {
-            return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
+        let emoji = "";
+        if (this.globalConfig.emojiEnable) {
+            emoji = getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0);
         }
-        return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
+        if (!isValidStr(doc.id)) {
+            return `${rowCountStack[rowCountStack.length - 1]}. ${emoji}${docName}\n`;
+        }
+        return `${rowCountStack[rowCountStack.length - 1]}. ${emoji}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
 }
 /**
@@ -402,11 +418,15 @@ class MarkdownDChainOrderListPrinter extends MarkdownDChainUnorderListPrinter {
         if (doc.name.indexOf(".sy") >= 0) {
             docName = docName.substring(0, docName.length - 3);
         }
+        let emoji = "";
+        if (this.globalConfig.emojiEnable) {
+            emoji = getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0);
+        }
         if (!isValidStr(doc.id)) {
-            return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
+            return `${rowCountStack[rowCountStack.length - 1]}. ${emoji}${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
-        return `${rowCountStack[rowCountStack.length - 1]}. ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}((${doc.id} '${markdownRefBlockDocNameEncoder(docName)}'))\n`;
+        return `${rowCountStack[rowCountStack.length - 1]}. ${emoji}((${doc.id} '${markdownRefBlockDocNameEncoder(docName)}'))\n`;
     }
 }
 /**
@@ -428,11 +448,15 @@ class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter 
         for (let num of rowCountStack) {
             countStr += num + ".";
         }
+        let emoji = "";
+        if (this.globalConfig.emojiEnable) {
+            emoji = getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0);
+        }
         if (!isValidStr(doc.id)) {
-            return `* ${countStr}　${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
+            return `* ${countStr}　${emoji}${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
-        return `* ${countStr}　${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
+        return `* ${countStr}　${emoji}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
     getAttributes() {
         return {
@@ -451,11 +475,15 @@ class MarkdownTodoListPrinter extends MarkdownUrlUnorderListPrinter {
         if (doc.name.indexOf(".sy") >= 0) {
             docName = docName.substring(0, docName.length - 3);
         }
+        let emoji = "";
+        if (this.globalConfig.emojiEnable) {
+            emoji = getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0);
+        }
         if (!isValidStr(doc.id)) {
-            return `* [ ] ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}${docName}\n`;
+            return `* [ ] ${emoji}${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
-        return `* [ ] ${getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0)}[${docName}](siyuan://blocks/${doc.id})\n`;
+        return `* [ ] ${emoji}[${docName}](siyuan://blocks/${doc.id})\n`;
     }
 }
 
@@ -527,7 +555,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         if (styles) window.markmap.loadCSS(styles);
         if (scripts) window.markmap.loadJS(scripts, { getMarkmap: () => markmap });
         this.loadMarkmap(root, widgetAttr);
-        if (setting.markmapResizeHandlerEnable) {
+        if (this.globalConfig.markmapResizeHandlerEnable) {
             this.observer.observe(window.frameElement.parentElement);
         }
         return 1;
@@ -549,7 +577,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             }
         }
         // console.log("导图模式限制层宽", markmapConfig.maxWidth);
-        Object.assign(markmapConfig, setting.markmapConfig);
+        Object.assign(markmapConfig, this.globalConfig.markmapConfig);
         window.markmap.Markmap.create('#markmap', markmapConfig, root);
         $("#markmap a").on("click",(event)=>{
             event.preventDefault();
@@ -625,7 +653,7 @@ class ContentBlockPrinter extends Printer {
             if (docName.indexOf(".sy") >= 0) {
                 docName = docName.substring(0, docName.length - 3);
             }
-            let emojiStr = getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0);
+            let emojiStr = this.globalConfig.emojiEnable ? getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0) : "";
             result += `<div class="mode11-note-box handle-ref-click"  data-id="${oneChildDoc.id}">`;
             result += `<h4 class="mode11-title needSearch">${emojiStr} ${docName}</h5>`;
             let [previewText, removeSpace] = await this.generatePreview(oneChildDoc.id);
@@ -663,7 +691,7 @@ class ContentBlockPrinter extends Printer {
             if (oneChildDoc.name.indexOf(".sy") >= 0) {
                 docName = docName.substring(0, docName.length - 3);
             }
-            let emojiStr = getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0);
+            let emojiStr = this.globalConfig.emojiEnable ? getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0) : "";
             result += `<p class="linksListItem needSearch" data-id="${oneChildDoc.id}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${oneChildDoc.id}">${emojiStr}${docName}</span></p>`;
         }
         result += `</div>`;
@@ -760,13 +788,13 @@ class OrderByTimePrinter extends Printer {
     }
     oneDocLink(doc, rowCountStack) {
         let emojiStr = "";//getEmojiHtmlStr(doc.icon, doc.subFileCount != 0);
-        let formatedTime = setting.timeTemplate;
+        let formatedTime = this.globalConfig.timeTemplate;
         formatedTime = formatedTime.replace(new RegExp("HH", "g"), doc.time.substring(0, 2));
         formatedTime = formatedTime.replace(new RegExp("mm", "g"), doc.time.substring(2, 4));
         return `<li class="linksListItem" data-id="${doc.id}" title="${doc.hpath}"><span class="refLinks childDocLinks" data-type='block-ref' data-subtype="d" data-id="${doc.id}">${emojiStr}${doc.name}</span>　${formatedTime}</li>`;
     }
     startOneDate(dateStr) {
-        let formatedStr = setting.dateTemplate;
+        let formatedStr = this.globalConfig.dateTemplate;
         formatedStr = formatedStr.replace(new RegExp("yyyy", "g"), dateStr.substring(0, 4));
         formatedStr = formatedStr.replace(new RegExp("MM", "g"), dateStr.substring(4, 6));
         formatedStr = formatedStr.replace(new RegExp("dd", "g"), dateStr.substring(6, 8));
@@ -880,7 +908,7 @@ class OrderByTimePrinter extends Printer {
  * @param {*} blockAttrData 应用于分列后列表的属性
  * @returns 超级块Markdown文本
  */
-function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData) {
+function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, globalConfig = null) {
     if (nColumns <= 1) return originalText;
     // console.log(originalText);
     //定位合适的划分点
@@ -911,7 +939,7 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData) {
     }
     if (splitInterval <= 0) splitInterval = 1;
     //缩进中折列 Mode1
-    if (setting.divideColumnAtIndent) {
+    if (globalConfig.divideColumnAtIndent) {
         let divideIndex = new Array(firstBullets.length);//list划分位置（仅首层行）
         let divideAllIndex = new Array(allBullets.length);//list划分位置（所有行）
         let firstBulletIndex = new Array(firstBullets.length);//所有行中，是首层行下标
@@ -938,7 +966,7 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData) {
                 //console.log("判定层级数",result.slice(splitAtIndex).match(/ */)[0].length);
                 let continueIndentStr = "";//补偿缩进
                 for (let j = 0; j < result.slice(splitAtIndex).match(/ */)[0].length / 2; j++) {
-                    continueIndentStr += "  ".repeat(j) + `* ${setting.divideIndentWord}\n`;
+                    continueIndentStr += "  ".repeat(j) + `* ${globalConfig.divideIndentWord}\n`;
                 }
                 //可以尝试加入原文档
                 result = result.slice(0, splitAtIndex) + `${getDivider()}${continueIndentStr}` + result.slice(splitAtIndex);
@@ -977,7 +1005,7 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData) {
         //     result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
         // }
     }
-    if (setting.superBlockBeta) {
+    if (globalConfig.superBlockBeta) {
         result = "{{{col\n" + result + getDivider() + "}}}\n";//超级块写入测试模式
     } else {
         result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
@@ -987,7 +1015,7 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData) {
     return result;
     //生成kramdown类型的块分隔（？）
     function getDivider() {
-        if (setting.superBlockBeta) {
+        if (globalConfig.superBlockBeta) {
             blockAttrData["id"] = generateBlockId();
             blockAttrData["updated"] = getUpdateString()
             let attrIAL = transfromAttrToIAL(blockAttrData);
@@ -1007,17 +1035,16 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData) {
  * @returns 
  */
 function getEmojiHtmlStr(iconString, hasChild) {
-    if (!setting.emojiEnable) return "";//禁用emoji时直接返回
     if (iconString == undefined || iconString == null) return "";//没有icon属性，不是文档类型，不返回emoji
     if (iconString == "") return hasChild ? `<span class="emojitext">📑</span>` : 
         `<span class="emojitext">📄</span>`;//无icon默认值
     let result = iconString;
     // emoji地址判断逻辑为出现.，但请注意之后的补全
     if (iconString.indexOf(".") != -1) {
-        if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
+        // if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
         // emoji为网络地址时，不再补全/emojis路径
         if (iconString.indexOf("http://") != -1 || iconString.indexOf("https://") != -1) {
-            if (!setting.webEmojiEnable) return hasChild ? "📑" : "📄";//禁用网络emoji时
+            // if (!setting.webEmojiEnable) return hasChild ? "📑" : "📄";//禁用网络emoji时
             result = `<img class="iconpic" src="${iconString}"/>`;
         }else {
             result = `<img class="iconpic" src="/emojis/${iconString}"/>`;
@@ -1036,12 +1063,11 @@ function getEmojiHtmlStr(iconString, hasChild) {
  * @returns 
  */
 function getEmojiMarkdownStr(iconString, hasChild) {
-    if (!setting.emojiEnable) return "";//禁用emoji时直接返回
     if (iconString == undefined || iconString == null) return "";//没有icon属性，不是文档类型，不返回emoji
     if (iconString == "") return hasChild ? "📑" : "📄";//无icon默认值
     let result = iconString;
     if (iconString.indexOf(".") != -1) {
-        if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
+        // if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
         // emoji为网络地址时，不再补全/emojis路径
         if (iconString.indexOf("http://") != -1 || iconString.indexOf("https://") != -1) {
             console.warn("暂不支持网络emoji，请@开发者进行适配");
