@@ -274,6 +274,7 @@ export async function pushMsgAPI(msgText, timeout){
 export async function getCurrentDocIdF(){
     let thisDocId;
     let thisWidgetId = getCurrentWidgetId();
+    
     //依靠widgetId sql查，运行时最稳定方案（但挂件刚插入时查询不到！）
     if (isValidStr(thisWidgetId)){
         let queryResult = await queryAPI("SELECT root_id as parentId FROM blocks WHERE id = '" + thisWidgetId + "'");
@@ -296,6 +297,34 @@ export async function getCurrentDocIdF(){
         
     }catch(err){
         console.warn(err);
+    }
+
+    // 移动端文档id获取
+    if (isMobile()) {
+        try {
+            // 先前是因为移动端background id更新不及时，所以使用了文档icon获取的方法
+            let temp;
+            temp = window.top.document.querySelector(".protyle-breadcrumb .protyle-breadcrumb__item .popover__block[data-id]")?.getAttribute("data-id");
+            let iconArray = window.top.document.querySelectorAll(".protyle-breadcrumb .protyle-breadcrumb__item .popover__block[data-id]");
+            for (let i = 0; i < iconArray.length; i++) {
+                let iconOne = iconArray[i];
+                if (iconOne.children.length > 0 
+                    && iconOne.children[0].getAttribute("xlink:href") == "#iconFile"){
+                    temp = iconOne.getAttribute("data-id");
+                    break;
+                }
+            }
+            console.debug("文档图标获取当前文档id", temp);
+            thisDocId = temp;
+        }catch(e){
+            console.warn("通过文档图标获取当前文档id失败", e);
+            temp = null;
+        }
+        if (!thisDocId) {
+            thisDocId = window.top.document.querySelector(".protyle.fn__flex-1:not(.fn__none) .protyle-background")?.getAttribute("data-node-id");
+            console.debug("使用background的匹配值", thisDocId);
+        }
+        return thisDocId;
     }
 
     //widgetId不存在，则使用老方法（存在bug：获取当前展示的页面id（可能不是挂件所在的id））
