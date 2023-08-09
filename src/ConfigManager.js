@@ -191,6 +191,7 @@ export class ConfigSaveManager {
         logPush("userDefaultConfig", userDefaultConfig);
         // 读取独立设置（和数据等）
         const distinctAll = await this.loadDistinct(userDefaultConfig);
+        logPush("distinctAll", userDefaultConfig);
         this.allData = distinctAll;
         // 非挂件模式将尝试读入url中的设置
         if (this.saveMode != CONSTANTS_CONFIG_SAVE_MODE.WIDGET && pathVariable != null) {
@@ -234,13 +235,15 @@ export class ConfigSaveManager {
                 }
                 return response;
             } else {
-                return userDefaultConfig;
+                return {"config": userDefaultConfig};
             }
         } else {
             let response = await getblockAttrAPI(this.relateId);
             let allDataLocal = {};
             if (response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG]) {
                 const configData = JSON.parse(response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG].replace(new RegExp("&quot;", "g"), "\""));
+                debugPush("直接获取到的属性结果", configData);
+                // FIXME: 这里拷贝时丢失东西了
                 allDataLocal["config"] = Object.assign(userDefaultConfig, configData);
             } else {
                 allDataLocal["config"] = userDefaultConfig;
@@ -259,6 +262,7 @@ export class ConfigSaveManager {
     // WARN: 请注意，通过这里读入的更新设置，必须在此方法内同步到this.allData / this.globalConfig，否则下次读入将出现问题
     // 保存全部设置
     async saveDistinct(inputData) {
+        console.log("saveDistinct&&&&", inputData);
         if (this.saveMode == CONSTANTS_CONFIG_SAVE_MODE.WIDGET && !this.globalConfig.allSaveToFile) {
             let attrData = {};
             if (inputData["config"]) {

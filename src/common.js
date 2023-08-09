@@ -223,12 +223,17 @@ export function checkWorkEnvironment() {
 
     try {
         let widgetNodeDataset = window.frameElement.parentElement.parentElement.dataset;
+        let widgetNodeDom = window.frameElement.parentElement.parentElement;
         if (isValidStr(widgetNodeDataset["nodeId"]) || isValidStr(widgetNodeDataset["id"])) {
             widgetId = widgetNodeDataset["nodeId"];
             if (widgetNodeDataset["workEnviroment"]) {
                 return widgetNodeDataset["workEnviroment"];
             } else {
-                return WORK_ENVIRONMENT.WIDGET;
+                if (widgetNodeDataset["type"] == undefined) {
+                    return WORK_ENVIRONMENT.PLUGIN;
+                } else {
+                    return WORK_ENVIRONMENT.WIDGET;
+                }
             }
         } else {
             return WORK_ENVIRONMENT.PLUGIN;

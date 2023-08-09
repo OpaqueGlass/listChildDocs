@@ -85,8 +85,6 @@ async function addText2File(markdownText, blockid = "") {
         //找不到块，移除原有属性
         g_allData["config"]['childListId'] = "";
         warnPush("更新失败，下次将创建新块", blockid);
-        // FIXME: 创建或更新块后需要更新id，将id保存
-        g_configManager.saveDistinctConfig(g_allData["config"]);
         // await setCustomAttr();//移除id属性后需要保存
         throw Error(language["refreshNeeded"]);
     } else {
@@ -629,8 +627,8 @@ async function __main(manual = false, justCreate = false) {
                 console.info("初次创建，不写入/更新块");
             } else if (g_allData["config"].childListId == "") {
                 await addText2File(textString, g_allData["config"].childListId);
-                //如果需要创建块，自动保存一下设置
-                await __save();
+                //如果需要创建块，创建或更新块后需要更新id，将id保存
+                await g_configManager.saveDistinctConfig(g_allData["config"]);
             } else {
                 await addText2File(textString, g_allData["config"].childListId);
             }
@@ -732,25 +730,6 @@ async function getTargetBlockBoxPath() {
     throw new Error(language["wrongTargetId"]);
 }
 
-//保存设置项
-async function __save() {
-    if (isSafelyUpdate(g_currentDocId, {widgetMode: true}, g_workEnvId) == false) {
-        warnPush("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
-    }
-    //获取最新设置
-    await __reloadSettings();
-    showSettingChanger(false);
-    //写入挂件属性
-    try {
-        // await setCustomAttr();
-        console.info("[SAVE]保存设置项");
-        $("#updateTime").text(language["saved"]);
-    } catch (err) {
-        console.error(err);
-        errorShow(err.message);
-    }
-    __refreshAppearance();
-}
 /**
  * 重新获取Printer
  * 调用前确定已经获得了printMode
@@ -768,12 +747,9 @@ function __refreshPrinter(init = false) {
         if (g_allData["config"]["customModeSettings"] != undefined) {
             delete g_allData["config"]["customModeSettings"];
         }
-        // 切换模式后清空缓存
-        saveContentCache("");
     }
     // $("#modeSetting").html("");
     //重新获取Printer
-    logPush("refreshP中输入的id", g_allData["config"].printMode);
     for (let printer of printerList) {
         if (printer.id == g_allData["config"].printMode) {
             g_myPrinter = new printer();
@@ -792,6 +768,7 @@ function __refreshPrinter(init = false) {
     if (!isInvalidValue(newSetCustomAttr)) {
         Object.assign(g_allData["config"], newSetCustomAttr);
     }
+    debugPush("载入Printer独立设置", g_allData["config"]);
     g_myPrinter.load(g_allData["config"]["customModeSettings"]);
     // TODO: 禁用或提示部分设置项无效
     // $("#outerSetting > [disabled], #innerSetting > [disabled]").each(function (index) {
@@ -1250,11 +1227,11 @@ async function __init__() {
         case WORK_ENVIRONMENT.PLUGIN: {
             // 解析路径参数？
             g_workEnvId = await getCurrentDocIdF();
-            g_currentDocId = g_workEnvId;;
+            g_currentDocId = g_workEnvId;
             if (!isValidStr(g_workEnvId)) {
 
             }
-            g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.PLUGIN, g_wordEnvId);
+            g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.PLUGIN, g_workEnvId);
         }
     }
     // 载入设置项
@@ -1263,10 +1240,12 @@ async function __init__() {
     logPush("globalConfig", g_globalConfig);
     
     g_configViewManager = new ConfigViewManager(g_configManager, __reloadSettings);
-    if (g_globalConfig["showBtnArea"] == "true") {
+    if (g_globalConfig["showBtnArea"] === "true") {
         _showBtnArea(true);
-    } else if (g_globalConfig["showBtnArea"] == "hover") {
+    } else if (g_globalConfig["showBtnArea"] === "hover") {
         _hoverBtnAreaBinder(true);
+    } else {
+        _showBtnArea(false);
     }
     // 绑定及时响应的相关事件
     __formInputChangeBinder();
@@ -1275,7 +1254,7 @@ async function __init__() {
     // 绑定基本按钮栏
     __buttonBinder();
     // 刷新printer，可能需要绑定监视器在切换后及时响应
-    __refreshPrinter();
+    __refreshPrinter(true);
     // 对不同的Printer，刷新挂件高度
     if (g_myPrinter.write2file == 1) {
         window.frameElement.style.width = g_globalConfig.width_2file;
@@ -1474,6 +1453,13 @@ function __buttonBinder() {
 
 function _saveDistinctConfig(submitData) {
     const distinctConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
+    let modeCustom = g_myPrinter.save();
+    if (!isInvalidValue(modeCustom)) {
+        distinctConfig["customModeSettings"] = modeCustom;
+        debugPush("getPrinterCustomConfig", distinctConfig["customModeSettings"]);
+    }
+    // 保存设置时清空缓存，替代切换Printer时清空缓存的操作
+    g_allData["cacheHTML"] = "";
     // 保存设置项
     g_configManager.saveDistinctConfig(Object.assign(g_allData["config"], distinctConfig));
     // TODO: 保存时获取printer的独立设置
@@ -1485,8 +1471,9 @@ function _saveDistinctConfig(submitData) {
 function _saveDefaultConfigData(submitData) {
     const distinctConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
     // 保存设置项
-    g_configManager.saveUserConfigDefault(distinctConfig);
-    __reloadSettings();
+    g_configManager.saveUserConfigDefault(distinctConfig).then(()=>{
+        __reloadSettings();
+    });
     return false; // 阻止默认 form 跳转
 }
 
@@ -1513,7 +1500,6 @@ async function __reloadSettings() {
     g_allData = tempNewData;
     // 刷新printer
     __refreshPrinter();
-
 }
 
 /**
@@ -1522,7 +1508,7 @@ async function __reloadSettings() {
  */
 function _showSetting(flag = null) {
     debugPush("innerSetting display", $("#innerSetting").css("display"));
-    if (flag == true || $("#innerSetting").css("display") == "none") {
+    if (flag == true || ($("#innerSetting").css("display") == "none" && flag == null)) {
         $("#innerSetting").css("display", "");
         flag = true;
     } else {
@@ -1544,10 +1530,19 @@ function _showSetting(flag = null) {
 }
 
 function _showBtnArea(flag = null) {
-    if (flag == true || $("#outerSetting").hasClass("outerSetting-hide")) {
+    let className = "outerSetting-hide";
+    if (g_globalConfig["showBtnArea"] == "false") {
         $("#outerSetting").removeClass("outerSetting-hide");
+        className = "outerSetting-none";
     } else {
-        $("#outerSetting").addClass("outerSetting-hide");
+        $("#outerSetting").removeClass("outerSetting-none");
+    }
+    if (flag == true || ($("#outerSetting").hasClass(className) && flag == null)) {
+        debugPush("_showBtnArea remove", className);
+        $("#outerSetting").removeClass(className);
+    } else {
+        debugPush("_showBtnArea addd", className);
+        $("#outerSetting").addClass(className);
     }
 }
 

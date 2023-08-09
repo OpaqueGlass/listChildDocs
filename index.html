@@ -22,7 +22,7 @@
     测试ONLY<br />
     <div class="app">
         <div class="upperbardiv">
-            <p class="upperbar outerSetting outerSetting-hide" id="outerSetting">
+            <p class="upperbar outerSetting outerSetting-none" id="outerSetting">
                 <button id="refresh"><svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M21.91,4.09a1,1,0,0,0-1.07.16L19.48,5.46A9.81,9.81,0,0,0,12,2a10,10,0,1,0,9.42,13.33,1,1,0,0,0-1.89-.66A8,8,0,1,1,12,4a7.86,7.86,0,0,1,6,2.78L16.34,8.25a1,1,0,0,0-.27,1.11A1,1,0,0,0,17,10h4.5a1,1,0,0,0,1-1V5A1,1,0,0,0,21.91,4.09Z"
@@ -121,6 +121,70 @@
                                         </div>
                                     </div>
                                     <div class="layui-inline">
+                                        <label class="layui-form-label">大纲开始于</label>
+                                        <div class="layui-input-inline">
+                                            <select name="outlineStartAt">
+                                                <option value="h1">一级标题</option>
+                                                <option value="h2">二级标题</option>
+                                                <option value="h3">三级标题</option>
+                                                <option value="h4">四级标题</option>
+                                                <option value="h5">五级标题</option>
+                                                <option value="h6">六级标题</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">大纲结束于</label>
+                                        <div class="layui-input-inline">
+                                            <select name="outlineEndAt">
+                                                <option value="h1">一级标题</option>
+                                                <option value="h2">二级标题</option>
+                                                <option value="h3">三级标题</option>
+                                                <option value="h4">四级标题</option>
+                                                <option value="h5">五级标题</option>
+                                                <option value="h6">六级标题</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">排序方式</label>
+                                        <div class="layui-input-inline">
+                                            <select name="sortBy" id="sortBy" lay-filter="order">
+                                                <optgroup label="文档名">
+                                                    <option value="0">名称字母升序</option>
+                                                    <option value="1">名称字母降序</option>
+                                                    <option value="4">名称自然升序</option>
+                                                    <option value="5">名称自然降序</option>
+                                                </optgroup>
+                                                <optgroup label="时间">
+                                                    <option value="2">修改时间升序</option>
+                                                    <option value="3">修改时间降序</option>
+                                                    <option value="9">创建时间升序</option>
+                                                    <option value="10">创建时间降序</option>
+                                                </optgroup>
+                                                <optgroup label="引用">
+                                                    <option value="7">引用次数升序</option>
+                                                    <option value="8">引用次数降序</option>
+                                                </optgroup>
+                                                <optgroup label="文档大小">
+                                                    <option value="11">文档大小升序</option>
+                                                    <option value="12">文档大小降序</option>
+                                                </optgroup>
+                                                <optgroup label="子文档数量">
+                                                    <option value="13">子文档数量升序</option>
+                                                    <option value="14">子文档数量降序</option>
+                                                </optgroup>
+                                                <optgroup label="特殊">
+                                                    <option value="6">文档树自定义排序</option>
+                                                    <option value="256">跟随文档树排序</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="layui-inline">
                                         <label class="layui-form-label">自动刷新</label>
                                         <div class="layui-input-inline">
                                             <input type="checkbox" checked name="auto" id="auto" lay-skin="switch"
@@ -135,42 +199,6 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">排序方式</label>
-                                    <div class="layui-input-inline">
-                                        <select name="sortBy" id="sortBy" lay-filter="order">
-                                            <optgroup label="文档名">
-                                                <option value="0">名称字母升序</option>
-                                                <option value="1">名称字母降序</option>
-                                                <option value="4">名称自然升序</option>
-                                                <option value="5">名称自然降序</option>
-                                            </optgroup>
-                                            <optgroup label="时间">
-                                                <option value="2">修改时间升序</option>
-                                                <option value="3">修改时间降序</option>
-                                                <option value="9">创建时间升序</option>
-                                                <option value="10">创建时间降序</option>
-                                            </optgroup>
-                                            <optgroup label="引用">
-                                                <option value="7">引用次数升序</option>
-                                                <option value="8">引用次数降序</option>
-                                            </optgroup>
-                                            <optgroup label="文档大小">
-                                                <option value="11">文档大小升序</option>
-                                                <option value="12">文档大小降序</option>
-                                            </optgroup>
-                                            <optgroup label="子文档数量">
-                                                <option value="13">子文档数量升序</option>
-                                                <option value="14">子文档数量降序</option>
-                                            </optgroup>
-                                            <optgroup label="特殊">
-                                                <option value="6">文档树自定义排序</option>
-                                                <option value="256">跟随文档树排序</option>
-                                            </optgroup>
-                                        </select>
-                                    </div>
-                                </div>
                                 <div class="layui-form-item">
                                     <div class="layui-input-block">
                                         <button type="submit" class="layui-btn" lay-submit lay-filter="save">保存</button>
@@ -182,7 +210,7 @@
                         </div>
                         <div class="layui-tab-item">
                             🚧施工中……<br/>
-                            还没写到这里(＠_＠;) 
+                            还没有完全完成
                             <form class="layui-form" lay-filter="global-config" id="global-config">
 
                                 <fieldset class="layui-elem-field">
@@ -198,7 +226,7 @@
                                                         <option value="hover">悬停显示</option>
                                                     </select>
                                                     <i class="layui-icon layui-icon-tips" lay-tips="
-                                                    如果选择隐藏按钮栏，可以在窗口聚焦于挂件的情况下，使用快捷键操作：<br/>
+                                                    如果选择隐藏按钮栏，可以在窗口聚焦于挂件的情况下（鼠标点一下挂件之后），使用快捷键操作：<br/>
                                                     F5 刷新<br/>
                                                     Ctrl + O 打开或关闭设置面板<br/>
                                                     Ctrl + F 打开搜索面板"></i>
@@ -220,7 +248,7 @@
                                             <div class="layui-inline">
                                                 <label class="layui-form-label">显示返回父文档</label>
                                                 <div class="layui-input-inline">
-                                                    <select name="" id="showBtnArea" lay-filter="showBtnArea">
+                                                    <select name="backToParent">
                                                         <option value="false">禁用</option>
                                                         <option value="true">始终显示</option>
                                                         <option value="auto">仅窄屏设备</option>
@@ -251,7 +279,7 @@
                                         <div class="layui-inline">
                                             <label class="layui-form-label">列表插入文档时,挂件宽</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="width_2file" placeholder="请输入" autocomplete="off"
+                                                <input type="text" name="width_2file" placeholder="请输入(带单位)" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>

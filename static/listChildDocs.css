@@ -132,10 +132,14 @@ input:hover {
 }
 
 .linksList ul {
-    margin-left: 3em;
+    padding-inline-start: 40px;
 }
 
-.linksList li {
+.linksList ul ul li {
+    list-style: circle none outside;
+}
+
+.linksList ul li, ul.linksList > li {
     /* 依次为 type, image, position */
     list-style: disc none outside;
 }
@@ -409,11 +413,8 @@ body {
     margin-bottom: 5px;
 }
 
-.outerSetting-show {
-    opacity: 1;
-    /* max-height: none; */
-    /* margin-top: inherit;
-    margin-bottom: inherit; */
+.outerSetting-none {
+    display: none;
 }
 
 /* 
