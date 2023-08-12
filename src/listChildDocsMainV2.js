@@ -64,8 +64,25 @@ async function addText2File(markdownText, blockid = "") {
         attrData = Object.assign(attrData, modeCustomAttr);
     }
     // 分列操作（分列并使得列继承属性）
-    if (g_allData["config"].listColumn > 1 && g_globalConfig.inheritAttrs && g_globalConfig.superBlockBeta) {
-        markdownText = g_myPrinter.splitColumns(markdownText, g_allData["config"]["listColumn"], g_allData["config"]["listDepth"], attrData);
+    if (g_allData["config"].listColumn >= 0 && g_globalConfig.inheritAttrs && g_globalConfig.superBlockBeta) {
+        let nColumn = g_allData["config"].listColumn;
+        // 自动分列：
+        // 获取的protyle可视区域高是全部高，不太能用
+        if (g_allData["config"].listColumn == 0 && !isMobile()) {
+            let deviceHeight = window.screen.availHeight;
+            const rowE = window.top.document.querySelector(".fn__flex-1.protyle:not(.fn__none) .protyle-wysiwyg .p");
+            let rowHeight = 34;
+            if (rowE && rowE.clientHeight > 0) {
+                rowHeight = rowE.clientHeight;
+            }
+            // 魔法数376，预估的冗余部分高度hh
+            if (deviceHeight > 376 && rowHeight > 0 && g_rowCount > 0) {
+                let rowPerColumn = (deviceHeight - 376) / rowHeight;
+                nColumn = Math.ceil(g_rowCount / rowPerColumn);
+            }
+            debugPush("autoColumn", deviceHeight, rowHeight, g_rowCount, nColumn);
+        }
+        markdownText = g_myPrinter.splitColumns(markdownText, nColumn, g_allData["config"]["listDepth"], attrData);
     }
 
     // 将属性以IAL的形式写入text，稍后直接更新块
@@ -248,7 +265,7 @@ async function getText(notebook, nowDocPath) {
     let rawData = "";
     let rowCountStack = new Array();
     rowCountStack.push(1);
-    let rowCount;
+    g_rowCount = 0;
     
     // 单独处理起始为笔记本上级的情况
     if (notebook === "/") {
@@ -270,6 +287,7 @@ async function getText(notebook, nowDocPath) {
                 rawData += g_myPrinter.align(rowCountStack.length);
                 rawData += g_myPrinter.oneDocLink(tempVirtualDocObj, rowCountStack);
                 rowCountStack[rowCountStack.length - 1]++;
+                g_rowCount++;
             }
         }
         // 处理大纲和子文档两种情况，子文档情况兼容从笔记本级别列出
@@ -330,6 +348,7 @@ async function getTextFromNotebooks(rowCountStack) {
             result += g_myPrinter.afterChildDocs(rowCountStack.length);
         }
         rowCountStack[rowCountStack.length - 1]++;
+        g_rowCount++;
     }
     return result;
 }
@@ -368,6 +387,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) 
             }
         }
         rowCountStack[rowCountStack.length - 1]++;
+        g_rowCount++;
     }
     return insertData;
 }
@@ -437,6 +457,7 @@ function getOneLevelOutline(outlines, distinguish, rowCountStack) {
                 warnPush("未被处理的大纲情况");
             }
             rowCountStack[rowCountStack.length - 1]++;
+            g_rowCount++;
         }
         
         
@@ -462,8 +483,19 @@ function showSettingChanger(showBtn) {
 /**
  * 控制挂件内css分列（分栏），在页面宽度不足时强制重设分列数
  */
-function setColumn(rowOfText = 0) {
+function setColumn(rowOfText = g_rowCount) {
     let nColumns = g_allData["config"].listColumn;
+    if (nColumns == 0 && rowOfText > 0) {
+        let fontSize = $("#linksContainer").css("font-size");
+        if (fontSize == undefined) fontSize = "16px";
+        debugPush("widgetHeight", window.frameElement.style.height, window.frameElement.clientHeight, $("#linksContainer").outerHeight());
+        // 单列可容纳行数
+        debugPush("height / fontSize", $("#linksContainer").outerHeight() / $("#linksContainer li").outerHeight());
+        let rowPerColumn = parseFloat(window.frameElement.clientHeight) / $("#linksContainer li").outerHeight();
+        // 分列数
+        debugPush("rowOfText / (height / fontSize)", rowOfText / rowPerColumn);
+        nColumns = Math.round(rowOfText / rowPerColumn);
+    }
     if (window.screen.availWidth <= 768 || isMobile()) nColumns = "";
     $("#linksContainer").css("column-count", nColumns);
 }
@@ -1651,9 +1683,9 @@ function __darkModeObserverBinder() {
                 targetNode = $(window.parent.document).find("#barThemeMode").get(0);
             } else {
                 // v2.4.1 + 
-                targetNode = $(window.parent.document).find("#barMode").get(0);
+                targetNode = window.top.document.querySelector("html");
             }
-            mutationObserver2.observe(targetNode, { "attributes": true, "attributeFilter": ["aria-label"] });
+            mutationObserver2.observe(targetNode, { "attributes": true, "attributeFilter": ["aria-label", "data-theme-mode"] });
         }
         // window.top.addEventListener("change", ()=>{debugPush("changed")});
     
@@ -1813,7 +1845,7 @@ async function removeUnusedConfigFileWorker() {
 }
 
 let mutationObserver = new MutationObserver(() => { __main(false) });//避免频繁刷新id
-let mutationObserver2 = new MutationObserver(() => { setTimeout(__changeAppearance, 1500); });
+let mutationObserver2 = new MutationObserver(() => { __changeAppearance()});
 
 let g_configManager = null;
 let g_configViewManager = null;
@@ -1824,6 +1856,7 @@ let g_globalConfig = null;
 let g_myPrinter = null;
 let g_currentDocId = null;
 let g_justCreate = false;
+let g_rowCount = 0;
 
 // 旧全局变量
 
