@@ -8,7 +8,7 @@ import { debugPush, isFileNameIllegal, logPush } from "./common.js";
  */
 export class ConfigSaveManager {
     saveMode = 0;
-    // 数据保存路径，（自工作空间的相对路径）务必以/结尾；
+    // 数据保存路径，（自工作空间的相对路径）务必以/结尾、以/开头；
     saveDirPath = "";
     dataSavePath = "";
     schemaSavePath = "";
@@ -48,7 +48,7 @@ export class ConfigSaveManager {
         // 该文件保存的数据：包括排序、文件名、用户自定义层级，这里应当
         savedData: {}
     }
-    defaultGlobalConfig ={
+    defaultGlobalConfig = {
         // 即使是挂件模式,也将设置保存到文档
         allSaveToFile: false,
         // 将列表写入文件时，此项控制挂件的宽
@@ -243,7 +243,6 @@ export class ConfigSaveManager {
             if (response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG]) {
                 const configData = JSON.parse(response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG].replace(new RegExp("&quot;", "g"), "\""));
                 debugPush("直接获取到的属性结果", configData);
-                // FIXME: 这里拷贝时丢失东西了
                 allDataLocal["config"] = Object.assign(userDefaultConfig, configData);
             } else {
                 allDataLocal["config"] = userDefaultConfig;

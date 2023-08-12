@@ -387,9 +387,16 @@
                                 </fieldset>
 
                                 <fieldset class="layui-elem-field">
-                                    <legend>重置和重载</legend>
+                                    <legend>重置和危险操作</legend>
                                     <div class="layui-field-box">
-                                      常规设置
+                                      <div class="layui-input-block">
+                                        <div class="layui-inline">
+                                            <button type="button" class="layui-btn layui-btn-primary layui-border-red" lay-on="global-remove-distinct">移除全部独立设置</button>
+                                            <button type="button" class="layui-btn layui-btn-primary layui-border-red" lay-on="global-remove-other">删除其他挂件</button>
+                                            <button type="button" class="layui-btn layui-btn-primary  layui-border-orange" lay-on="global-remove-file">清理不使用的设置文件</button>
+                                        </div>
+                                      </div>
+                                      
                                     </div>
                                 </fieldset>
 

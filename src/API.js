@@ -382,11 +382,11 @@ export function getCurrentWidgetId(){
 export async function removeBlockAPI(blockid){
     let url = "/api/block/deleteBlock";
     let response = await postRequest({id: blockid}, url);
-    if (response.code != 0 || response.data.length != 1 || response.data[0].doOperations.length != 1 ||
-        !response.data[0].doOperations[0].id){
-        return 0;
+    if (response.code == 0){
+        return true;
     }
-    return -1;
+    console.warn("删除块失败", response);
+    return false;
 }
 
 /**
@@ -680,6 +680,30 @@ export async function getJSONFile(path) {
         return null;
     }
     return response;
+}
+
+/**
+ * 列出工作空间下的文件
+ * @param {*} path  例如"/data/20210808180117-6v0mkxr/20200923234011-ieuun1p.sy"
+ * @returns isDir, isSymlink, name三个属性
+ */
+export async function listFileAPI(path) {
+    const url = "/api/file/readDir";
+    let response = await postRequest({"path": path}, url);
+    if (response.code == 0) {
+        return response.data;
+    }
+    return [];
+}
+
+export async function removeFileAPI(path) {
+    const url = "/api/file/removeFile";
+    let response = await postRequest({"path": path}, url);
+    if (response.code == 0) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 export function isMobile() {

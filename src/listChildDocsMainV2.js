@@ -23,7 +23,10 @@ import {
     isDarkMode,
     createDocWithMdAPI,
     createDocWithPath,
-    DOC_SORT_TYPES
+    DOC_SORT_TYPES,
+    listFileAPI,
+    removeFileAPI,
+    isMobile
 } from "./API.js";
 import { language } from "./config.js";
 import { DefaultPrinter, printerList } from './listChildDocsClass.js';
@@ -245,6 +248,7 @@ async function getText(notebook, nowDocPath) {
     let rawData = "";
     let rowCountStack = new Array();
     rowCountStack.push(1);
+    let rowCount;
     
     // 单独处理起始为笔记本上级的情况
     if (notebook === "/") {
@@ -458,9 +462,9 @@ function showSettingChanger(showBtn) {
 /**
  * 控制挂件内css分列（分栏），在页面宽度不足时强制重设分列数
  */
-function setColumn() {
+function setColumn(rowOfText = 0) {
     let nColumns = g_allData["config"].listColumn;
-    if (window.screen.availWidth <= 768) nColumns = "";
+    if (window.screen.availWidth <= 768 || isMobile()) nColumns = "";
     $("#linksContainer").css("column-count", nColumns);
 }
 
@@ -584,10 +588,11 @@ async function __main(manual = false, justCreate = false) {
         return;
     }
     g_allData["config"] = await g_configManager.getDistinctConfig();
-    console.time(`listChildDocs-${g_workEnvId.substring(15)}刷新计时`);
+    let msgLayer;
+    let startTime = new Date();
     $("#updateTime").text(language["working"]);
     if (g_globalConfig["showBtnArea"] != "true") {
-        layui.layer.msg(language["working"], {icon: 0, time: 0, offset: "t"});
+        msgLayer = layui.layer.msg(language["working"], {icon: 0, time: 0, offset: "t"});
     }
     let modeDoUpdateFlag = 1;
     // pushMsgAPI(language["startRefresh"], 4500);
@@ -644,13 +649,13 @@ async function __main(manual = false, justCreate = false) {
         errorShow(err.message);
         modeDoUpdateFlag = 1;
     }finally{
-        console.timeEnd(`listChildDocs-${g_workEnvId.substring(15)}刷新计时`);
+        logPush("刷新计时", new Date() - startTime + "ms");
     }
     //写入更新时间
     let updateTime = new Date();
     $("#updateTime").text(language["updateTime"] + updateTime.toLocaleTimeString());
     if (g_globalConfig["showBtnArea"] != "true") {
-        layui.layer.msg(language["refreshFinish"], {icon: 1, time: 1000, offset: "t"});
+        layui.layer.close(msgLayer);
     }
     //issue #13 挂件自动高度
     // 挂件内自动高度
@@ -1194,8 +1199,7 @@ async function __init__() {
                 }
             }catch (err) {
                 logPush("初始化时获取挂件属性err", err);
-            } 
-            __setObserver();
+            }
             break;
         }
         case WORK_ENVIRONMENT.PLUGIN: {
@@ -1214,12 +1218,21 @@ async function __init__() {
     logPush("globalConfig", g_globalConfig);
     
     g_configViewManager = new ConfigViewManager(g_configManager, __reloadSettings);
-    if (g_globalConfig["showBtnArea"] === "true") {
+    // 涉及悬停逻辑判断的还有：_hoverBtnAreaBinder、_showSetting
+    if (g_globalConfig["showBtnArea"] === "true" && !isMobile()) {
         _showBtnArea(true);
-    } else if (g_globalConfig["showBtnArea"] === "hover") {
+    } else if (g_globalConfig["showBtnArea"] === "hover" || isMobile()) {
         _hoverBtnAreaBinder(true);
     } else {
         _showBtnArea(false);
+    }
+    // 绑定页签监听
+    if (g_allData["config"]["auto"] && g_workEnvTypeCode == WORK_ENVIRONMENT.WIDGET) {
+        __setObserver();
+    }
+    // 深色模式变化监听
+    if (g_workEnvTypeCode == WORK_ENVIRONMENT.WIDGET || g_workEnvTypeCode == WORK_ENVIRONMENT.PLUGIN) {
+        __darkModeObserverBinder();
     }
     // 绑定及时响应的相关事件
     __formInputChangeBinder();
@@ -1450,6 +1463,42 @@ function __buttonBinder() {
     form.on("submit(save)", _saveDistinctConfig);
     form.on("submit(savedefault)", _saveDefaultConfigData);
     form.on("submit(saveglobal)", _saveGlobalConfigData);
+    layui.util.on('lay-on', {
+        "global-remove-distinct": removeDistinct,
+        "global-remove-other": removeOther,
+        "global-remove-file": removeFile
+    });
+    const layer = layui.layer;
+    function removeDistinct() {
+        layui.layer.confirm(language["removeDistinctConfim"], {icon: 3, btn: [language["dialog_confirm"], language["dialog_cancel"]], title: language["confirmTitle"]}, async function(){
+            layer.closeLast("dialog");
+            let loadIndex = layer.load(1);
+            await removeDistinctWorker();
+            layui.layer.close(loadIndex);
+        }, function(){
+            layui.layer.msg('已取消');
+        });
+    }
+    function removeOther() {
+        layui.layer.confirm(language["removeOtherConfim"], {icon: 3, btn: [language["dialog_confirm"], language["dialog_cancel"]], title: language["confirmTitle"]}, async function(){
+            layer.closeLast("dialog");
+            let loadIndex = layer.load(1);
+            await removeOtherWorker();
+            layui.layer.close(loadIndex);
+        }, function(){
+            layui.layer.msg('已取消');
+        });
+    }
+    function removeFile() {
+        layui.layer.confirm(language["removeFileConfirm"], {icon: 3, btn: [language["dialog_confirm"], language["dialog_cancel"]], title: language["confirmTitle"]}, async function(){
+            layui.layer.closeLast("dialog");
+            let loadIndex = layer.load(1);
+            await removeUnusedConfigFileWorker();
+            layui.layer.close(loadIndex);
+        }, function(){
+            layui.layer.msg('已取消');
+        });
+    }
 }
 
 function _saveDistinctConfig(submitData) {
@@ -1462,10 +1511,14 @@ function _saveDistinctConfig(submitData) {
     // 保存设置时清空缓存，替代切换Printer时清空缓存的操作
     g_allData["cacheHTML"] = "";
     // 保存设置项
-    g_configManager.saveDistinctConfig(Object.assign(g_allData["config"], distinctConfig));
-    // TODO: 保存时获取printer的独立设置
-    // TODO: 也要在载入部分做处理
-    __reloadSettings();
+    g_configManager.saveDistinctConfig(Object.assign(g_allData["config"], distinctConfig)).then(()=>{
+    // 保存时获取printer的独立设置（现在为切换后直接刷新）
+    // 也要在载入部分做处理
+        __reloadSettings();
+        layui.layer.msg(language["saved"], {icon: 1, time: 700, offset: "t"});
+        $("#updateTime").text(language["saved"]);
+    })
+    
     return false; // 阻止默认 form 跳转
 }
 
@@ -1474,6 +1527,8 @@ function _saveDefaultConfigData(submitData) {
     // 保存设置项
     g_configManager.saveUserConfigDefault(distinctConfig).then(()=>{
         __reloadSettings();
+        layui.layer.msg(language["saved"], {icon: 1, time: 700, offset: "t"});
+        $("#updateTime").text(language["saved"]);
     });
     return false; // 阻止默认 form 跳转
 }
@@ -1483,6 +1538,8 @@ function _saveGlobalConfigData(submitData) {
 
     g_configManager.saveGlobalConfig(globalConfig).then(()=>{
         __reloadSettings(); // 修改全局设置后，需要printer重载全局设置
+        layui.layer.msg(language["saved"], {icon: 1, time: 700, offset: "t"});
+        $("#updateTime").text(language["saved"]);
     });
     return false;
 }
@@ -1518,11 +1575,6 @@ function _showSetting(flag = null) {
         $("#innerSetting").css("display", "none");
         flag = false;
     }
-    // let display = showBtn ? "inline" : "none";
-    // $("#innerSetting *, #modeSetting *").css("display", display);
-    // if ((g_allData["config"].listDepth != 0 && !g_allData["config"].endDocOutline) && showBtn) {//层级不为0时不显示大纲层级
-    //     $("#outlinedepth, #outlinedepthhint").css("display", "none");
-    // }
     if (g_myPrinter.write2file == 1) {//写入文档时重设挂件大小
         window.frameElement.style.height = flag ? g_globalConfig.height_2file_setting : g_globalConfig.height_2file;
         window.frameElement.style.width = flag ? g_globalConfig.width_2file_setting : g_globalConfig.width_2file;
@@ -1534,7 +1586,7 @@ function _showSetting(flag = null) {
 
 function _showBtnArea(flag = null) {
     let className = "outerSetting-hide";
-    if (g_globalConfig["showBtnArea"] == "false") {
+    if (g_globalConfig["showBtnArea"] == "false" && !isMobile()) {
         $("#outerSetting").removeClass("outerSetting-hide");
         className = "outerSetting-none";
     } else {
@@ -1550,7 +1602,8 @@ function _showBtnArea(flag = null) {
 }
 
 function _hoverBtnAreaBinder(flag = null) {
-    if (g_globalConfig["showBtnArea"] != "hover") return;
+    if (g_globalConfig["showBtnArea"] != "hover" ||
+     (g_globalConfig["showBtnArea"] == "false" && isMobile())) return;
     const topBtnElement = document.getElementById("outerSetting");
     let mouseOverTimeout, mouseOutTimeout;
     if (flag == true || flag == null) {
@@ -1588,7 +1641,7 @@ function _hoverBtnAreaBinder(flag = null) {
     }
 }
 
-function __mutationObserverBinder() {
+function __darkModeObserverBinder() {
     try {
         // UNSTABLE: 监视深色模式变化，依赖界面现实的外观模式按钮变化
         if (checkOs()) {
@@ -1634,9 +1687,133 @@ function __setObserver() {
         console.error("监视点击页签事件失败" + err);
     }
 }
+/* 退出：离开的批量操作 */
+
+async function removeDistinctWorker() {
+    let successCount = 0;
+    let failIds = [];
+    // 由于分页限制，可能需要多次执行
+    const queryResult = await queryAPI(`SELECT * FROM blocks WHERE type='widget' AND markdown like '%listChildDocs%' AND ial like '%custom-list-child-docs%' AND id != '${getCurrentWidgetId()}'`);
+    for (let result of queryResult) {
+        // 尝试通过IAL解析属性
+        let lcdAttrStr = "";
+        let blockAttr = {};
+        try {
+            lcdAttrStr = result.ial.match(new RegExp(`(?<=custom-list-child-docs=\\\")({|&#123;)[^"\]*"`));
+            if (lcdAttrStr.length > 0) {
+                lcdAttrStr = lcdAttrStr[0];
+            }
+            blockAttr = JSON.parse(lcdAttrStr.replace(new RegExp(`&#123;`, "g"), "{").replace(new RegExp(`&#125;`), "}").replace("&quot;", "\""));
+        } catch(err) {
+            logPush("解析IAL失败，将尝试使用API", err);
+            lcdAttrStr = "";
+        }
+        try {
+            // 解析失败的通过getblockAttrAPI处理
+            if (!isValidStr(lcdAttrStr)) {
+                let tempWidgetId = result.id;
+                let tempWidgetAttr = await getblockAttrAPI(tempWidgetId);
+                tempWidgetAttr = tempWidgetAttr["custom-list-child-docs"];
+                if (isValidStr(tempWidgetAttr)) {
+                    blockAttr = JSON.parse(tempWidgetAttr.replace(new RegExp("&quot;", "g"), "\""));
+                }
+            }
+            // 删除列表
+            if (isValidStr(blockAttr.childListId)) {
+                await removeBlockAPI(blockAttr.childListId);       
+            }
+            // 移除属性
+            await addblockAttrAPI({"custom-list-child-docs": "", "custom-lcd-cache": ""}, result.id);
+            successCount++;
+        } catch(err) {
+            logPush("删除挂件属性失败", err);
+            failIds.push(result.id);
+        }
+    }
+    if (failIds.length > 0) {
+        const text = language["removeDistinctFailed"].replace("%1%", successCount).replace("%2%", failIds.length)
+                       .replace("%3%", failIds.join(","));
+        layui.layer.alert(text, {
+            icon: 0,
+            shadeClose: false,
+            title: language["workResult"],
+            btn: [language["dialog_confirm"]]
+        });
+    } else {
+        const text = language["removeDistinctSuccess"].replace("%1%", successCount).replace("%2%", failIds.length)
+                       .replace("%3%", failIds.join(","));
+        layui.layer.alert(text, {
+            icon: 1,
+            shadeClose: false,
+            title: language["workResult"],
+            btn: [language["dialog_confirm"]]
+        });
+    }
+    
+}
+
+async function removeOtherWorker() {
+    const queryResult =  await queryAPI(`SELECT * FROM blocks WHERE type='widget' AND markdown like '%listChildDocs%' AND id != '${getCurrentWidgetId()}'`);
+    let successCount = 0;
+    let failIds = [];
+    for (let result of queryResult) {
+        if (await removeBlockAPI(result.id)) {
+            successCount++;
+        } else {
+            failIds.push(result.id);
+        }
+    }
+    if (failIds.length > 0) {
+        const text = language["removeOtherFailed"].replace("%1%", successCount).replace("%2%", failIds.length)
+                       .replace("%3%", failIds.join(","));
+        layui.layer.alert(text, {
+            icon: 0,
+            shadeClose: false,
+            title: language["workResult"],
+            btn: [language["dialog_confirm"]]
+        });
+    } else {
+        const text = language["removeOtherSuccess"].replace("%1%", successCount).replace("%2%", failIds.length)
+                       .replace("%3%", failIds.join(","));
+        layui.layer.alert(text, {
+            icon: 1,
+            shadeClose: false,
+            title: language["workResult"],
+            btn: [language["dialog_confirm"]]
+        });
+    }
+}
+
+async function removeUnusedConfigFileWorker() {
+    const fileListResult = await listFileAPI(g_configManager.saveDirPath + "data");
+    let successCount = 0;
+    let totalCount = 0;
+    // let promiseList = [];
+    for (let result of fileListResult) {
+        if (result.isDir == false) {
+            if (result.name.endsWith(".json")) {
+                let tempId = result.name.replace(".json", "").substring(0, 22);
+                const queryResult = await queryAPI(`SELECT * FROM blocks WHERE id='${tempId}'`);
+                if (queryResult.length <= 0) {
+                    if (await removeFileAPI(g_configManager.saveDirPath + "data/" + result.name)) {
+                        successCount++;
+                    }
+                }
+                totalCount++;
+            }
+        }
+    }
+    const text = language["removeFileSuccess"].replace("%1%", successCount).replace("%2%", totalCount - successCount);
+    layui.layer.alert(text, {
+        icon: 1,
+        shadeClose: false,
+        title: language["workResult"],
+        btn: [language["dialog_confirm"]]
+    });
+}
 
 let mutationObserver = new MutationObserver(() => { __main(false) });//避免频繁刷新id
-let mutationObserver2 = new MutationObserver(() => { setTimeout(__refreshAppearance, 1500); });
+let mutationObserver2 = new MutationObserver(() => { setTimeout(__changeAppearance, 1500); });
 
 let g_configManager = null;
 let g_configViewManager = null;

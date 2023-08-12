@@ -296,7 +296,17 @@ let zh_CN = {
         CUSTOM_SORT: "文档树自定义排序",
         UNASSIGNED: "跟随文档树排序",
     },
-      
+    // 弹层提示词
+    removeDistinctSuccess: "成功删除%1%个挂件的独立设置。",
+    removeDistinctFailed: "成功删除%1%个挂件的独立设置，失败%2%个。失败的挂件id分别是：%3%",
+    removeOtherSuccess: "成功删除%1%个挂件",
+    removeOtherFailed: "成功删除%1%个挂件，失败%2%个。失败的挂件id分别是：%3%",
+    workResult: "结果",
+    removeDistinctConfim: "确定要删除其他挂件的独立设置吗？<br/>请注意：1. 挂件在文档中插入的列表也将被一并删除；<br/>2. 受限于API查询数量限制，您可能需要多次执行此操作以确保完全删除。",
+    removeOtherConfim: "确定要删除其他挂件吗？<br/>请注意：1. 挂件在文档中插入的列表不会被一并删除；<br/>2. 受限于API查询数量限制，您可能需要多次执行此操作以确保完全删除。",
+    removeFileConfirm: "确定要删除不使用的配置文件吗？<br/>（如要删除所有配置文件，请前往工作空间/data/storage/listChildDocs手动删除）",
+    removeFileSuccess: "成功删除%1%个配置文件。另有%2%个在使用中的配置文件未清理。",
+    confirmTitle: "二次确认",
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
@@ -405,7 +415,17 @@ let en_US = {//先当他不存在 We don't fully support English yet.
         CUSTOM_SORT: "Custom Sorting in the File Tree",
         UNASSIGNED: "Follow the File Tree"
     },
-      
+    // 弹层提示词
+    removeDistinctSuccess: "Successfully deleted standalone settings for %1% widgets.",
+    removeDistinctFailed: "Successfully removed standalone settings for %1% widgets, failed %2%. Failed widget ids are: %3%",
+    removeOtherSuccess: "Successfully deleted %1% widgets",
+    removeOtherFailed: "Successfully deleted %1% widgets, failed %2%. Failed widget ids are: %3%",
+    workResult: "Result",
+    removeDistinctConfim: "Are you sure you want to delete the standalone settings for other widgets? <br/>Notice that the list created by the widget will also be deleted.",
+    removeOtherConfim: "Are you sure you want to delete other widgets? <br/>Notice that the list created by the widget will NOT be deleted.",
+    removeFileConfirm: "Are you sure you want to delete unused config files? <br/>（If you want to delete all config files, please go to workspace/data/storage/listChildDocs to delete them manually）",
+    removeFileSuccess: "Successfully deleted %1% profiles. Another %2% active profiles were not cleaned.",
+    confirmTitle: "Secondary Confirmation",
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~
