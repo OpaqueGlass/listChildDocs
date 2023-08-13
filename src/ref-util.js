@@ -62,20 +62,25 @@ let showFloatWnd = function(event){
     let linkId = event.target.getAttribute("data-id") ? event.target.getAttribute("data-id"):blockId;
     // 处理笔记本等无法跳转的情况
     if (!isValidStr(linkId)) return;
+    let panel = window.parent.document.querySelector(`.block__popover[data-oid="${linkId}"]`);
+    if (panel) return;
     let 虚拟链接 = 思源主界面.createElement("span");
     虚拟链接.setAttribute("data-type", "block-ref");
     虚拟链接.setAttribute("data-id", linkId);
     let 临时目标 = 思源主界面.querySelector(
-        ".protyle-wysiwyg div[data-node-id] div[contenteditable]"
+        ".layout__wnd--active .fn__flex-1.protyle:not(.fn__none) .protyle-wysiwyg div[data-node-id] div[contenteditable]"
     );
     临时目标.appendChild(虚拟链接);
     虚拟链接.style.position = "fixed";
-    虚拟链接.style.display = "none";//不显示虚拟链接，防止视觉干扰
+    虚拟链接.style.opacity = "0";//不显示虚拟链接，防止视觉干扰
     挂件坐标 = 获取元素视图坐标(挂件自身元素);
     let Y = event.clientY + 挂件坐标.Y;
     let X = event.clientX + 挂件坐标.X;
-    虚拟链接.style.top = Y + "px";//这个是临时创建的“block-ref”的位置，不设定应该也没啥？
-    虚拟链接.style.left = X + "px";
+    let testX = event.target.getBoundingClientRect().left + 挂件坐标.X;
+    let testY = event.target.getBoundingClientRect().top + 挂件坐标.Y;
+    // console.log("testYX", testY, testX)
+    虚拟链接.style.top = (testY + 36) + "px";//这个是临时创建的“block-ref”的位置，不设定应该也没啥？
+    虚拟链接.style.left = testX + "px";
     
     // 鼠标悬停事件，该事件的bubbles也很关键，让事件冒泡出去
     let mouseoverEvent = new MouseEvent("mouseover", {
@@ -100,21 +105,26 @@ let showFloatWnd = function(event){
     window.frameElement.parentElement.parentElement.classList.remove("protyle-wysiwyg--hl");
     //搬运过来有修改，和上面的修改有点...冲突，此部分充满了玄学
     //强制重设popover位置，间隔5ms，重设时间1.2s
-    let interval = setInterval( ()=>{
-        //参考了https://github.com/leolee9086/cc-template/blob/6909dac169e720d3354d77685d6cc705b1ae95be/index.html#L102-L117
-        let panel = 思源主界面.querySelector(`.block__popover[data-oid="${linkId}"]`);
-        if (panel) {
-            console.log("Reset",Y,X)
-            panel.style.top = Y + 36 + "px";//呃，不再覆盖链接试一下
-            let left = X - (panel.offsetWidth / 2 || 0);
-            if (left < 0) left = 0;
-            panel.style.left = left + "px";
-            panel.style.maxHeight  = (window.innerHeight - panel.getBoundingClientRect().top - 8) + "px";
-            linkId = "";
-        }
-    }, 5);
+    // let interval = setInterval( ()=>{
+    //     //参考了https://github.com/leolee9086/cc-template/blob/6909dac169e720d3354d77685d6cc705b1ae95be/index.html#L102-L117
+    //     let panel = window.top.document.querySelector(`.block__popover[data-oid="${linkId}"]`);
+    //     if (panel) {
+    //         panel.style.top = testY + 36 + "px";
+    //         panel.style.left = testX + "px";
+    //         console.log("reseted")
+    //         // console.log("Reset",Y,X)
+    //         // panel.style.top = testY + 36 + "px";//呃，不再覆盖链接试一下
+    //         // let left = testX - (panel.offsetWidth / 2 || 0);
+    //         // if (left < 0) left = 0;
+    //         // panel.style.left = left + "px";
+    //         // panel.style.maxHeight  = (window.innerHeight - panel.getBoundingClientRect().top - 8) + "px";
+    //         // linkId = "";
+    //         console.log(testY, testX, panel.style.top, panel.style.left);
+    //         // clearInterval(interval);
+    //     }
+    // }, 300);
     setTimeout( ()=> {虚拟链接.remove();}, 3000);
-    setTimeout(()=>{clearInterval(interval);}, 1200);//移除重设定时器
+    // setTimeout(()=>{clearInterval(interval);}, 1000);//移除重设定时器
     // console.log("test", window.top.siyuan.blockPanels);
     // 可以考虑由挂件移除blockPanel，但触发事件不好确定
     // } else (this.链接id = "")

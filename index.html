@@ -235,6 +235,18 @@
                                             "></i>
                                         </div>
                                     </div>
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">挂件模拟浮窗</label>
+                                        <div class="layui-input-inline"  style="width: 70px;">
+                                            <input type="checkbox" checked name="floatWndEnable" id="floatWndEnable" lay-skin="switch"
+                                                lay-filter="switchTest" title="✓|✕">
+                                        </div>
+                                        <div class="layui-form-mid layui-text-em">
+                                            <i class="layui-icon layui-icon-tips" lay-tips="
+                                              仅对挂件内模式有效。并不好用，建议关闭。
+                                            "></i>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="layui-form-item">
                                     <div class="layui-input-block">
@@ -393,7 +405,7 @@
                                     <div class="layui-field-box">
                                       <div class="layui-input-block">
                                         <div class="layui-inline">
-                                            <button type="button" class="layui-btn layui-btn-primary layui-border-red" lay-on="global-remove-distinct">移除全部独立设置</button>
+                                            <button type="button" class="layui-btn layui-btn-primary layui-border-red" lay-on="global-remove-distinct">删除其他挂件独立设置</button>
                                             <button type="button" class="layui-btn layui-btn-primary layui-border-red" lay-on="global-remove-other">删除其他挂件</button>
                                             <button type="button" class="layui-btn layui-btn-primary  layui-border-orange" lay-on="global-remove-file">清理不使用的设置文件</button>
                                         </div>

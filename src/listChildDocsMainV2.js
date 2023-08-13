@@ -492,11 +492,11 @@ function setColumn(rowOfText = g_rowCount) {
         if (fontSize == undefined) fontSize = "16px";
         debugPush("widgetHeight", window.frameElement.style.height, window.frameElement.clientHeight, $("#linksContainer").outerHeight());
         // 单列可容纳行数
-        debugPush("height / fontSize", $("#linksContainer").outerHeight() / $("#linksContainer li").outerHeight());
+        debugPush("height / fontSize", $("#linksContainer").innerHeight() / $("#linksContainer li").outerHeight());
         let rowPerColumn = parseFloat(window.frameElement.clientHeight) / $("#linksContainer li").outerHeight();
         // 分列数
         debugPush("rowOfText / (height / fontSize)", rowOfText / rowPerColumn);
-        nColumns = Math.round(rowOfText / rowPerColumn);
+        nColumns = Math.ceil(rowOfText / rowPerColumn);
     }
     if (window.screen.availWidth <= 768 || isMobile()) nColumns = "";
     $("#linksContainer").css("column-count", nColumns);
@@ -547,7 +547,7 @@ async function loadContentCache(textString = g_allData["cacheHTML"], modeDoUpdat
         "targetDocPath": targetDocPath,
         "widgetSetting": g_allData["config"]
     };
-    logPush("updateAttr", updateAttr);
+    logPush("刷新时实际读取到的信息updateAttr", updateAttr);
     let loadCacheFlag = false;
     if (modeDoUpdateFlag == undefined) loadCacheFlag = true;
     if (!modeDoUpdateFlag) {
@@ -568,6 +568,9 @@ async function loadContentCache(textString = g_allData["cacheHTML"], modeDoUpdat
         setColumn();
     }
     $(".handle-ref-click").on("click", openRefLink);
+    if (g_allData["config"].floatWndEnable) {
+        $("#refContainer .handle-ref-click").mouseover(showFloatWnd);
+    }
     if (g_globalConfig.deleteOrRenameEnable) {
         $(".handle-ref-click").on("mousedown", rightClickHandler);
         // 屏蔽右键菜单

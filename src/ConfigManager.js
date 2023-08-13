@@ -33,7 +33,8 @@ export class ConfigSaveManager {
         // 如果需要默认隐藏刷新按钮，请删除下面一行前的双斜杠
         // hideRefreshBtn: true,
         sortBy: 256, //排序模式，具体取值请参考本文件最下方的DOC_SORT_TYPES，默认值15为跟随文档树排序
-        maxListCount: 0,//控制每个文档的子文档显示数量
+        maxListCount: 0,//控制每个文档的子文档显示数量,
+        floatWndEnable: false // 浮窗
     };
     // 存储文件时，结构
     defaultAllData = {
@@ -261,7 +262,7 @@ export class ConfigSaveManager {
     // WARN: 请注意，通过这里读入的更新设置，必须在此方法内同步到this.allData / this.globalConfig，否则下次读入将出现问题
     // 保存全部设置
     async saveDistinct(inputData) {
-        debugPush("saveDistinct&&&&", inputData);
+        debugPush("Manager保存Distinct", inputData);
         if (this.saveMode == CONSTANTS_CONFIG_SAVE_MODE.WIDGET && !this.globalConfig.allSaveToFile) {
             let attrData = {};
             if (inputData["config"]) {
@@ -284,6 +285,7 @@ export class ConfigSaveManager {
     }
     // 保存独立设置
     async saveDistinctConfig(distinctConfig) {
+        debugPush("Manager保存DistinctConfig", distinctConfig);
         this.allData["config"] = distinctConfig;
         if (this.saveMode == CONSTANTS_CONFIG_SAVE_MODE.WIDGET && !this.globalConfig.allSaveToFile) {
             let attrData = {};
@@ -332,6 +334,7 @@ export class ConfigSaveManager {
     }
     // 保存用户设定的默认值【请仅传入config，不要传入cacheHTML等】
     async saveUserConfigDefault(configData) {
+        debugPush("Manager保存用户默认设置", configData);
         if ("cacheHTML" in configData) {
             throw new Error("仅支持传入cofig作为默认配置");
         }
@@ -366,6 +369,7 @@ export class ConfigSaveManager {
     }
     async saveGlobalConfig(globalConfig) {
         const filePathName = this.saveDirPath + CONFIG_MANAGER_CONSTANTS.GLOBAL;
+        debugPush("Manager保存全局设置", globalConfig);
         for (let key in globalConfig) {
             if (this.defaultGlobalConfig[key] == undefined) {
                 delete globalConfig[key];
