@@ -26,7 +26,9 @@ import {
     DOC_SORT_TYPES,
     listFileAPI,
     removeFileAPI,
-    isMobile
+    isMobile,
+    getJSONFile,
+    getFileAPI
 } from "./API.js";
 import { language } from "./config.js";
 import { DefaultPrinter, printerList } from './listChildDocsClass.js';
@@ -601,8 +603,8 @@ function adjustHeight(modeDoUpdateFlag) {
     if (g_globalConfig.autoHeight && modeDoUpdateFlag != 1 && g_myPrinter.write2file != 1) {
         // debugPush("挂件高度应当设为", $("body").outerHeight());
         let tempHeight = $("body").outerHeight() + 50;
-        if (g_globalConfig.height_2widget_min && tempHeight < g_globalConfig.height_2widget_min) tempHeight = g_globalConfig.height_2widget_min;
-        if (g_globalConfig.height_2widget_max && tempHeight > g_globalConfig.height_2widget_max) tempHeight = g_globalConfig.height_2widget_max;
+        if (isValidStr(g_globalConfig.height_2widget_min) && tempHeight < g_globalConfig.height_2widget_min) tempHeight = g_globalConfig.height_2widget_min;
+        if (isValidStr(g_globalConfig.height_2widget_max) && tempHeight > g_globalConfig.height_2widget_max) tempHeight = g_globalConfig.height_2widget_max;
         window.frameElement.style.height = tempHeight + "px";
     }
 }
@@ -1213,6 +1215,15 @@ try {
  * 判断明亮/黑夜模式
  */
 async function __init__() {
+    // 语言判定和跳转
+    // if (window.top.siyuan.config.lang != "zh_CN") {
+    //     if (window.location.href.indexOf("index.html") == -1 && window.location.href.indexOf("index_en.html") == -1) {
+    //         window.location.replace(window.location.href + "index_en.html");
+    //     } else if (window.location.href.indexOf("index_en.html") == -1) {
+    //         window.location.replace(window.location.href.replace("index.html", "index_en.html"));
+    //     }
+        
+    // }
     // 先做基础外观调整
     // 更新明亮/黑夜模式
     __changeAppearance();
@@ -1244,10 +1255,11 @@ async function __init__() {
             g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.PLUGIN, g_workEnvId);
         }
     }
+    _loadUserCSS();
     // 载入设置项
     [g_allData, g_globalConfig] = await g_configManager.loadAll();
-    logPush("allData", g_allData);
-    logPush("globalConfig", g_globalConfig);
+    logPush("启动时载入的allData", g_allData);
+    logPush("启动时载入的全局设置globalConfig", g_globalConfig);
     
     g_configViewManager = new ConfigViewManager(g_configManager, __reloadSettings);
     // 涉及悬停逻辑判断的还有：_hoverBtnAreaBinder、_showSetting
@@ -1317,6 +1329,17 @@ function __changeAppearance() {
     } else {
         $("#linksContainer").css("font-size", g_globalConfig.fontSize + "px");
     }
+}
+
+function _loadUserCSS() {
+    getFileAPI(g_configManager.saveDirPath + "custom.css").then((result)=>{
+        if (isValidStr(result)) {
+            let style = document.createElement("style");
+            style.setAttribute("id", "customCSS");
+            style.innerHTML = result;
+            document.head.appendChild(style);
+        }
+    });
 }
 
 /**

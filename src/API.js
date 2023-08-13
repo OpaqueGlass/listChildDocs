@@ -682,6 +682,31 @@ export async function getJSONFile(path) {
     return response;
 }
 
+export async function getFileAPI(path) {
+    const url = "/api/file/getFile";
+    let data = {"path": path};
+    let result;
+    let response = await fetch(url, {
+        body: JSON.stringify(data),
+        method: 'POST',
+        headers: {
+            "Authorization": "Token "+token,
+            "Content-Type": "application/json"
+        }
+    });
+    result = await response.text();
+    try {
+        let jsonresult = JSON.parse(result);
+        if (jsonresult.code == 404) {
+            return null;
+        }
+        return result;
+    } catch(err) {
+
+    }
+    return result;
+}
+
 /**
  * 列出工作空间下的文件
  * @param {*} path  例如"/data/20210808180117-6v0mkxr/20200923234011-ieuun1p.sy"

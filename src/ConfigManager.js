@@ -27,8 +27,8 @@ export class ConfigSaveManager {
         listColumn: 1,//子文档列表列数，过多的列数将导致显示问题
         outlineDepth: 3,//大纲列出层级数，混合列出时此项只控制大纲部分
         targetId: "", //统计对象id，统计的目标应当为文档块或笔记本
-        outlineStartAt: "h3",
-        outlineEndAt: "h4",
+        outlineStartAt: "h1",
+        outlineEndAt: "h6",
         endDocOutline: false, // 一并列出叶子文档的大纲？（目录中包括最深层级文档的大纲？）影响性能、反应极慢，建议禁用(设置为false)。（i.e.混合列出）
         // 如果需要默认隐藏刷新按钮，请删除下面一行前的双斜杠
         // hideRefreshBtn: true,
@@ -101,10 +101,10 @@ export class ConfigSaveManager {
 
         // 在模式“默认”“挂件beta”下，使得挂件高度跟随目录长度自动调整
         autoHeight: false,
-        // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最小高度（单位px），若不限制，请设为undefined
-        height_2widget_min: undefined,
-        // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最大高度（单位px），若不限制，请设为undefined
-        height_2widget_max: undefined,
+        // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最小高度（单位px），若不限制，请设为空字符串
+        height_2widget_min: "",
+        // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最大高度（单位px），若不限制，请设为空字符串
+        height_2widget_max: "",
 
         // 【在插入挂件时表现不稳定，可能在第二次打开时设定、保存样式】挂件保存1次自身的显示样式，设置为undefined以禁用
         // issue #30 https://github.com/OpaqueGlass/listChildDocs/issues/30
@@ -317,6 +317,15 @@ export class ConfigSaveManager {
         const response = await getJSONFile(filePathName);
         let temp = Object.assign({}, this.defaultConfig);
         if (!response) {
+            // TODO: 尝试载入旧设置项
+            try {
+                let allCustomConfig = await import('/widgets/custom.js');
+                let [globalSetting, defaultDistinct] = this.loadCustomSetting(allCustomConfig["config"]);
+                await this.saveUserConfigDefault(defaultDistinct);
+                return Object.assign(temp, defaultDistinct);
+            } catch (err) {
+                logPush("载入旧设置项失败", err);
+            }
             return temp;
         }
         return Object.assign(temp, response);
@@ -327,13 +336,28 @@ export class ConfigSaveManager {
             throw new Error("仅支持传入cofig作为默认配置");
         }
         const filePathName = this.saveDirPath + "schema/" + CONFIG_MANAGER_CONSTANTS.DEFAULT;
-        putJSONFile(filePathName, configData);
+        for (let key in configData) {
+            if (this.defaultConfig[key] == undefined) {
+                delete configData[key];
+            }
+        }
+        putJSONFile(filePathName, Object.assign(Object.assign({}, this.defaultGlobalConfig), configData));
     }
     // 全局设置
     async loadGlobalConfig() {
         const filePathName = this.saveDirPath + CONFIG_MANAGER_CONSTANTS.GLOBAL;
         const response = await getJSONFile(filePathName);
         if (response == null) {
+            // TODO: 尝试载入旧设置项
+            try {
+                let allCustomConfig = await import('/widgets/custom.js');
+                let [globalSetting, defaultDistinct] = this.loadCustomSetting(allCustomConfig["config"]);
+                await this.saveGlobalConfig(globalSetting);
+                return Object.assign(Object.assign({}, this.defaultGlobalConfig), globalSetting);
+            } catch (err) {
+                logPush("载入旧设置项失败", err);
+            }
+            // END: 
             return Object.assign({}, this.defaultGlobalConfig);
         } else {
             let temp = Object.assign({}, this.defaultGlobalConfig);
@@ -342,7 +366,13 @@ export class ConfigSaveManager {
     }
     async saveGlobalConfig(globalConfig) {
         const filePathName = this.saveDirPath + CONFIG_MANAGER_CONSTANTS.GLOBAL;
-        return putJSONFile(filePathName, globalConfig, true);
+        for (let key in globalConfig) {
+            if (this.defaultGlobalConfig[key] == undefined) {
+                delete globalConfig[key];
+            }
+        }
+        // 通过拷贝保留没有在设置页面显示的设置项
+        return putJSONFile(filePathName, Object.assign(this.globalConfig, globalConfig), true);
     }
     // TODO: schema
     async loadSchema() {
@@ -411,6 +441,44 @@ export class ConfigSaveManager {
     }
     getGlobalConfig() {
         return this.globalConfig;
+    }
+    loadCustomSetting(allCustomConfig) {
+        let customConfig = null;
+        let customConfigName = "listChildDocs";
+        let setting = {}, custom_attr = {};
+        if (allCustomConfig[customConfigName] != undefined) {
+            customConfig = allCustomConfig[customConfigName];
+        }else if (allCustomConfig.config != undefined && allCustomConfig.config[customConfigName] != undefined) {
+            customConfig = allCustomConfig.config[customConfigName];
+        }
+        let token;
+        // 导入token
+        if (allCustomConfig["token"] != undefined) {
+            token = allCustomConfig["token"];
+        }else if (allCustomConfig["config"] != undefined && allCustomConfig["config"]["token"] != undefined) {
+            token = allCustomConfig.config["token"];
+        }
+        
+        // 仅限于config.setting/config.defaultAttr下一级属性存在则替换，深层对象属性将完全覆盖
+        if (customConfig != null) {
+            if ("setting" in customConfig) {
+                for (let key in customConfig.setting) {
+                    if (key in this.defaultGlobalConfig) {
+                        setting[key] = customConfig.setting[key];
+                    }
+                }
+            }
+            // dev： 引入每一个，每一行都要改
+            if ("custom_attr" in customConfig) { //改1处
+                for (let key in customConfig.custom_attr) {//改1处
+                    if (key in this.defaultConfig) {//改1处
+                        custom_attr[key] = customConfig.custom_attr[key];//改2处
+                    }
+                }
+            }
+        }
+        debugPush("载入用户旧设置成功", setting, custom_attr);
+        return [setting, custom_attr];
     }
 }
 
