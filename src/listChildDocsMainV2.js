@@ -1,7 +1,7 @@
 /**
  * listChildDocs main V2
  */
-import { logPush, errorPush, warnPush, checkWorkEnvironment, commonPushCheck, WORK_ENVIRONMENT, isValidStr, debugPush, isInvalidValue, isSafelyUpdate, transfromAttrToIAL } from "./common.js";
+import { logPush, errorPush, warnPush, checkWorkEnvironment, commonPushCheck, WORK_ENVIRONMENT, isValidStr, debugPush, pushDebug, isInvalidValue, isSafelyUpdate, transfromAttrToIAL } from "./common.js";
 import { ConfigSaveManager, CONSTANTS_CONFIG_SAVE_MODE, ConfigViewManager } from "./ConfigManager.js";
 import { 
     queryAPI,
@@ -1219,7 +1219,7 @@ try {
  */
 async function __init__() {
     // 语言判定和跳转
-    // if (window.top.siyuan.config.lang != "zh_CN") {
+    // if (window.top.siyuan && window.top.siyuan.config.lang != "zh_CN") {
     //     if (window.location.href.indexOf("index.html") == -1 && window.location.href.indexOf("index_en.html") == -1) {
     //         window.location.replace(window.location.href + "index_en.html");
     //     } else if (window.location.href.indexOf("index_en.html") == -1) {
@@ -1240,7 +1240,7 @@ async function __init__() {
             g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.WIDGET, g_workEnvId);
             try {
                 const tempWidgetAttr = await getblockAttrAPI(g_workEnvId);
-                if (!isValidStr(tempWidgetAttr.id)) {
+                if (isValidStr(tempWidgetAttr.id)) {
                     g_justCreate = true;
                 }
             }catch (err) {
@@ -1700,6 +1700,7 @@ function _hoverBtnAreaBinder(flag = null) {
 }
 
 function __darkModeObserverBinder() {
+    if (isMobile()) return;
     try {
         // UNSTABLE: 监视深色模式变化，依赖界面现实的外观模式按钮变化
         if (checkOs()) {
@@ -1757,25 +1758,17 @@ async function removeDistinctWorker() {
         let lcdAttrStr = "";
         let blockAttr = {};
         try {
-            lcdAttrStr = result.ial.match(new RegExp(`(?<=custom-list-child-docs=\\\")({|&#123;)[^"\]*"`));
-            if (lcdAttrStr.length > 0) {
-                lcdAttrStr = lcdAttrStr[0];
-            }
-            blockAttr = JSON.parse(lcdAttrStr.replace(new RegExp(`&#123;`, "g"), "{").replace(new RegExp(`&#125;`), "}").replace("&quot;", "\""));
-        } catch(err) {
-            logPush("解析IAL失败，将尝试使用API", err);
-            lcdAttrStr = "";
-        }
-        try {
             // 解析失败的通过getblockAttrAPI处理
             if (!isValidStr(lcdAttrStr)) {
                 let tempWidgetId = result.id;
                 let tempWidgetAttr = await getblockAttrAPI(tempWidgetId);
-                tempWidgetAttr = tempWidgetAttr["custom-list-child-docs"];
+                debugPush("处理属性移除，查询属性", tempWidgetAttr, tempWidgetAttr["custom-list-child-docs"]);
+                tempWidgetAttr = tempWidgetAttr["data"]["custom-list-child-docs"];
                 if (isValidStr(tempWidgetAttr)) {
                     blockAttr = JSON.parse(tempWidgetAttr.replace(new RegExp("&quot;", "g"), "\""));
                 }
             }
+            debugPush("处理属性移除", blockAttr, blockAttr.childListId);
             // 删除列表
             if (isValidStr(blockAttr.childListId)) {
                 await removeBlockAPI(blockAttr.childListId);       

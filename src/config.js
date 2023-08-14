@@ -416,12 +416,12 @@ let en_US = {//先当他不存在 We don't fully support English yet.
         UNASSIGNED: "Follow the File Tree"
     },
     // 弹层提示词
-    removeDistinctSuccess: "Successfully deleted standalone settings for %1% widgets.",
-    removeDistinctFailed: "Successfully removed standalone settings for %1% widgets, failed %2%. Failed widget ids are: %3%",
+    removeDistinctSuccess: "Successfully deleted inpendent settings for %1% widgets.",
+    removeDistinctFailed: "Successfully removed inpendent settings for %1% widgets, failed %2%. Failed widget ids are: %3%",
     removeOtherSuccess: "Successfully deleted %1% widgets",
     removeOtherFailed: "Successfully deleted %1% widgets, failed %2%. Failed widget ids are: %3%",
     workResult: "Result",
-    removeDistinctConfim: "Are you sure you want to delete the standalone settings for other widgets? <br/>Notice that the list created by the widget will also be deleted.",
+    removeDistinctConfim: "Are you sure you want to delete the inpendent settings for other widgets? <br/>Notice that the list created by the widget will also be deleted.",
     removeOtherConfim: "Are you sure you want to delete other widgets? <br/>Notice that the list created by the widget will NOT be deleted.",
     removeFileConfirm: "Are you sure you want to delete unused config files? <br/>（If you want to delete all config files, please go to workspace/data/storage/listChildDocs to delete them manually）",
     removeFileSuccess: "Successfully deleted %1% profiles. Another %2% active profiles were not cleaned.",

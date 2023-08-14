@@ -1,6 +1,7 @@
 /**
  * common.js 一些可能常用的方法
  */
+import {isMobile} from "./API.js";
 /**
  * 检查窗口状况，防止在历史预览页面刷新更改文档
  * @param thisDocId 待判断的文档id
@@ -31,6 +32,7 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
         // 判定历史预览页面 history
         // $(window.top.document).find(".b3-dialog--open #historyContainer").length >= 1
         if (window.top.document.querySelectorAll(".b3-dialog--open #historyContainer").length >= 1 && config.history) {
+            console.log("安全刷新：在历史页面");
             return false;
         }
         // 旧方法：存在多个编辑窗口只判断第一个的问题；保留用于判断界面是否大改
@@ -71,7 +73,8 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
         }
         // 判定只读模式
         // $(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false"
-        if (config.targetDoc && (candidateThisDocEditor == null ? candidateThisDocPopup : candidateThisDocEditor).getAttribute("contenteditable") == "false") {
+        if (!isMobile() && config.targetDoc && (candidateThisDocEditor == null ? candidateThisDocPopup : candidateThisDocEditor).getAttribute("contenteditable") == "false") {
+            console.log("安全刷新：candidateEditor或Popup判定在只读模式", candidateThisDocEditor, candidateThisDocPopup, thisDocId);
             return false;
         }
     }catch (err) {
