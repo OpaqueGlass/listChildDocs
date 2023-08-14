@@ -110,22 +110,22 @@ export class ConfigSaveManager {
         // 【在插入挂件时表现不稳定，可能在第二次打开时设定、保存样式】挂件保存1次自身的显示样式，设置为undefined以禁用
         // issue #30 https://github.com/OpaqueGlass/listChildDocs/issues/30
         // 示例 "width: 2000px; height: 303px;"
-        saveDefaultWidgetStyle: undefined,
+        // saveDefaultWidgetStyle: undefined,
 
         /*  挂件配置批量操作 
         issue #31 https://github.com/OpaqueGlass/listChildDocs/issues/31
         ！同步用户请注意：以下两个配置启用后挂件将在载入后更新挂件属性，未同步时可能导致同步覆盖
         */
         // 载入挂件后以配置文件为准重写独立设置
-        overwriteIndependentSettings: false,
+        // overwriteIndependentSettings: false,
         // 载入挂件后移除独立设置
-        removeIndependentSettings: false,
+        // removeIndependentSettings: false,
         // 重载/移除设置时一并删除文档中的原目录列表块；(如果重载为文档中模式，不会执行删除)
-        deleteChildListBlockWhileReset: true,
+        // deleteChildListBlockWhileReset: true,
         // 独立设置重载或移除白名单
         // 在这里列出的文档下的挂件，不会执行独立设置重载或移除
         // 示例["20220815001720-4xjvir0"]
-        overwriteOrRemoveWhiteDocList: [],
+        // overwriteOrRemoveWhiteDocList: [],
 
         // 未完成功能 插入https:// 或 http:// 协议的emoji，
         webEmojiEnable: false,
@@ -175,6 +175,9 @@ export class ConfigSaveManager {
 
         // 悬停显示顶部按钮栏
         showBtnArea: "true",
+
+        // 切换页签刷新
+        switchBarAutoRefresh: false,
     };
     constructor(saveMode, relateId, saveDirPath = "/data/storage/listChildDocs/") {
         // 载入全局配置

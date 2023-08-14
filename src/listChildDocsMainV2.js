@@ -100,9 +100,13 @@ async function addText2File(markdownText, blockid = "") {
         response = await insertBlockAPI(markdownText, g_workEnvId);
     }
     if (response != null && isValidStr(response.id)) {
-        //将子文档无序列表块id写入属性
-        g_allData["config"]['childListId'] = response.id;
-        g_configManager.saveDistinctConfig(g_allData["config"]);
+        debugPush("成功保存", blockid, response.id);
+        if (!isValidStr(blockid)) {
+            debugPush("写入列表id");
+            //将子文档无序列表块id写入属性
+            g_allData["config"]['childListId'] = response.id;
+            await g_configManager.saveDistinctConfig(g_allData["config"]);
+        }
     } else if (response == null || response.id == "") {
         //找不到块，移除原有属性
         g_allData["config"]['childListId'] = "";
@@ -510,11 +514,13 @@ async function __main(manual = false, justCreate = false) {
             // 在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
             if (justCreate && (g_globalConfig.safeMode || g_allData["config"].childListId == "")) {
                 console.info("初次创建，不写入/更新块");
-            } else if (g_allData["config"].childListId == "") {
+            } else if (!isValidStr(g_allData["config"].childListId)) {
+                debugPush("需要创建块", g_allData["config"]["childListId"]);
                 await addText2File(textString, g_allData["config"].childListId);
                 //如果需要创建块，创建或更新块后需要更新id，将id保存
-                await g_configManager.saveDistinctConfig(g_allData["config"]);
+                // await g_configManager.saveDistinctConfig(g_allData["config"]);
             } else {
+                debugPush("无需创建块", g_allData["config"]["childListId"]);
                 await addText2File(textString, g_allData["config"].childListId);
             }
         }
@@ -1265,7 +1271,7 @@ async function __reloadSettings() {
         }
     }
     // 正式载入新设定
-    g_allData["config"] = tempNewData;
+    g_allData["config"] = Object.assign(g_allData["config"], tempNewData);
     // 刷新printer
     __refreshPrinter();
 }

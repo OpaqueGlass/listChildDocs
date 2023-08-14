@@ -939,6 +939,158 @@ class OrderByTimePrinter extends Printer {
     }
 }
 
+class PCFileDirectoryPrinter extends Printer {
+    static id = 13;
+    id = 13;
+    write2file = 1;
+    globalConfig = null;
+
+    setGlobalConfig(config) {
+        this.globalConfig = Object.assign({}, config);
+    }
+    /**
+     * 输出对齐、缩进文本
+     * 它在输出当前文档链接之前调用
+     * @param {*} nowDepth 当前文档所在层级，层级号从1开始
+     * @returns 
+     */
+    align(nowDepth) { return ""; }
+    /**
+     * 输出子文档列表格式文本
+     * 在下一层级子文档列出之前被调用
+     * @param {*} nowDepth 
+     * @returns 
+     */
+    beforeChildDocs(nowDepth) { return ""; }
+    /**
+     * 在下一层级子文档列出之后被调用
+     * @param {*} nowDepth 
+     * @returns
+     * */
+    afterChildDocs(nowDepth) { return ""; }
+    /**输出当前文档链接
+     * @param {doc} doc为listDocsByPath伪API输出格式
+     * 兼容性警告，目前这个参数也输入大纲对象，大纲对象情况较为复杂，
+     * 请只读取doc.id doc.name属性，否则请另外判断属性是否存在、是否合法
+     * */
+    oneDocLink(doc, rowCountStack) { return ""; }
+    /**
+     * 在所有输出文本写入之前被调用
+     * @returns
+     * */
+    beforeAll() { return ""; }
+    /**
+     * 在所有输出文本写入之后被调用
+     * @returns 
+     */
+    afterAll() { return ""; }
+    /**
+     * 如果不存在子文档，将输出错误提示，错误提示可能需要包装以便展示
+     * @params {*} emptyText 无子文档时错误信息文本
+     * @returns
+     */
+    noneString(emptyText) { return emptyText; }
+
+    /**
+     * 分栏操作
+     * 如果不需要实现，请直接返回初始值
+     * (挂件内分栏通过css实现，请直接返回初始值)
+     * （只在 将块写入文档的默认实现中调用此函数，如果模式自行doUpdate，则Main.js不调用）
+     * @params {string} originalText 初始值
+     * @params {int} nColumns 列数
+     * @params {int} nDepth 文档列出层级/深度
+     * @returns 分栏后的初始值
+     */
+    splitColumns(originalText, nColumns, nDepth, blockAttrData) { return originalText; }
+    /**
+     * （如果必要）模式自行生成待插入的内容块文本
+     * （挂件内为html，文档内为markdown(勿在结尾加ial)）
+     * @param {*} updateAttr 基本信息参数，详见listChildDocsMain.js __main()方法下的updateAttr对象
+     * @return 非空字符串【若返回undefined、null、""，将由__main()执行内容文本的生成。
+     */
+    async doGenerate(updateAttr) {
+        return undefined;
+    }
+    /**
+     * （如果必要）模式自行处理内容块写入（更新）操作
+     * @param {*} textString 待写入的内容
+     * @param {*} updateAttr 基本参数，详见listChildDocsMain.js __main()方法下的updateAttr对象
+     * @return 1: 由模式自行处理写入；0: 由挂件统一执行写入和更新
+     * 不应在此方法中执行耗时的子文档获取操作，此方法仅用于将textString写入到文档中或挂件中
+     */
+    async doUpdate(textString, updateAttr) {
+        return 0;
+    }
+    /**
+     * 对于文档中列表块的方式，这里返回需要作为列表块（分列时为外层超级块）的块属性
+     * （只在 将块写入文档的默认实现中调用此函数，如果模式自行doUpdate，则Main.js不调用）
+     * @return
+     */
+    getAttributes() {
+        return null;
+    }
+    /**
+     * 模式初始化操作
+     * @return 
+     */
+    init(custom_attr) {
+        
+        $("#modeSetting").append(`<button id="mode13_test">TEST</button>`);
+        $("#mode13_test").click(async ()=>{
+            const fs = window.top.require("fs");
+            const remote = window.top.require("@electron/remote");
+            if (remote.dialog) {
+                let path = await remote.dialog.showOpenDialog({
+                    title: "请指定路径",
+                    properties: ["createDirectory", "openDirectory"],
+                })
+                console.log("获得路径", path,path.filePaths[0]);
+                fs.readdir(path.filePaths[0],  
+                    { withFileTypes:true }, 
+                    (err, files) => { 
+                    console.log("\nCurrent directory files:"); 
+                    if (err) 
+                      console.log(err); 
+                    else { 
+                      files.forEach(file => { 
+                        console.log(file); 
+                        console.log(file.isDirectory());
+                        console.log(file.path);
+                      }) 
+                    } 
+                  })
+            }
+            
+            
+        });
+        // 通过修改custom_attr并返回修改后的值实现强制指定某个设置项，建议只在禁止用户更改时强制指定设置项的值
+        return custom_attr;
+    }
+    /**
+     * 模式退出时操作
+     */
+    destory(custom_attr) {
+        // 取消常规设置的禁用样式
+        $("#listDepth, #listColumn, #targetId, #endDocOutline").prop("disabled", "");
+        // 如果部分通用设定过于不合理，通过修改custom_attr并返回修改后的以重置。
+        return custom_attr;
+    }
+    /**
+     * 载入配置
+     * 注意，可能不存在相应设置
+     */
+    load(savedAttrs) {
+
+    }
+    /**
+     * 保存配置
+     * @return 请返回一个对象
+     */
+    save() {
+        return undefined;
+    }
+}
+
 /* *****共用方法***** */
 
 /**
@@ -1206,6 +1358,7 @@ export let printerList = [
     MarkmapPrinter, //10挂件内思维导图
     ContentBlockPrinter, //11内容预览块
     OrderByTimePrinter, //12按时间分组
+    PCFileDirectoryPrinter, //13文件夹目录
 ];
 export { Printer, DefaultPrinter };
 /** 附录：doc对象（由文档树api获得），示例如下
