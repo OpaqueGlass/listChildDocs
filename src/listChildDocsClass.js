@@ -14,6 +14,7 @@ class Printer {
     //写入到文件or写入到挂件
     //0写入到挂件（以HTML格式），1写入到当前文档（以Markdown格式）
     static id = -1;
+    id = -1;
     write2file = 1;
     globalConfig = null;
 
@@ -164,6 +165,7 @@ class Printer {
  */
  class DefaultPrinter extends Printer {
     static id = 0;
+    id = 0;
     write2file = 0;
     beforeChildDocs(nowDepth) {
         return `<ul>`;
@@ -189,6 +191,7 @@ class Printer {
  */
 class HtmlReflinkPrinter extends Printer {
     static id = 1;
+    id = 1;
     write2file = 0;
     beforeChildDocs(nowDepth) {
         return `<ul>`;
@@ -215,6 +218,7 @@ class HtmlReflinkPrinter extends Printer {
  */
 class MarkdownUrlUnorderListPrinter extends Printer {
     static id = 2;
+    id = 2;
     write2file = 1;
     align(nowDepth) {
         let spaces = "";
@@ -248,6 +252,7 @@ class MarkdownUrlUnorderListPrinter extends Printer {
  */
 class MarkdownDChainUnorderListPrinter extends Printer {
     static id = 3;
+    id = 3;
     write2file = 1;
     //对齐、缩进
     align(nowDepth) {
@@ -285,6 +290,7 @@ class MarkdownDChainUnorderListPrinter extends Printer {
  */
 // class HtmlAlinkOrderPrinter extends HtmlAlinkPrinter {
 //     static id = 5;
+//     id = 5;
 //     beforeChildDocs(nowDepth) {
 //         return `<ol class="noListStyle">`;
 //     }
@@ -316,6 +322,7 @@ class MarkdownDChainUnorderListPrinter extends Printer {
  */
 class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
     static id = 4;
+    id = 4;
     beforeChildDocs(nowDepth) {
         return `<ol class="noListStyle">`;
     }
@@ -349,6 +356,7 @@ class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
  */
  class HtmlDefaultOrderPrinter extends HtmlReflinkPrinter {
     static id = 5;
+    id = 5;
     beforeChildDocs(nowDepth) {
         return `<ol class="noListStyle">`;
     }
@@ -381,6 +389,7 @@ class HtmlReflinkOrderPrinter extends HtmlReflinkPrinter {
  */
 class MarkdownUrlOrderListPrinter extends MarkdownUrlUnorderListPrinter {
     static id = 6;
+    id = 6;
     align(nowDepth) {
         let spaces = "";
         // 请注意：有序列表缩进为4个空格
@@ -408,6 +417,7 @@ class MarkdownUrlOrderListPrinter extends MarkdownUrlUnorderListPrinter {
  */
 class MarkdownDChainOrderListPrinter extends MarkdownDChainUnorderListPrinter {
     static id = 7;
+    id = 7;
     align(nowDepth) {
         let spaces = "";
         spaces += "    ".repeat(nowDepth - 1);
@@ -434,6 +444,7 @@ class MarkdownDChainOrderListPrinter extends MarkdownDChainUnorderListPrinter {
  */
 class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter {
     static id = 8;
+    id = 8;
     align(nowDepth) {
         let spaces = "";
         spaces += "    ".repeat(nowDepth - 1);
@@ -470,6 +481,7 @@ class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter 
  */
 class MarkdownTodoListPrinter extends MarkdownUrlUnorderListPrinter {
     static id = 9;
+    id = 9;
     oneDocLink(doc, rowCountStack) {
         let docName = doc.name;
         if (doc.name.indexOf(".sy") >= 0) {
@@ -492,6 +504,7 @@ class MarkdownTodoListPrinter extends MarkdownUrlUnorderListPrinter {
  */
 class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     static id = 10;
+    id = 10;
     write2file = 0;
     observer = new ResizeObserver(this.resizeHandler.bind(this));
     root;
@@ -630,6 +643,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
  */
 class ContentBlockPrinter extends Printer {
     static id = 11;
+    id = 11;
     write2file = 0;
     init(custom_attr) {
         custom_attr.listDepth = 1;
@@ -778,6 +792,7 @@ class ContentBlockPrinter extends Printer {
  */
 class OrderByTimePrinter extends Printer {
     static id = 12;
+    id = 12;
     write2file = 0;
     modeSettings = {};
     beforeChildDocs(nowDepth) {

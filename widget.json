@@ -5,18 +5,22 @@
   "version": "0.2.1",
   "displayName": {
     "default": "listChildDocs",
-    "zh_CN": "列出子文档"
+    "zh_CN": "列出子文档",
+    "en_US": "listChildDocs"
   },
   "description": {
-    "default": "Display child-doc list in widget, or insert list into the doc. [English documentation is not currently available]",
-    "zh_CN": "在挂件里显示子文档列表，或向文档中插入子文档列表"
+    "default": "Display child-doc list in widget, or insert list into the doc. [English is not fully supported at this time]",
+    "zh_CN": "在挂件里显示子文档列表，或向文档中插入子文档列表",
+    "en_US": "English is not fully supported at this time."
   },
   "readme": {
     "default": "README.md",
-    "zh_CN": "README.md"
+    "zh_CN": "README.md",
+    "en_US": "README_en_US.md"
   },
   "i18n": [
-    "zh_CN"
+    "zh_CN",
+    "en_US"
   ],
   "funding": {
     "openCollective": "",

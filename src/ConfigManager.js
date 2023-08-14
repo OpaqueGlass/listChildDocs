@@ -299,6 +299,20 @@ export class ConfigSaveManager {
             await putJSONFile(this.dataSavePath, inputData);
         }
     }
+    async saveCache(cache) {
+        debugPush("Manager保存缓存", cache);
+        if (this.saveMode == CONSTANTS_CONFIG_SAVE_MODE.WIDGET && !this.globalConfig.allSaveToFile) {
+            let attrData = {};
+            attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE] = cache;
+            this.allData["cacheHTML"] = cache;
+            logPush("saveCache", attrData);
+            await addblockAttrAPI(attrData, this.relateId);
+        } else {
+            this.allData["cacheHTML"] = cache;;
+            logPush("saveCache", cache);
+            await putJSONFile(this.dataSavePath, this.allData);
+        }
+    }
     async readSavedData() {
         
     }
@@ -344,7 +358,7 @@ export class ConfigSaveManager {
                 delete configData[key];
             }
         }
-        putJSONFile(filePathName, Object.assign(Object.assign({}, this.defaultGlobalConfig), configData));
+        putJSONFile(filePathName, Object.assign(Object.assign({}, this.defaultConfig), configData));
     }
     // 全局设置
     async loadGlobalConfig() {
@@ -518,7 +532,7 @@ export class ConfigViewManager {
         // TODO: 赋值，将设置项载入界面
         form.val("general-config", this.configSaveManager.getDistinctConfig());
         form.val("global-config", this.configSaveManager.getGlobalConfig());
-        debugPush("viewSetting", this.configSaveManager.getGlobalConfig());
+        debugPush("view获取到的全局设置", this.configSaveManager.getGlobalConfig());
         // 提示组
         $("[lay-tips]").on("mouseover", function(othis){
             // logPush("lay-tips", this, othis);

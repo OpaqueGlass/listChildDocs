@@ -56,7 +56,7 @@ async function addText2File(markdownText, blockid = "") {
         delete attrData.id;
         delete attrData.updated;
         // 避免切换模式继承无序列表下的有序列表属性
-        delete attrData["custom-list-style"];
+        delete attrData["custom-list-format"];
     }else if (g_globalConfig.blockInitAttrs != undefined){ // 为新创建的列表获取默认属性
         attrData = Object.assign({}, g_globalConfig.blockInitAttrs);
     }
@@ -112,148 +112,6 @@ async function addText2File(markdownText, blockid = "") {
     } else {
         console.error("插入/更新块失败", response.id);
         throw Error(language["insertBlockFailed"]);
-    }
-}
-
-/**
- * 获取挂件属性custom-list-child-docs
- * 也包括了对挂件属性进行批量更改的代码
- * 仅用于初始化
- */ 
-async function getCustomAttr() {
-    [g_allData["config"], g_globalConfig] = await g_configManager.loadAll();
-    return;
-    let widgetNodeDom = window.frameElement.parentElement.parentElement;
-    let response = {
-        "data": {
-            "custom-list-child-docs": null,
-            "custom-lcd-cache": null,
-            "custom-resize-flag": null,
-            "id": thisWidgetId,
-        },
-    };
-    if (widgetNodeDom) {
-        for (let key in response.data) {
-            if (key != "id") {
-                response.data[key] = widgetNodeDom.getAttribute(key);
-            }else{
-                response.data[key] = widgetNodeDom.getAttribute("data-node-id");
-            }
-        }
-    }
-
-    // 判断工作方式
-    if (widgetNodeDom.getAttribute(CONSTANTS.ATTR_NAME_WORK_MODE)) {
-        if (widgetNodeDom.getAnimations(CONSTANTS.ATTR_NAME_WORK_MODE).includes("check-attr")) {
-            response = await getblockAttrAPI(thisWidgetId);
-        }
-    }
-    
-    if (response.data['custom-lcd-cache'] == undefined && response.data["custom-list-child-docs"] == undefined) {
-        warnPush("无法从DOM读取挂件属性，改为使用API", response);
-        response = await getblockAttrAPI(thisWidgetId);
-    }
-    let attrObject = {};
-    let attrResetFlag = false;
-    let parseErrorFlag = false;
-    let deleteBlockFlag = false;
-    // 解析挂件设置
-    if ('custom-list-child-docs' in response.data) {
-        try {
-            attrObject = JSON.parse(response.data['custom-list-child-docs'].replace(new RegExp("&quot;", "g"), "\""));
-        }catch(err) {
-            warnPush("解析挂件属性json失败", err.message);
-            parseErrorFlag = true;
-        }
-    }
-    // 处理设置重设/移除请求
-    if (g_globalConfig.overwriteIndependentSettings && "id" in response.data
-            && 'custom-list-child-docs' in response.data
-            && g_globalConfig.overwriteOrRemoveWhiteDocList.indexOf(g_currentDocId) == -1){
-        console.info("重载挂件独立配置", thisWidgetId);
-        if (g_globalConfig.deleteChildListBlockWhileReset) {
-            __refreshPrinter();
-            // 仍为文档中，保留目录列表块id
-            if (g_myPrinter.write2file == 1) {
-                g_allData["config"].childListId = attrObject.childListId;
-            }else{
-                deleteBlockFlag = true;
-            }
-        }else{
-            g_allData["config"].childListId = attrObject.childListId;
-        }
-        await setCustomAttr();
-        attrResetFlag = true;
-    }else if (g_globalConfig.removeIndependentSettings && "id" in response.data
-            && 'custom-list-child-docs' in response.data
-            && g_globalConfig.overwriteOrRemoveWhiteDocList.indexOf(g_currentDocId) == -1){
-        if (g_globalConfig.deleteChildListBlockWhileReset) deleteBlockFlag = true;
-        console.info("移除挂件独立配置", thisWidgetId);
-        await addblockAttrAPI({ "custom-list-child-docs": "" }, thisWidgetId);
-        attrResetFlag = true;
-    }
-    // 清理原内容块
-    if (deleteBlockFlag && isValidStr(attrObject.childListId)) {
-        console.info("移除原内容块", attrObject.childListId);
-        await removeBlockAPI(attrObject.childListId);
-    }
-    // 载入配置
-    if ('custom-list-child-docs' in response.data && !attrResetFlag) {
-        if (parseErrorFlag) {
-            console.info("载入独立配置失败，将按默认值新建配置记录");
-            return;
-        }else{
-            console.info("载入独立配置", attrObject);
-        }
-        Object.assign(g_allData["config"], attrObject);
-    }
-    if ('custom-lcd-cache' in response.data && !attrResetFlag) {
-        g_allData["cacheHTML"] = response.data["custom-lcd-cache"];
-    }
-    // Resize设定默认宽高
-    if (!("custom-resize-flag" in response.data) && isValidStr(g_globalConfig.saveDefaultWidgetStyle) && ("id" in response.data)) {
-        // 写属性
-        let data = {};
-        data["custom-resize-flag"] = "listChildDocs: do not delete.请不要删去此属性，否则挂件将在下次加载时重新将挂件默认宽高写入文档中";
-        let response = await addblockAttrAPI(data, thisWidgetId);
-        // 获取kramdown
-        let widgetKramdown = await getKramdown(thisWidgetId);
-        // 重写Kramdown
-        let newWidgetKramdown = "";
-        console.debug("getKramdown", widgetKramdown);
-        if (widgetKramdown.includes("/widgets/listChildDocs")) {
-            if (widgetKramdown.includes("style=")) {
-                newWidgetKramdown = widgetKramdown.replace(new RegExp(`style=".*"`, ""), `style="${g_globalConfig.saveDefaultWidgetStyle}"`);
-            }else{
-                newWidgetKramdown = widgetKramdown.replace(new RegExp("><\/iframe>", ""), ` style="${g_globalConfig.saveDefaultWidgetStyle}"><\/iframe>`);
-            }
-            debugPush("【挂件更新自身样式信息】!", newWidgetKramdown);
-            await updateBlockAPI(newWidgetKramdown, thisWidgetId);
-        }else{
-            debugPush(widgetKramdown);
-            warnPush("当前id不对应listChildDocs挂件，不设定挂件样式", thisWidgetId);
-        }
-        throw new Error(language["saveDefaultStyleFailed"]);
-    }
-
-    if (!("id" in response.data)) {
-        throw Error(language["getAttrFailed"]);
-    }
-    // debugPush("请求到的属性", JSON.stringify(response.data));
-}
-
-//统一写入attr到挂件属性
-async function setCustomAttr() {
-    return;
-    // 载入模式最新设定
-    let modeCustom = g_myPrinter.save();
-    if (!isInvalidValue(modeCustom)) {
-        g_allData["config"]["customModeSettings"] = modeCustom;
-    }
-    let attrString = JSON.stringify(g_allData["config"]);
-    let response = await addblockAttrAPI({ "custom-list-child-docs": attrString }, thisWidgetId);
-    if (response != 0) {
-        throw Error(language["writeAttrFailed"]);
     }
 }
 
@@ -472,17 +330,6 @@ function debugPushAPI(text, delay = 7000) {
 }
 
 /**
- * 显示/隐藏设置
- * @param {boolean} showBtn 显示设置？true显示false隐藏
- */
-function showSettingChanger(showBtn) {
-    _showSetting(showBtn);
-    // if (g_myPrinter.write2file == 1) {//写入文档时重设挂件大小
-    //     window.frameElement.style.height = showBtn ? g_globalConfig.height_2file_setting : g_globalConfig.height_2file;
-    // }
-}
-
-/**
  * 控制挂件内css分列（分栏），在页面宽度不足时强制重设分列数
  */
 function setColumn(rowOfText = g_rowCount) {
@@ -524,7 +371,7 @@ function saveContentCache(textString = g_allData["cacheHTML"]) {
         warnPush("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
     }
     g_allData["cacheHTML"] = textString;
-    g_configManager.saveDistinct(g_allData);
+    g_configManager.saveCache(textString);
     // let response = addblockAttrAPI({ "custom-lcd-cache": textString }, g_workEnvId);
 }
 
@@ -561,9 +408,6 @@ async function loadContentCache(textString = g_allData["cacheHTML"], modeDoUpdat
         }else{
             $("#refContainer .refLinks, .childDocLinks").addClass("linkTextHoverHightLight handle-ref-click");
         }
-        //挂一下事件，处理引用块浮窗
-        // 浮窗问题？？
-        $("#refContainer .floatWindow").mouseover(showFloatWnd);
         //设定分列值
         setColumn();
     }
@@ -778,17 +622,25 @@ async function getTargetBlockBoxPath() {
 function __refreshPrinter(init = false) {
     let getPrinterFlag = false;
     // 非初始状态，需要清空上一个Printer的数据，（实际上没有切换Printer将不予处理）
-    if (!init || (g_myPrinter != null && g_myPrinter.id != g_allData["config"].printMode)) {
+    if ((g_myPrinter != null && g_myPrinter.id == g_allData["config"].printMode)) {
+        debugPush("模式未发生变动，不刷新");
+        return;
+    }
+    if (!init && (g_myPrinter != null && g_myPrinter.id != g_allData["config"].printMode)) {
+        debugPush("删除旧设定判定依据", g_myPrinter.id, g_allData["config"].printMode);
         let resettedCustomAttr = g_myPrinter ? g_myPrinter.destory(g_allData["config"]):undefined;
         // 部分修改默认设定的模式，应当在退出时修改到合理的值
         if (!isInvalidValue(resettedCustomAttr)) {
             Object.assign(g_allData["config"], resettedCustomAttr);
         }
+        debugPush("删除了模式旧设定");
         // 模式切换后移除旧设定
         if (g_allData["config"]["customModeSettings"] != undefined) {
             delete g_allData["config"]["customModeSettings"];
         }
     }
+   
+    debugPush("放行了刷新Printer操作");
     // $("#modeSetting").html("");
     //重新获取Printer
     for (let printer of printerList) {
@@ -828,25 +680,6 @@ function __refreshPrinter(init = false) {
         g_allData["config"].auto = false;
     }else{
         $("#search").css("display", "");
-    }
-}
-
-function __refreshAppearance() {
-    //重设窗口大小
-    if (g_myPrinter.write2file == 1) {
-        window.frameElement.style.width = g_globalConfig.width_2file;
-        window.frameElement.style.height = g_globalConfig.height_2file;
-        showSettingChanger(false);
-    }
-    //设定深色颜色（外观）
-    if (window.top.siyuan.config.appearance.mode == 1) {
-        $(".upperbardiv input[type!='checkbox'], .upperbardiv select").addClass("button_dark");
-        $(".upperbardiv span").addClass("ordinaryText_dark");
-        $(".childDocLinks").addClass("childDocLinks_dark");
-    } else {
-        $(".upperbardiv input[type!='checkbox'], .upperbardiv select").removeClass("button_dark");
-        $(".upperbardiv span").removeClass("ordinaryText_dark");
-        $(".childDocLinks").removeClass("childDocLinks_dark");
     }
 }
 
@@ -999,198 +832,6 @@ try{
     console.error(err);
 }
 }
-
-async function __init() {
-    //获取id，用于在载入页面时获取挂件属性
-    g_workEnvId = getCurrentWidgetId();
-    g_currentDocId = await getCurrentDocIdF();
-    // 记录是否是刚刚创建的挂件
-    let justCreate = false;
-    // 顶部按钮栏，用于控制悬停显示和隐藏时按钮栏不可用
-    const topBtnElement = document.getElementById('outerSetting');
-    //载入挂件属性
-    try {
-        await getCustomAttr();
-    } catch (err) {
-        warnPush(err);
-        errorShow(language["getAttrFailedAtInit"]);
-        justCreate = true;
-        // g_allData["config"].auto = false;//读取错误时关闭auto
-    }
-    // UI更改
-    if ("hideRefreshBtn" in g_allData["config"] && g_allData["config"].hideRefreshBtn == true) {
-        $("#refresh").remove();
-        $(`<button id="refresh" title="refresh"></button>`).prependTo("#innerSetting");
-        $("#refresh").css("margin-left", "0.5em");
-    }else if ("hideRefreshBtn" in g_allData["config"] && g_allData["config"].hideRefreshBtn == false) {
-        delete g_allData["config"].hideRefreshBtn;
-    }
-    
-    //通用刷新Printer操作，必须在获取属性、写入挂件之后
-    __refreshPrinter(true);
-    __refreshAppearance();
-    //绑定按钮事件
-    // 刷新按钮绑定事件移动到Init
-    document.getElementById("setting").onclick = function () {
-        if (g_globalConfig.mouseoverButtonArea && !topBtnElement.classList.contains("outerSetting-show")) {
-            return;
-        }
-        _showSetting();
-    };
-    // // 挂件内及时响应分列变化
-    // document.getElementById("listColumn").addEventListener("change", function(){
-    //     if (g_myPrinter.write2file == 0) {
-    //         g_allData["config"].listColumn = $("#listColumn").val();
-    //         setColumn();
-    //     }
-    // });
-    // 及时响应模式变化
-    // document.getElementById("printMode").onchange = ()=>{__refreshPrinter(false)};
-    //跟随软件字号设定
-    // $("#linksContainer").css("font-size", window.top.siyuan.config.editor.fontSize + "px");
-    //控制自动刷新选项是否显示
-    if (!g_globalConfig.showAutoBtn) {
-        $("#autoMode").attr("type", "hidden");
-    }
-    debugPush("屏幕宽度" + window.screen.availWidth);
-    
-    // 隐藏顶部按钮栏 https://github.com/OpaqueGlass/listChildDocs/issues/40
-    // topBtnElement.classList.add("outerSetting-hide");
-    let mouseOverTimeout, mouseOutTimeout;
-    if (!g_globalConfig.mouseoverButtonArea) {
-        topBtnElement.classList.remove("outerSetting-hide");
-    }else{
-        // 监听鼠标移入事件
-        topBtnElement.addEventListener('mouseover', function() {
-            if (topBtnElement.style.opacity != 1.0 && !mouseOverTimeout) {
-                clearTimeout(mouseOutTimeout);
-                mouseOverTimeout = setTimeout(function() {
-                    // 显示元素
-                    topBtnElement.classList.add("outerSetting-show");
-                    mouseOverTimeout = undefined;
-                    clearTimeout(mouseOutTimeout);
-                }, 220);
-            }
-        });
-
-        // 监听鼠标移出事件
-        topBtnElement.addEventListener('mouseout', function() {
-            clearTimeout(mouseOutTimeout);
-            clearTimeout(mouseOverTimeout);
-            mouseOverTimeout = undefined;
-            // 3秒后隐藏元素
-            mouseOutTimeout = setTimeout(function() {
-                if ($("#innerSetting".css("display") != "none")) return;
-                topBtnElement.classList.remove("outerSetting-show");
-            }, 1000);
-        });
-    }
-
-    //初始化时设定列数
-    if (g_allData["config"].listColumn > 1) {
-        setColumn();
-    }
-    if (g_myPrinter.write2file == 0 && (!g_allData["config"].auto || g_globalConfig.loadCacheWhileAutoEnable) ) {
-        $("#updateTime").text(language["loading"]);
-        let loadResult = false;
-        try{
-            loadResult = await loadContentCache(g_allData["cacheHTML"]);
-        }catch(err) {
-            console.error(err);
-        }
-        if (loadResult) {
-            $("#updateTime").text(language["cacheLoaded"]);
-        }else{
-            $("#updateTime").text(language["loadCacheFailed"]);
-        }
-    }
-    //自动更新
-    if (g_allData["config"].auto) {
-        //在更新/写入文档时截停操作（安全模式）
-        if (g_globalConfig.safeMode && g_myPrinter.write2file == 1) return;
-        // 挂件刚创建，且写入文档，禁止操作，因为widgetId未入库，无法创建；
-        if (justCreate && g_myPrinter.write2file == 1) return;
-        //尝试规避 找不到块创建位置的运行时错误
-        // setTimeout(()=>{ __main(true)}, 1000);
-        __main(false, justCreate);//初始化模式
-    }
-    
-    /* search对话框面板 */
-    let findDialog = dialog({
-        title: language["dialog_search_panel"],
-        content: `<input id="dialog_find_input" type="text"" autofocus onfocus="this.select();" />`,
-        quickClose: true,
-        ok: function() {
-            let searchText = $("#dialog_find_input").val().toLowerCase().split(" ");
-            let matchAnyFlag = false;
-            $(".search_highlight").removeClass("search_highlight");
-            $("#linksList li, .needSearch").each(function() {
-                let liHtml = $(this).html();
-                let liText = $(this).text().toLowerCase();
-                let matchFlag = false;
-                for (let i = 0; i < searchText.length; i++) {
-                    if (liText.indexOf(searchText[i]) == -1) {
-                        break;
-                    }
-                    if (i == searchText.length - 1) {
-                        matchFlag = true;
-                    }
-                }
-                if (matchFlag) {
-                    $(this).addClass("search_highlight");
-                    matchAnyFlag = true;
-                }
-            });
-            if (matchAnyFlag) {
-                this.close();
-                this.remove();
-                return false;
-            }else{
-                $(".search_dialog button[i-id='ok']").text(language["dialog_search_nomatch"]);
-                setTimeout(()=>{$(".search_dialog button[i-id='ok']").text(language["dialog_search"]);}, 2000);
-                return false;
-            }
-            
-        },
-        button: [{
-            value: language["dialog_search_cancel"],
-            callback:  function() {
-                // $(".search_target").removeClass("search_target");
-                $(".search_highlight").removeClass("search_highlight");
-                this.close();
-                this.remove();
-                return false;
-            }
-        }],
-        cancel: function(){
-            this.close();
-            this.remove();
-            return false;
-        },
-        okValue: language["dialog_search"],
-        cancelDisplay: false,
-        skin: isDarkMode()?"dark_dialog search_dialog":"search_dialog",
-        onshow: function() {
-            $("#dialog_find_input").on("keyup", (event)=>{
-                if (event.keyCode == 13) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    let okBtn = $(".search_dialog button[i-id='ok']");
-                    if (okBtn.length == 1) {
-                        okBtn.click();
-                    }else{
-                        warnPush("回车匹配到多个按钮，已停止操作");
-                    }
-                }
-            })
-        }
-    });
-    document.getElementById("search").addEventListener("click", function () {
-        if (g_globalConfig.mouseoverButtonArea && !topBtnElement.classList.contains("outerSetting-show")) return;
-        findDialog.show(this);
-    });
-}
-
 
 let refreshBtnTimeout;
 
@@ -1572,7 +1213,7 @@ function _saveDistinctConfig(submitData) {
     g_configManager.saveDistinctConfig(Object.assign(g_allData["config"], distinctConfig)).then(()=>{
     // 保存时获取printer的独立设置（现在为切换后直接刷新）
     // 也要在载入部分做处理
-        __reloadSettings();
+        // __reloadSettings();
         layui.layer.msg(language["saved"], {icon: 1, time: 700, offset: "t"});
         $("#updateTime").text(language["saved"]);
     })
@@ -1584,7 +1225,8 @@ function _saveDefaultConfigData(submitData) {
     const distinctConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
     // 保存设置项
     g_configManager.saveUserConfigDefault(distinctConfig).then(()=>{
-        __reloadSettings();
+        // reload会使用本地设置Reload，可能和保存的默认设置不同,突然刷新感觉不太好
+        // __reloadSettings();
         layui.layer.msg(language["saved"], {icon: 1, time: 700, offset: "t"});
         $("#updateTime").text(language["saved"]);
     });
@@ -1595,7 +1237,7 @@ function _saveGlobalConfigData(submitData) {
     const globalConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
 
     g_configManager.saveGlobalConfig(globalConfig).then(()=>{
-        __reloadSettings(); // 修改全局设置后，需要printer重载全局设置
+        // __reloadSettings(); // 修改全局设置后，需要printer重载全局设置，这个是为了适应不插入emoji，但目前Printer相同时不做刷新，所以此项无效
         layui.layer.msg(language["saved"], {icon: 1, time: 700, offset: "t"});
         $("#updateTime").text(language["saved"]);
     });
@@ -1604,9 +1246,17 @@ function _saveGlobalConfigData(submitData) {
 
 // 读取ConfigManager中缓存的设定，重新设定自动模式、刷新printer
 async function __reloadSettings() {
-    // 重新读取设定
-    let tempNewData = g_configManager.getAllData();
-    let nowAutoMode = tempNewData["config"]["auto"];
+    // 重新读取设定 原先是：g_configManager.getAllData();读取的缓存设定
+    // 直接读取界面中的设定
+    const submitData = {"form": document.getElementById("general-config"), "field": layui.form.val("general-config")};
+    const tempNewData = g_configViewManager.loadUISettings(submitData.form, submitData.field);
+    let modeCustom = g_myPrinter.save();
+    if (!isInvalidValue(modeCustom)) {
+        tempNewData["customModeSettings"] = modeCustom;
+        debugPush("getPrinterCustomConfig", tempNewData["customModeSettings"]);
+    }
+    debugPush("重载设定和Printer时获取的数据", tempNewData);
+    let nowAutoMode = tempNewData["auto"];
     if (nowAutoMode != g_allData["config"]["auto"]) {
         if (nowAutoMode) {
             __setObserver();
@@ -1615,7 +1265,7 @@ async function __reloadSettings() {
         }
     }
     // 正式载入新设定
-    g_allData = tempNewData;
+    g_allData["config"] = tempNewData;
     // 刷新printer
     __refreshPrinter();
 }

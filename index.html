@@ -93,8 +93,8 @@
                                             <select name="printMode" id="printMode" lay-filter="mode">
                                                 <optgroup label="挂件内 | In widget">
                                                     <option value="0" selected>默认</option>
-                                                    <option value="5">1.默认</option>
-                                                    <option value="1">1.1.默认</option>
+                                                    <!-- <option value="">1.默认</option> -->
+                                                    <option value="5">1.1.默认</option>
                                                 </optgroup>>
                                                 <optgroup label="引用块 | Ref Link">
                                                     <option value="3">引用块</option>
@@ -235,14 +235,14 @@
                                         </div>
                                     </div>
                                     <div class="layui-inline">
-                                        <label class="layui-form-label">挂件模拟浮窗</label>
+                                        <label class="layui-form-label">悬停触发浮窗</label>
                                         <div class="layui-input-inline"  style="width: 70px;">
                                             <input type="checkbox" checked name="floatWndEnable" id="floatWndEnable" lay-skin="switch"
                                                 lay-filter="switchTest" title="✓|✕">
                                         </div>
                                         <div class="layui-form-mid layui-text-em">
                                             <i class="layui-icon layui-icon-tips" lay-tips="
-                                              仅对挂件内模式有效。并不好用，建议关闭。
+                                              仅默认模式有效。并不好用，建议关闭。
                                             "></i>
                                         </div>
                                     </div>
