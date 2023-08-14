@@ -511,11 +511,32 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     observerTimeout;
     widgetAttr;
     contentRectCache = {"width": 10, "height": 10};
+    modeSettings = {
+        "allowZoom": false,
+        "allowPan": false
+    };
     init(custom_attr) {
         custom_attr.listColumn = 1;
         $("#listColumn").prop("disabled", "true");
         $("#linksContainer").css("column-count", "");
+
+        $("#modeSetting").append(`<span id="mode10_allow_pan_hint">${"允许平移Allow Pan"}</span>
+        <input type="checkbox" name="mode10_allow_pan"  id="mode10_allow_pan">
+        <span id="mode10_allow_zoom_hint">${"允许缩放Allow zoom"}</span>
+        <input type="checkbox" name="mode10_allow_zoom"  id="mode10_allow_zoom">`);
         return custom_attr;
+    }
+    load(modeSettings) {
+        if (modeSettings == undefined) return;
+        console.log("LOAD SETTINGS")
+        $("#mode10_allow_zoom").prop("checked", modeSettings["allowZoom"]);
+        $("#mode10_allow_pan").prop("checked", modeSettings["allowPan"]);
+    }
+    save() {
+        return {
+            "allowZoom": $("#mode10_allow_zoom").prop("checked"),
+            "allowPan": $("#mode10_allow_pan").prop("checked"),
+        }
     }
     oneDocLink(doc, rowCountStack) {
         let docName = doc.name;
@@ -567,8 +588,8 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         const { styles, scripts } = transformer.getUsedAssets(features);
         if (styles) window.markmap.loadCSS(styles);
         if (scripts) window.markmap.loadJS(scripts, { getMarkmap: () => markmap });
-        this.loadMarkmap(root, widgetAttr);
-        if (this.globalConfig.markmapResizeHandlerEnable) {
+        const markmapConfig = this.loadMarkmap(root, widgetAttr);
+        if (this.globalConfig.markmapResizeHandlerEnable && !markmapConfig.zoom && !markmapConfig.pan) {
             this.observer.observe(window.frameElement.parentElement);
         }
         return 1;
@@ -581,7 +602,11 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         // console.log($(window.frameElement).outerHeight(), $("body").outerHeight());
         markmapElem.style.height = ($(window.frameElement).outerHeight() - $("body").outerHeight() + 125) + "px";
         // 计算层最大宽度
-        let markmapConfig = {duration: 0, zoom: false, pan: false, maxWidth: 0};
+        let markmapConfig = {
+            duration: 0, 
+            zoom: $("#mode10_allow_zoom").prop("checked"), 
+            pan: $("#mode10_allow_pan").prop("checked"), 
+            maxWidth: 0};
         if (widgetAttr.listDepth != undefined) {
             if (widgetAttr.listDepth == 0 || widgetAttr.endDocOutline) {
                 markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth + widgetAttr.outlineDepth);
@@ -623,6 +648,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             
         // });
         $("#markmap a").addClass("markmap_a handle_rename_menu needSearch");
+        return markmapConfig;
     }
     resizeHandler(entries) {
         clearTimeout(this.observerTimeout);
