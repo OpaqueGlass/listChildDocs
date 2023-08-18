@@ -3,7 +3,7 @@
  * 用于生成子文档目录文本的Printer。
  */
 import { language} from './config.js';
-import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue } from "./common.js";
+import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue, logPush } from "./common.js";
 import { openRefLink } from './ref-util.js';
 import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
@@ -79,16 +79,16 @@ class Printer {
      * （如果必要）模式自行生成待插入的内容块文本
      * （挂件内为html，文档内为markdown(勿在结尾加ial)）
      * @param {*} updateAttr 基本信息参数，详见listChildDocsMain.js __main()方法下的updateAttr对象
-     * @return 非空字符串【若返回undefined、null、""，将由__main()执行内容文本的生成。
+     * @return [返回值1，返回值2] 返回值1： 非空字符串【若返回undefined、null、""，将由__main()执行内容文本的生成。；返回值2：文档（行号计数）如果自行生成，记录的行数用于自动分列
      */
     async doGenerate(updateAttr) {
-        return undefined;
+        return [undefined, undefined];
     }
     /**
      * （如果必要）模式自行处理内容块写入（更新）操作
      * @param {*} textString 待写入的内容
      * @param {*} updateAttr 基本参数，详见listChildDocsMain.js __main()方法下的updateAttr对象
-     * @return 1: 由模式自行处理写入；0: 由挂件统一执行写入和更新
+     * @return 1: 由模式自行处理写入；0: 由挂件统一执行写入和更新；-1：模式拒绝刷新；-2：遇到错误；
      * 不应在此方法中执行耗时的子文档获取操作，此方法仅用于将textString写入到文档中或挂件中
      */
     async doUpdate(textString, updateAttr) {
@@ -528,7 +528,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     }
     load(modeSettings) {
         if (modeSettings == undefined) return;
-        console.log("LOAD SETTINGS")
+        logPush("LOAD SETTINGS")
         $("#mode10_allow_zoom").prop("checked", modeSettings["allowZoom"]);
         $("#mode10_allow_pan").prop("checked", modeSettings["allowPan"]);
     }
@@ -599,7 +599,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         markmapElem.innerHTML = "";
         markmapElem.style.height = "";
         markmapElem.style.display = "";
-        // console.log($(window.frameElement).outerHeight(), $("body").outerHeight());
+        // logPush($(window.frameElement).outerHeight(), $("body").outerHeight());
         markmapElem.style.height = ($(window.frameElement).outerHeight() - $("body").outerHeight() + 125) + "px";
         // 计算层最大宽度
         let markmapConfig = {
@@ -614,7 +614,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
                 markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth);
             }
         }
-        // console.log("导图模式限制层宽", markmapConfig.maxWidth);
+        // logPush("导图模式限制层宽", markmapConfig.maxWidth);
         Object.assign(markmapConfig, this.globalConfig.markmapConfig);
         window.markmap.Markmap.create('#markmap', markmapConfig, root);
         $("#markmap a").on("click",(event)=>{
@@ -634,7 +634,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         //         let id = url.match(new RegExp(`siyuan:\\/\\/blocks\\/.*`));
         //         id = id[0].substring("siyuan://blocks/".length);
         //         event.target.setAttribute("data-id", id);
-        //         console.log("in rcll")
+        //         logPush("in rcll")
         //         // this.deleteOrRename(event.currentTarget, event.ctrlKey);
         //     }else{
         //         event.preventDefault();
@@ -706,11 +706,11 @@ class ContentBlockPrinter extends Printer {
             result += `</div>`;
         }
         // 生成
-        return result;
+        return [result, undefined];
     }
     async doUpdate(textString, updateAttr) {
         if (updateAttr.widgetSetting.targetId == "/" | updateAttr.widgetSetting.targetId == "\\") {
-            console.log("aa");
+            logPush("aa");
             $("#linksContainer").html(`<p>我不支持目标文档id设置为/，请重新设置一个目标文档id</p>
             <p>The current mode does not support listing from all opened notebooks, so you may not set <code>Target doc id</code> as <code>/</code></p>.`);
             return 1;
@@ -751,7 +751,7 @@ class ContentBlockPrinter extends Printer {
             let crIndex = temp.search("</p>");
             if (crIndex != -1) {
                 trimedHtml = previewHtml.substring(0, TRIM_THRESHOLD + crIndex + 1);
-                console.log("预览内容过长，强制截断了预览内容");
+                logPush("预览内容过长，强制截断了预览内容");
             }
         }
         let cleanedHtml = this.cleanDocHtml(trimedHtml);
@@ -781,7 +781,7 @@ class ContentBlockPrinter extends Printer {
         parentDocPlainText = parentDocPlainText.replace(new RegExp('\\"{[^\n]*}\\"', "gm"), "\"\"");
         // 清理ial
         parentDocPlainText = parentDocPlainText.replace(new RegExp('{:[^}]*}\\n*', "gm"), "");
-        // console.log("清理ial后", parentDocPlainText);
+        // logPush("清理ial后", parentDocPlainText);
         // 清理换行（空行并为单行，多个空行除外）
         parentDocPlainText = parentDocPlainText.replace(new RegExp('\\n *\\n', "gm"), "\n");
         // 清理iframe
@@ -881,7 +881,7 @@ class OrderByTimePrinter extends Printer {
     }
     load(modeSettings) {
         if (modeSettings == undefined) return;
-        console.log("LOAD SETTINGS")
+        logPush("LOAD SETTINGS")
         $("#mode12_doc_num").val(modeSettings["docNum"]);
         $("#mode12_update_checkbox").prop("checked", modeSettings["byUpdate"]);
     }
@@ -917,7 +917,7 @@ class OrderByTimePrinter extends Printer {
         queryStmt += `LIMIT ${$("#mode12_doc_num").val()}`;
         // console.warn("SQL", queryStmt);
         let queryDocsResponse = await queryAPI(queryStmt);
-        // console.log("RES", queryDocsResponse);
+        // logPush("RES", queryDocsResponse);
         if (!isValidStr(queryDocsResponse) || queryDocsResponse.length <= 0) {
             return language["noChildDoc"];
         }
@@ -934,16 +934,28 @@ class OrderByTimePrinter extends Printer {
             lastDate = currentDocDate;
         }
         result += this.endOneDate() + this.afterAll();
-        // console.log(result);
-        return result;
+        // logPush(result);
+        return [result, queryDocsResponse.length];
     }
 }
 
+/**
+ * 13 桌面端生成指定的目录结构
+ * Markdown 无序列表 写入文档
+ */
 class PCFileDirectoryPrinter extends Printer {
     static id = 13;
     id = 13;
     write2file = 1;
     globalConfig = null;
+    modeSettings = {};
+    updateAttr = {};
+    fs = null;
+    path = null;
+    fileCount;
+    maxFileCount = 512;
+    continue = true;
+    rowCount = 0;
 
     setGlobalConfig(config) {
         this.globalConfig = Object.assign({}, config);
@@ -954,7 +966,11 @@ class PCFileDirectoryPrinter extends Printer {
      * @param {*} nowDepth 当前文档所在层级，层级号从1开始
      * @returns 
      */
-    align(nowDepth) { return ""; }
+    align(nowDepth) {
+        let spaces = "";
+        spaces += "  ".repeat(nowDepth - 1);
+        return spaces;
+    }
     /**
      * 输出子文档列表格式文本
      * 在下一层级子文档列出之前被调用
@@ -973,7 +989,9 @@ class PCFileDirectoryPrinter extends Printer {
      * 兼容性警告，目前这个参数也输入大纲对象，大纲对象情况较为复杂，
      * 请只读取doc.id doc.name属性，否则请另外判断属性是否存在、是否合法
      * */
-    oneDocLink(doc, rowCountStack) { return ""; }
+    oneDocLink(doc, rowCountStack) { 
+        return `* [${doc.name}](file://${doc.path})`;
+    }
     /**
      * 在所有输出文本写入之前被调用
      * @returns
@@ -1001,7 +1019,9 @@ class PCFileDirectoryPrinter extends Printer {
      * @params {int} nDepth 文档列出层级/深度
      * @returns 分栏后的初始值
      */
-    splitColumns(originalText, nColumns, nDepth, blockAttrData) { return originalText; }
+    splitColumns(originalText, nColumns, nDepth, blockAttrData) {
+        return generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, this.globalConfig);
+    }
     /**
      * （如果必要）模式自行生成待插入的内容块文本
      * （挂件内为html，文档内为markdown(勿在结尾加ial)）
@@ -1009,17 +1029,187 @@ class PCFileDirectoryPrinter extends Printer {
      * @return 非空字符串【若返回undefined、null、""，将由__main()执行内容文本的生成。
      */
     async doGenerate(updateAttr) {
-        return undefined;
+        this.updateAttr = updateAttr;
+        if (!window.top.require) {
+            throw new Error(language["mode13_cannot_refresh"]);
+        }
+        // 路径是点击选择后保存的，其他设置需要重新载入
+        this.modeSettings["showWhat"] = $("#mode13_select_show_what").val();
+        logPush("showWhat", $("#mode13_select_show_what").val());
+        if (!isValidStr(this.modeSettings.targetPath)) {
+            throw new Error(language["mode13_not_select_folder_when_refresh"]);
+        }
+        this.fs = window.top.require("fs");
+        this.path = window.top.require("path");
+        this.fileCount = 0;
+        if (!this.fs || !this.path) {
+            throw new Error(language["mode13_cannot_refresh"]);
+        }
+        // 系统检查
+        let currentSysId = window.top.siyuan ? window.top.siyuan.config.system.id : "";
+        if (this.modeSettings["sysId"] && this.modeSettings["sysId"].length > 0 && isValidStr(currentSysId) && this.modeSettings["sysId"].indexOf(currentSysId) == -1) {
+            if (updateAttr.isAutoUpdate) {
+                this.continue = false;
+                logPush("自动刷新触发，但系统不匹配，停止");
+                return "是自动刷新触发，且系统不匹配，停止操作";
+            }
+            // 记录当前iframe情况
+            let widgetStyle = {
+                width: window.frameElement.style.width,
+                height: window.frameElement.style.height
+            };
+            window.frameElement.style.width = this.globalConfig.width_2file_setting;
+            window.frameElement.style.height = this.globalConfig.height_2file_setting;
+            let waitForApprove = new Promise((resolve, reject)=>{
+                layui.layer.open({
+                    type: 0,
+                    content: language["mode13_another_sys_warn"],
+                    icon: 3, 
+                    btn: [language["dialog_confirm"], language["dialog_cancel"], language["mode13_trust_sysid"]], 
+                    title: language["confirmTitle"],
+                    btn1: function(){
+                        layer.closeLast("dialog");
+                        resolve(true);
+                    },
+                    btn2: function() {
+                        layui.layer.msg(language["dialog_cancel"]);
+                        resolve(false);
+                    },
+                    btn3: () => {
+                        layer.closeLast("dialog");
+                        this.modeSettings["sysId"].push(currentSysId);
+                        resolve(true);
+                    }
+                });
+            });
+            let confireResult = await waitForApprove;
+            window.frameElement.style.width = widgetStyle.width;
+            window.frameElement.style.height = widgetStyle.height;
+            if (!confireResult) {
+                // 拒绝继续，由doUpdate处理但并不执行刷新
+                this.continue = false;
+                return "用户拒绝继续";
+            }
+            
+        }
+        let result = await this.getOneLevelDirectory(this.modeSettings.targetPath, 1);
+        if (isValidStr(result)) {
+            this.continue = true;
+        } else {
+            this.continue = false;
+        }
+        return [result, this.fileCount];
+    }
+    async getOneLevelDirectory(basicPath, depth) {
+        if (depth > this.updateAttr["widgetSetting"].listDepth && this.updateAttr["widgetSetting"].listDepth) {
+            return "";
+        }
+        // 防止遍历到超长目录
+        if (this.fileCount >= this.maxFileCount) {
+            return ""
+        }
+        let result = "";
+        const dirents = this.fs.readdirSync(basicPath, {withFileTypes: true});
+        const folders = new Array();
+        const files = new Array();
+        // 遍历过滤addr
+        for (let dirent of dirents) {
+            if (dirent.isDirectory()) {
+                folders.push(dirent);
+            } else {
+                files.push(dirent);
+            }
+        }
+        if (this.modeSettings["showWhat"] == "folder") {
+            for (let folder of folders) {
+                result += this.align(depth);
+                result += this.oneDocLink({
+                    name: folder.name,
+                    path: this.path.join(basicPath, folder.name)
+                });
+                result += "\n";
+                this.fileCount++;
+                if (folder.isDirectory() && this.fileCount < this.maxFileCount) {
+                    result += await this.getOneLevelDirectory(this.path.join(basicPath, folder.name), depth + 1);
+                } 
+            }
+        } else if (this.modeSettings["showWhat"] == "file") {
+            if (depth < this.updateAttr["widgetSetting"].listDepth) {
+                for (let dirent of folders) {
+                    result += this.align(depth);
+                    result += this.oneDocLink({
+                        name: dirent.name,
+                        path: this.path.join(basicPath, dirent.name)
+                    });
+                    result += "\n";
+                    this.fileCount++;
+                    if (dirent.isDirectory() && this.fileCount < this.maxFileCount) {
+                        result += await this.getOneLevelDirectory(this.path.join(basicPath, dirent.name), depth + 1);
+                    } 
+                }
+            }
+            for (let dirent of files) {
+                result += this.align(depth);
+                result += this.oneDocLink({
+                    name: dirent.name,
+                    path: this.path.join(basicPath, dirent.name)
+                });
+                result += "\n";
+                this.fileCount++;
+            }
+        } else {
+            for (let dirent of folders) {
+                result += this.align(depth);
+                result += this.oneDocLink({
+                    name: dirent.name,
+                    path: this.path.join(basicPath, dirent.name)
+                });
+                result += "\n";
+                this.fileCount++;
+                if (dirent.isDirectory() && this.fileCount < this.maxFileCount) {
+                    result += await this.getOneLevelDirectory(this.path.join(basicPath, dirent.name), depth + 1);
+                } 
+            }
+            for (let dirent of files) {
+                result += this.align(depth);
+                result += this.oneDocLink({
+                    name: dirent.name,
+                    path: this.path.join(basicPath, dirent.name)
+                });
+                result += "\n";
+                this.fileCount++;
+            }
+        }
+        // TODO: 可考虑的：排序，对是目录的统统迁移到新列表，靠前展示，或者加个设置，用户选择显示文件或文件夹或全部hhh
+        // for (let dirent of dirents) {
+        //     result += this.align(depth);
+        //     result += this.oneDocLink({
+        //         name: dirent.name,
+        //         path: this.path.join(basicPath, dirent.name)
+        //     });
+        //     result += "\n";
+        //     this.fileCount++;
+        //     if (dirent.isDirectory() && this.fileCount < this.maxFileCount) {
+        //         result += await this.getOneLevelDirectory(this.path.join(basicPath, dirent.name), depth + 1);
+        //     } 
+        // }
+        return result;
     }
     /**
      * （如果必要）模式自行处理内容块写入（更新）操作
      * @param {*} textString 待写入的内容
      * @param {*} updateAttr 基本参数，详见listChildDocsMain.js __main()方法下的updateAttr对象
-     * @return 1: 由模式自行处理写入；0: 由挂件统一执行写入和更新
+     * @return 1: 由模式自行处理写入；0: 由挂件统一执行写入和更新； -1模式请求停止；
      * 不应在此方法中执行耗时的子文档获取操作，此方法仅用于将textString写入到文档中或挂件中
      */
     async doUpdate(textString, updateAttr) {
-        return 0;
+        // 根据doGenerate判断是否需要继续，1则Printer处理（但实际上未执行）等价于未执行
+        if (this.continue) {
+            return 0;
+        }else {
+            return -1;
+        }
+        
     }
     /**
      * 对于文档中列表块的方式，这里返回需要作为列表块（分列时为外层超级块）的块属性
@@ -1034,35 +1224,42 @@ class PCFileDirectoryPrinter extends Printer {
      * @return 
      */
     init(custom_attr) {
-        
-        $("#modeSetting").append(`<button id="mode13_test">TEST</button>`);
-        $("#mode13_test").click(async ()=>{
-            const fs = window.top.require("fs");
-            const remote = window.top.require("@electron/remote");
-            if (remote.dialog) {
-                let path = await remote.dialog.showOpenDialog({
-                    title: "请指定路径",
-                    properties: ["createDirectory", "openDirectory"],
-                })
-                console.log("获得路径", path,path.filePaths[0]);
-                fs.readdir(path.filePaths[0],  
-                    { withFileTypes:true }, 
-                    (err, files) => { 
-                    console.log("\nCurrent directory files:"); 
-                    if (err) 
-                      console.log(err); 
-                    else { 
-                      files.forEach(file => { 
-                        console.log(file); 
-                        console.log(file.isDirectory());
-                        console.log(file.path);
-                      }) 
-                    } 
-                  })
+        $("#targetId, #endDocOutline").prop("disabled", "true");
+        $("#modeSetting").append(`
+        <button class="layui-btn layui-btn-primary layui-border-green" mode13-on="mode13_select_folder">${language["mode13_select_folder"]}</button><span id="mode13_selected_path">${language["mode13_display_path_here"]}</span><br/><span>${language["mode13_show_what"]}</span>
+        <select name="mode13_select_show_what" id="mode13_select_show_what">
+            <option value="folder">${language["mode13_only_folder"]}</option>
+            <option value="file">${language["mode13_only_file"]}</option>
+            <option value="all" selected>${language["mode13_show_all"]}</option>
+        </select>
+        `);
+        layui.util.on("mode13-on", {
+            "mode13_select_folder": async () => {
+                if (!window.top.require) {
+                    layui.layer.msg(language["mode13_cannot_select_folder"], {time: 3000, icon: 0});
+                    return;
+                }
+                const remote = window.top.require("@electron/remote");
+                if (remote && remote.dialog) {
+                    let path = await remote.dialog.showOpenDialog({
+                        title: language["mode13_select_folder"],
+                        properties: ["createDirectory", "openDirectory"],
+                    });
+                    if (path && path.filePaths.length > 0) {
+                        that.modeSettings["targetPath"] = path.filePaths[0];
+                        // 记录选择路径时的系统id，系统id不匹配时，刷新弹出提示确认
+                        that.modeSettings["sysId"] = window.top.siyuan ? [window.top.siyuan.config.system.id] : [];
+                        $("#mode13_selected_path").text(this.modeSettings["targetPath"]);
+                    } else {
+                        layui.layer.msg(language["mode13_not_select_folder"], {time: 3000, icon: 0});
+                    }
+                    
+                } else {
+                    layui.layer.msg(language["mode13_cannot_select_folder"], {time: 3000, icon: 0});
+                }
             }
-            
-            
         });
+        const that = this;
         // 通过修改custom_attr并返回修改后的值实现强制指定某个设置项，建议只在禁止用户更改时强制指定设置项的值
         return custom_attr;
     }
@@ -1071,7 +1268,7 @@ class PCFileDirectoryPrinter extends Printer {
      */
     destory(custom_attr) {
         // 取消常规设置的禁用样式
-        $("#listDepth, #listColumn, #targetId, #endDocOutline").prop("disabled", "");
+        $("#targetId, #endDocOutline").prop("disabled", "");
         // 如果部分通用设定过于不合理，通过修改custom_attr并返回修改后的以重置。
         return custom_attr;
     }
@@ -1080,14 +1277,22 @@ class PCFileDirectoryPrinter extends Printer {
      * 注意，可能不存在相应设置
      */
     load(savedAttrs) {
-
+        if (savedAttrs) {
+            Object.assign(this.modeSettings, savedAttrs);
+            if (this.modeSettings["targetPath"]) {
+                $("#mode13_selected_path").text(this.modeSettings["targetPath"]);
+            }
+            if (this.modeSettings["showWhat"]) {
+                $("#mode13_select_show_what").val(this.modeSettings["showWhat"]);
+            }
+        }
     }
     /**
      * 保存配置
      * @return 请返回一个对象
      */
     save() {
-        return undefined;
+        return Object.assign({}, this.modeSettings);
     }
 }
 
@@ -1103,7 +1308,7 @@ class PCFileDirectoryPrinter extends Printer {
  */
 function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, globalConfig = null) {
     if (nColumns <= 1) return originalText;
-    // console.log(originalText);
+    // logPush(originalText);
     //定位合适的划分点
     let regex = /^\* .*/gm;//首层级
     let allBulletsRegex = /^ *\* .*/gm;//所有行
@@ -1152,11 +1357,11 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, globa
         //     i -= splitIntervalRef, cColumn++){
         for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length && cColumn < nColumns - 1;
             i += splitIntervalRef, cColumn++) {
-                // console.log(`列count:${cColumn} 列总数: ${nColumns}`);
+                // logPush(`列count:${cColumn} 列总数: ${nColumns}`);
             // if (i == splitIntervalRef) i+= Math.floor(splitIntervalRef * 0.1 + 1);
             let splitAtIndex = result.indexOf(allBullets[i]);
             if (firstBulletIndex.indexOf(i) == -1) {//在缩进中截断折列
-                //console.log("判定层级数",result.slice(splitAtIndex).match(/ */)[0].length);
+                //logPush("判定层级数",result.slice(splitAtIndex).match(/ */)[0].length);
                 let continueIndentStr = "";//补偿缩进
                 for (let j = 0; j < result.slice(splitAtIndex).match(/ */)[0].length / 2; j++) {
                     continueIndentStr += "  ".repeat(j) + `* ${globalConfig.divideIndentWord}\n`;
@@ -1184,7 +1389,7 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, globa
                 }
             }
         }
-        // console.log(splitAtFirstIndex);
+        // logPush(splitAtFirstIndex);
         for (let index of splitAtFirstIndex) {
             let splitAtIndex = result.indexOf(firstBullets[index]);
             result = result.slice(0, splitAtIndex) + `${getDivider()}` + result.slice(splitAtIndex);
@@ -1204,7 +1409,7 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, globa
         result = "{{{col\n{{{row\n" + result + "}}}\n}}}\n";
     }
 
-    // console.log(result);
+    // logPush(result);
     return result;
     //生成kramdown类型的块分隔（？）
     function getDivider() {

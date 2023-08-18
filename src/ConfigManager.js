@@ -57,7 +57,7 @@ export class ConfigSaveManager {
         // 将列表写入文件时，此项控制挂件的高
         height_2file: "4em",
         // 将列表写入文件时，此项控制显示设置时挂件的高
-        height_2file_setting: "20em",
+        height_2file_setting: "30em",
         width_2file_setting: "50em",
 
         // 在挂件中显示自动刷新选项，设定true启用、false禁用【！自动刷新可能导致同步覆盖问题，详见README】

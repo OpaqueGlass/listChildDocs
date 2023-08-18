@@ -51,114 +51,113 @@
             <div id="innerSetting" style="display: none;">
                 <div class="layui-tab" lay-filter="setting-tab" id="setting-tab">
                     <ul class="layui-tab-title">
-                        <li class="layui-this" lay-id="11">常规设置</li>
-                        <li lay-id="22">全局设置</li>
-                        <li lay-id="33">模式设置</li>
+                        <li class="layui-this" lay-id="11">General Settings</li>
+                        <li lay-id="22">Global Settings</li>
+                        <li lay-id="33">Mode Settings</li>
                     </ul>
                     <div class="layui-tab-content">
                         <div class="layui-tab-item layui-show">
                             <form class="layui-form" lay-filter="general-config" id="general-config">
                                 <div class="layui-form-item">
                                     <div class="layui-inline">
-                                        <label class="layui-form-label">层级</label>
+                                        <label class="layui-form-label">Level</label>
                                         <div class="layui-input-inline" style="width: 65px;">
-                                            <input type="number" name="listDepth" placeholder="请输入" lay-verify="required" id="listDepth"
+                                            <input type="number" name="listDepth" placeholder="input num, please" lay-verify="required" id="listDepth"
                                                 autocomplete="off" class="layui-input" min="0" value="1">
                                         </div>
                                         <div class="layui-form-mid layui-text-em">
                                             <i class="layui-icon layui-icon-tips" lay-tips="
-                                              这里指定子文档列表的层级（是否要包含子文档的子文档）。<br/>0表示创建当前目标文档的大纲。
+                                            This specifies the level of the subdocument list (whether to include subdocuments of subdocuments).<br/> 0 creates an outline for the current target document.
                                             "></i>
                                         </div>
                                     </div>
                                     <div class="layui-inline">
-                                        <label class="layui-form-label">分列</label>
+                                        <label class="layui-form-label">Column</label>
                                         <div class="layui-input-inline" style="width: 65px;">
-                                            <input type="number" name="listColumn" placeholder="请输入" lay-verify="required" id="listColumn"
+                                            <input type="number" name="listColumn" placeholder="" lay-verify="required" id="listColumn"
                                                 autocomplete="off" class="layui-input" min="0" value="1">
                                         </div>
                                         <div class="layui-form-mid layui-text-em">
                                             <i class="layui-icon layui-icon-tips" lay-tips="
-                                              指定子文档列表的列数。对于层级大于2的列表，建议设置为1。<br/>
-                                              对于挂件内显示的列表，设置为0将自动分列。（自动分列对于换行的文档名效果较差）<br/>
-                                              在使用自动高度的同时启用自动分列，将导致无法预期的结果。
+                                            Specifies the number of columns for the subdocument list. For lists with a level greater than 2, a setting of 1 is recommended.<br/>
+                                            For the list displayed in the widget, setting to 0 will automatically split the list. (Parsing is less effective for wrapped document names)<br/>
+                                            Enabling auto-splitting while using auto-height will result in unexpected results.
                                             "></i>
                                         </div>
                                     </div>
                                     <div class="layui-inline">
-                                        <label class="layui-form-label">模式</label>
+                                        <label class="layui-form-label">Mode</label>
                                         <div class="layui-input-inline" style="width: 100px">
                                             <select name="printMode" id="printMode" lay-filter="mode">
-                                                <optgroup label="挂件内">
-                                                    <option value="0" selected>默认</option>
-                                                    <!-- <option value="">1.默认</option> -->
-                                                    <option value="5">1.1.默认</option>
+                                                <optgroup label="In widget">
+                                                    <option value="0" selected>Default</option>
+                                                    <!-- <option value="5">1.Default</option> -->
+                                                    <option value="5">1.1.Default</option>
                                                 </optgroup>>
-                                                <optgroup label="引用块（文档内）">
-                                                    <option value="3">引用块</option>
-                                                    <option value="7">1.引用块</option>
+                                                <optgroup label="Ref Link">
+                                                    <option value="3">RefLink</option>
+                                                    <option value="7">1.RefLink</option>
                                                 </optgroup>
-                                                <optgroup label="siyuan:// URL（文档内）">
+                                                <optgroup label="siyuan:// URL">
                                                     <option value="2">URL</option>
                                                     <option value="6">1.URL</option>
                                                     <option value="8">1.1.URL</option>
                                                 </optgroup>
-                                                <optgroup label="挂件内其他 | Other">
-                                                    <option value="10">导图</option>
-                                                    <option value="11">预览方格</option>
-                                                    <option value="12">按日期分组</option>
+                                                <optgroup label="Other 'In widget' Mode ">
+                                                    
+                                                    <option value="10">Markmap</option>
+                                                    <option value="11">Preview Box</option>
+                                                    <option value="12">Group by Date</option>
                                                 </optgroup>
-                                                <optgroup label="文档内其他">
-                                                    <option value="9">任务列表</option>
-                                                    <option value="13">创建本地文件夹目录</option>
+                                                <optgroup label="Other 'In doc' Mode">
+                                                    <option value="9">TODO List*</option>
+                                                    <option value="13">From Local Directory</option>
                                                 </optgroup>
                                             </select>
                                         </div>
                                         <div class="layui-form-mid layui-text-em">
                                             <i class="layui-icon layui-icon-tips" lay-tips="
-                                              这里选择挂件的工作模式，不同的模式会影响挂件的显示效果或子文档列表的插入效果。
+                                            Select the working mode of the widget here. Different modes will affect the display effect of the widget or the insertion effect of the subdocument list.
                                             "></i>
                                         </div>
                                     </div>
-                                </div>
+</div>
                                 <div class="layui-form-item">
                                     
                                     <div class="layui-inline">
-                                        <label class="layui-form-label">目标文档id</label>
-                                        <div class="layui-input-inline"  style="width: 100px">
-                                            <input type="text" name="targetId" placeholder="默认为当前文档" autocomplete="off" id="targetId"
+                                        <label class="layui-form-label">Target doc id</label>
+                                        <div class="layui-input-inline">
+                                            <input type="text" name="targetId" placeholder="The default value is current doc ID." autocomplete="off" id="targetId"
                                                 class="layui-input" value="">
                                         </div>
                                         <div class="layui-form-mid layui-text-em">
                                             <i class="layui-icon layui-icon-tips" lay-tips="
-                                        将从指定的文档开始创建子文档列表或大纲列表；支持输入文档id、笔记本id和“/”（代表本工作空间）"></i>
-                                            <span id="targetDocName"></span>
+                                            A list of subdocuments or outlines will be created starting with the specified document; Supports entering document id, notebook id, and '/'(for this workspace)"></i>
                                         </div>
-                                        
                                     </div>
-                                    <div class="layui-inline">
-                                        <label class="layui-form-label">大纲开始于</label>
-                                        <div class="layui-input-inline" style="width: 100px">
+                                                                    <div class="layui-inline">
+                                        <label class="layui-form-label">Outline Start at</label>
+                                        <div class="layui-input-inline inline-vertical-center" style="width: 130px">
                                             <select name="outlineStartAt">
-                                                <option value="h1">一级标题</option>
-                                                <option value="h2">二级标题</option>
-                                                <option value="h3">三级标题</option>
-                                                <option value="h4">四级标题</option>
-                                                <option value="h5">五级标题</option>
-                                                <option value="h6">六级标题</option>
+                                                <option value="h1">heading 1</option>
+                                                <option value="h2">heading 2</option>
+                                                <option value="h3">heading 3</option>
+                                                <option value="h4">heading 4</option>
+                                                <option value="h5">heading 5</option>
+                                                <option value="h6">heading 6</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="layui-inline">
-                                        <label class="layui-form-label">大纲结束于</label>
-                                        <div class="layui-input-inline" style="width: 100px">
+                                        <label class="layui-form-label">Outline End at</label>
+                                        <div class="layui-input-inline" style="width: 130px">
                                             <select name="outlineEndAt">
-                                                <option value="h1">一级标题</option>
-                                                <option value="h2">二级标题</option>
-                                                <option value="h3">三级标题</option>
-                                                <option value="h4">四级标题</option>
-                                                <option value="h5">五级标题</option>
-                                                <option value="h6">六级标题</option>
+                                                <option value="h1">heading 1</option>
+                                                <option value="h2">heading 2</option>
+                                                <option value="h3">heading 3</option>
+                                                <option value="h4">heading 4</option>
+                                                <option value="h5">heading 5</option>
+                                                <option value="h6">heading 6</option>
                                             </select>
                                         </div>
                                     </div>
@@ -166,159 +165,158 @@
 
                                 <div class="layui-form-item">
                                     <div class="layui-inline">
-                                        <label class="layui-form-label">排序方式</label>
+                                        <label class="layui-form-label">Sort Mode</label>
                                         <div class="layui-input-inline">
                                             <select name="sortBy" id="sortBy" lay-filter="order">
                                                 <optgroup label="文档名">
-                                                    <option value="0">名称字母升序</option>
-                                                    <option value="1">名称字母降序</option>
-                                                    <option value="4">名称自然升序</option>
-                                                    <option value="5">名称自然降序</option>
+                                                    <option value="0">Name Alphabet ASC</option>
+                                                    <option value="1">Name Alphabet DESC</option>
+                                                    <option value="4">Name Natural ASC</option>
+                                                    <option value="5">Name Natural DESC</option>
                                                 </optgroup>
-                                                <optgroup label="时间">
-                                                    <option value="2">修改时间升序</option>
-                                                    <option value="3">修改时间降序</option>
-                                                    <option value="9">创建时间升序</option>
-                                                    <option value="10">创建时间降序</option>
+                                                <optgroup label="By time">
+                                                    <option value="2">Modified Time ASC</option>
+                                                    <option value="3">Modified Time DESC</option>
+                                                    <option value="9">Created Time ASC</option>
+                                                    <option value="10">Created Time DESC</option>
                                                 </optgroup>
-                                                <optgroup label="引用">
-                                                    <option value="7">引用次数升序</option>
-                                                    <option value="8">引用次数降序</option>
+                                                <optgroup label="Ref Count">
+                                                    <option value="7">Ref Count ASC</option>
+                                                    <option value="8">Ref Count DESC</option>
                                                 </optgroup>
-                                                <optgroup label="文档大小">
-                                                    <option value="11">文档大小升序</option>
-                                                    <option value="12">文档大小降序</option>
+                                                <optgroup label="Doc Size">
+                                                    <option value="11">Document Size ASC</option>
+                                                    <option value="12">Document Size DESC</option>
                                                 </optgroup>
-                                                <optgroup label="子文档数量">
-                                                    <option value="13">子文档数量升序</option>
-                                                    <option value="14">子文档数量降序</option>
+                                                <optgroup label="Sub-doc count">
+                                                    <option value="13">Sub-docs Count ASC</option>
+                                                    <option value="14">Sub-docs Count DESC</option>
                                                 </optgroup>
-                                                <optgroup label="特殊">
-                                                    <option value="6">文档树自定义排序</option>
-                                                    <option value="256">跟随文档树排序</option>
+                                                <optgroup label="Other">
+                                                    <option value="6">Custom Sorting in the File Tree</option>
+                                                    <option value="256">Follow the File Tree</option>
                                                 </optgroup>
                                             </select>
                                         </div>
                                     </div>
                                     
                                     <div class="layui-inline">
-                                        <label class="layui-form-label" style="width: 100px">子文档最大数量</label>
+                                        <label class="layui-form-label">Maximum of child-docs</label>
                                         <div class="layui-input-inline" style="width: 65px">
-                                            <input type="number" name="maxListCount" id="maxListCount" placeholder="请输入" autocomplete="off"
+                                            <input type="number" name="maxListCount" id="maxListCount" placeholder="Please enter number" autocomplete="off"
                                                 class="layui-input" min="0" value="0">
                                         </div>
                                         <div class="layui-form-mid layui-text-em">
                                             <i class="layui-icon layui-icon-tips" lay-tips="
-                                              对于每个文档，限制其子文档的展示数量，设置为0则不限制。
+                                            For each document, limit the number of presentations of its sub-documents. If set to 0, there is no limit.
                                             "></i>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="layui-form-item">
-                                    <div class="layui-inline">
-                                        <label class="layui-form-label" style="width: 100px">叶子文档大纲</label>
+                                <div class="layui-form-item inline-vertical-center">
+                                    <div class="layui-inline inline-vertical-center">
+                                        <label class="layui-form-label">Leaf document outline</label>
                                         <div class="layui-input-inline" style="width: 70px;">
                                             <input type="checkbox" checked name="endDocOutline" lay-skin="switch"
                                                 lay-filter="switchTest" id="endDocOutline" title="✓|✕">
                                         </div>
                                         <div class="layui-form-mid layui-text-em">
                                             <i class="layui-icon layui-icon-tips" lay-tips="
-                                              启用后：对于不含子文档的文档，使用其大纲作为子层级显示；
+                                            When enabled: For documents without subdocuments, use their outlines as the child level display;
                                             "></i>
                                         </div>
                                     </div>
-                                    <div class="layui-inline">
-                                        <label class="layui-form-label">自动刷新</label>
+                                    <div class="layui-inline inline-vertical-center">
+                                        <label class="layui-form-label">Auto refresh</label>
                                         <div class="layui-input-inline"  style="width: 70px;">
                                             <input type="checkbox" checked name="auto" id="auto" lay-skin="switch"
                                                 lay-filter="switchTest" title="✓|✕">
                                         </div>
                                         <div class="layui-form-mid layui-text-em">
                                             <i class="layui-icon layui-icon-tips" lay-tips="
-                                              文档中列表的自动刷新受到“全局设置”中安全模式的限制，如果没有自动刷新，请检查该设置。
+                                            Automatic refresh of lists in the document is limited by the safe mode in Global Settings, if not, check the setting.
                                             "></i>
                                         </div>
                                     </div>
-                                    <div class="layui-inline">
-                                        <label class="layui-form-label" style="width: 100px">悬停触发浮窗</label>
+                                    <div class="layui-inline inline-vertical-center">
+                                        <label class="layui-form-label">Simulate float window</label>
                                         <div class="layui-input-inline"  style="width: 70px;">
                                             <input type="checkbox" checked name="floatWndEnable" id="floatWndEnable" lay-skin="switch"
                                                 lay-filter="switchTest" title="✓|✕">
                                         </div>
                                         <div class="layui-form-mid layui-text-em">
                                             <i class="layui-icon layui-icon-tips" lay-tips="
-                                              仅默认模式有效。并不好用，建议关闭。
+                                            Valid only for in widget mode. It is not easy to use, so we suggest you disable it.
                                             "></i>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="layui-form-item">
                                     <div class="layui-input-block">
-                                        <button type="submit" class="layui-btn" lay-submit lay-filter="save">保存</button>
+                                        <button type="submit" class="layui-btn" lay-submit lay-filter="save">Save</button>
                                         <button type="submit" class="layui-btn  layui-btn-primary" lay-submit
-                                            lay-filter="savedefault">保存为默认</button>
-                                        <button type="button" class="layui-btn layui-btn-primary" lay-on="tabToModeSetting">跳转到模式设置</button>
+                                            lay-filter="savedefault">Save as default</button>
                                     </div>
                                 </div>
                             </form>
                         </div>
                         <div class="layui-tab-item">
                             <blockquote class="layui-elem-quote">
-                                <p>🚧施工中……还没有完全完成。</p>
+                                <p>🚧In develop……It's not quite finished yet</p>
                                 <p>
-                                请注意：双击刷新按钮不保存全局设置，请点击本页面最下方的按钮保存。<br/>
-                                大部分全局设置需要在您重新打开挂件后才能生效。</p>
+                                    Please note: Double-click the refresh button does not save the global settings, please click the button at the bottom of this page to save.<br/>
+                                    Most global settings will not take effect until you reopen the widget.</p>
                             </blockquote>
                             <form class="layui-form" lay-filter="global-config" id="global-config">
 
                                 <fieldset class="layui-elem-field">
-                                    <legend>常规</legend>
+                                    <legend>General</legend>
                                     <div class="layui-field-box">
                                         <div class="layui-form-item">
                                             <div class="layui-inline">
-                                                <label class="layui-form-label">显示按钮栏</label>
+                                                <label class="layui-form-label">Show Button Bar</label>
                                                 <div class="layui-input-inline">
                                                     <select name="showBtnArea" id="showBtnArea" lay-filter="showBtnArea">
-                                                        <option value="false">始终隐藏</option>
-                                                        <option value="true">始终显示</option>
-                                                        <option value="hover">悬停显示</option>
+                                                        <option value="false">Hide</option>
+                                                        <option value="true">Show</option>
+                                                        <option value="hover">Hover to show</option>
                                                     </select>
                                                 </div>
                                                 <div class="layui-form-mid layui-text-em">
                                                     <i class="layui-icon layui-icon-tips" lay-tips="
-                                                    如果选择隐藏按钮栏，可以在窗口聚焦于挂件的情况下（鼠标点一下挂件之后），使用快捷键操作：<br/>
-                                                    F5 刷新<br/>
-                                                    Ctrl + O 打开或关闭设置面板<br/>
-                                                    Ctrl + F 打开搜索面板"></i>
+                                                    If you choose to hide the button bar, you can use the shortcut keys while the window is focused on the widget (after clicking the widget：<br/>
+                                                    F5 refresh<br/>
+                                                    Ctrl + O Open setting panel<br/>
+                                                    Ctrl + F Open search panel"></i>
                                                 </div>
                                             </div>
                                             <div class="layui-inline">
-                                                <label class="layui-form-label">安全模式</label>
+                                                <label class="layui-form-label">Safe mode</label>
                                                 <div class="layui-input-inline" style="width: 70px;">
                                                     <input type="checkbox" checked name="safeMode" lay-skin="switch"
                                                     lay-filter="switchTest" id="safeMode" title="✓|✕">
                                                 </div>
                                                 <div class="layui-form-mid layui-text-em">
                                                     <i class="layui-icon layui-icon-tips-fill layui-font-red" lay-tips="
-                                                    安全模式阻止对文档内目录的自动刷新。
-                                                    <br/>如果不使用同步，可关闭安全模式。<br/>
-                                                    <span class='layui-font-red'>如果使用同步，不建议关闭</span>：在同步未完成期间，对文档内目录列表的自动刷新可能导致同步覆盖或冲突。"></i>
+                                                    Safe mode prevents automatic refresh of directories within a document.
+                                                    <br/>If you are not using synchronization, turn off safe mode.<br/>
+                                                    <span class='layui-font-red'>If using synchronization, it is not recommended to turn off</span>：Automatic refreshes of directory listings within a document while synchronization is incomplete may result in synchronization overrides or conflicts."></i>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="layui-form-item">
                                             <div class="layui-inline">
-                                                <label class="layui-form-label">显示返回父文档</label>
+                                                <label class="layui-form-label">Display returns to parent document</label>
                                                 <div class="layui-input-inline">
                                                     <select name="backToParent">
-                                                        <option value="false">禁用</option>
-                                                        <option value="true">始终显示</option>
-                                                        <option value="auto">仅窄屏设备</option>
+                                                        <option value="false">Disable</option>
+                                                        <option value="true">Enable</option>
+                                                        <option value="auto">Only mobile</option>
                                                     </select>
                                                 </div>
                                             </div>
                                             <div class="layui-inline">
-                                                <label class="layui-form-label">插入文档图标(emoji)</label>
+                                                <label class="layui-form-label">Emoji enable</label>
                                                 <div class="layui-input-inline" style="width: 100px;">
                                                     <input type="checkbox" checked name="emojiEnable" lay-skin="switch"
                                                     lay-filter="switchTest" title="✓|✕">
@@ -329,11 +327,11 @@
                                 </fieldset>
 
                                 <fieldset class="layui-elem-field">
-                                    <legend>模式相关</legend>
+                                    <legend>Relate to Mode</legend>
                                     <div class="layui-field-box">
                                         <div class="layui-form-item">
                                             <div class="layui-inline">
-                                                <label class="layui-form-label">大纲区分指示前缀</label>
+                                                <label class="layui-form-label">Outline Distinguishing Prefix</label>
                                                 <div class="layui-input-inline">
                                                     <input type="text" name="outlineDistinguishingWords" placeholder="请输入" autocomplete="off"
                                                     class="layui-input">
@@ -351,54 +349,54 @@
                                 </fieldset>
 
                                 <fieldset class="layui-elem-field">
-                                    <legend>挂件大小</legend>
+                                    <legend>Widget Size</legend>
                                     <div class="layui-field-box">
                                         <div class="layui-inline">
-                                            <label class="layui-form-label">列表插入文档时,挂件宽</label>
+                                            <label class="layui-form-label">Widget width when list is inserted into document</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="width_2file" placeholder="请输入(带单位)" autocomplete="off"
+                                                <input type="text" name="width_2file" placeholder="Please enter (with unit)" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
                                         <div class="layui-inline">
-                                            <label class="layui-form-label">列表插入文档时,挂件高</label>
+                                            <label class="layui-form-label">Widget height when list is inserted into document</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="height_2file" placeholder="请输入(带单位)" autocomplete="off"
+                                                <input type="text" name="height_2file" placeholder="Please enter (with unit)" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
                                         <div class="layui-inline">
-                                            <label class="layui-form-label">显示设置时,挂件宽</label>
+                                            <label class="layui-form-label">Widget width when displaying settings</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="width_2file_setting" placeholder="请输入(带单位)" autocomplete="off"
+                                                <input type="text" name="width_2file_setting" placeholder="Please enter (with unit)" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
                                         <div class="layui-inline">
-                                            <label class="layui-form-label">显示设置时,挂件高</label>
+                                            <label class="layui-form-label">Widget Height when displaying settings</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="height_2file_setting" placeholder="请输入(带单位)" autocomplete="off"
+                                                <input type="text" name="height_2file_setting" placeholder="Please enter (with unit)" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
                                         <div class="layui-inline">
-                                            <label class="layui-form-label">自动高度</label>
+                                            <label class="layui-form-label">Automatic height</label>
                                             <div class="layui-input-inline">
                                                 <input type="checkbox" checked name="autoHeight" lay-skin="switch"
                                                     lay-filter="switchTest" id="safeMode" title="✓|✕">
                                             </div>
                                         </div>
                                         <div class="layui-inline">
-                                            <label class="layui-form-label">自动高度最小值</label>
+                                            <label class="layui-form-label">Auto Height Min</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="height_2widget_min" placeholder="请输入(带单位)" autocomplete="off"
+                                                <input type="text" name="height_2widget_min" placeholder="Please enter (with unit)" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
                                         <div class="layui-inline">
-                                            <label class="layui-form-label">自动高度最大值</label>
+                                            <label class="layui-form-label">Auto Height Max</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="height_2widget_max" placeholder="请输入(带单位)" autocomplete="off"
+                                                <input type="text" name="height_2widget_max" placeholder="Please enter (with unit)" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
@@ -406,13 +404,13 @@
                                 </fieldset>
 
                                 <fieldset class="layui-elem-field">
-                                    <legend>重置和危险操作</legend>
+                                    <legend>Danger Zone</legend>
                                     <div class="layui-field-box">
                                       <div class="layui-input-block">
                                         <div class="layui-inline">
-                                            <button type="button" class="layui-btn layui-btn-primary layui-border-red" lay-on="global-remove-distinct">删除其他挂件独立设置</button>
-                                            <button type="button" class="layui-btn layui-btn-primary layui-border-red" lay-on="global-remove-other">删除其他挂件</button>
-                                            <button type="button" class="layui-btn layui-btn-primary  layui-border-orange" lay-on="global-remove-file">清理不使用的设置文件</button>
+                                            <button type="button" class="layui-btn layui-btn-primary layui-border-red" lay-on="global-remove-distinct">Remove independent settings for other widgets</button>
+                                            <button type="button" class="layui-btn layui-btn-primary layui-border-red" lay-on="global-remove-other">Delete Other Widgets</button>
+                                            <button type="button" class="layui-btn layui-btn-primary  layui-border-orange" lay-on="global-remove-file">Clean up unused settings files</button>
                                         </div>
                                       </div>
                                       
@@ -421,22 +419,17 @@
 
                                 <div class="layui-form-item">
                                     <div class="layui-input-block">
-                                        <button type="submit" class="layui-btn" lay-submit lay-filter="saveglobal">保存</button>
+                                        <button type="submit" class="layui-btn" lay-submit lay-filter="saveglobal">Save</button>
                                     </div>
                                 </div>
                             </form>
                         </div>
                         <div class="layui-tab-item">
                             <blockquote class="layui-elem-quote">
-                                和模式有关，目前只有“按日期分组”、“导图”有模式独立设置。如要立即保存，请双击刷新按钮。
+                                This page is related to the mode. Currently, only "Group by Date" and "Markmap" has a mode independent setting. To save now, double-click the Refresh button.
                             </blockquote>
                             <div id="modeSetting">
 
-                            </div>
-                            <div class="layui-form-item">
-                                <div class="layui-input-block">
-                                    <button type="button" class="layui-btn layui-btn-primary" lay-on="tabToGeneralSetting">跳转到常规设置</button>
-                                </div>
                             </div>
                         </div>
                     </div>

@@ -82,7 +82,7 @@ async function addText2File(markdownText, blockid = "") {
                 let rowPerColumn = (deviceHeight - 376) / rowHeight;
                 nColumn = Math.ceil(g_rowCount / rowPerColumn);
             }
-            debugPush("autoColumn", deviceHeight, rowHeight, g_rowCount, nColumn);
+            debugPush("autoColumn：设备高度、行高度、行计数、计算出的列数", deviceHeight, rowHeight, g_rowCount, nColumn);
         }
         markdownText = g_myPrinter.splitColumns(markdownText, nColumn, g_allData["config"]["listDepth"], attrData);
     }
@@ -362,8 +362,12 @@ function errorShow(msgText, clear = true) {
     if (clear) $(".linksContainer *").remove();
     $("#linksContainer").css("column-count", "");//显示错误时不分栏
     $(`<ul><li class="linksListItem errorinfo">${language["error"]}` + msgText + `</li></ul>`).appendTo("#linksContainer");
+    // 判定：如果设置界面在显示，那么msg提示
+    if ($("#innerSetting").css("display") != "none") {
+        layui.layer.msg(language["error"] + msgText, {time: 3000, icon: 0});
+    }
     // https://github.com/OpaqueGlass/listChildDocs/issues/39
-    if (g_myPrinter && g_myPrinter.write2file == 1) {
+    if (g_myPrinter && g_myPrinter.write2file == 1 && $("#innerSetting").css("display") == "none") {
         window.frameElement.style.height = "10em";
     }
 }
@@ -384,7 +388,9 @@ function saveContentCache(textString = g_allData["cacheHTML"]) {
  * 也用于直接刷新
  * 内部使用modeDoUpdateFlag undefined与否判断是否载入的缓存，请注意
  */
-async function loadContentCache(textString = g_allData["cacheHTML"], modeDoUpdateFlag = undefined, notebook = undefined, targetDocPath = undefined) {
+async function loadContentCache({
+    textString = g_allData["cacheHTML"],
+    modeDoUpdateFlag = undefined, notebook = undefined, targetDocPath = undefined, manual = false, modeRefreshed = false}) {
     if (g_myPrinter.write2file) return false;
     if (!isValidStr(textString)) return false;
     if (notebook == undefined || targetDocPath == undefined) {
@@ -396,12 +402,14 @@ async function loadContentCache(textString = g_allData["cacheHTML"], modeDoUpdat
         "targetDocName": targetDocName,
         "targetNotebook": notebook,
         "targetDocPath": targetDocPath,
-        "widgetSetting": g_allData["config"]
+        "widgetSetting": g_allData["config"],
+        "isAutoUpdate": !manual,
     };
     logPush("刷新时实际读取到的信息updateAttr", updateAttr);
     let loadCacheFlag = false;
     if (modeDoUpdateFlag == undefined) loadCacheFlag = true;
-    if (!modeDoUpdateFlag) {
+    // 如果是模式需要刷新，且模式未进行刷新
+    if (!modeDoUpdateFlag && !modeRefreshed) {
         modeDoUpdateFlag = await g_myPrinter.doUpdate(textString, updateAttr)
     };
     if (modeDoUpdateFlag == 0){
@@ -443,7 +451,7 @@ async function loadContentCache(textString = g_allData["cacheHTML"], modeDoUpdat
     if (loadCacheFlag) {
         adjustHeight(modeDoUpdateFlag);
     }
-    return true;
+    return modeDoUpdateFlag;
 }
 
 /**
@@ -451,7 +459,7 @@ async function loadContentCache(textString = g_allData["cacheHTML"], modeDoUpdat
  * @param {*} modeDoUpdateFlag 
  */
 function adjustHeight(modeDoUpdateFlag) {
-    if (g_globalConfig.autoHeight && modeDoUpdateFlag != 1 && g_myPrinter.write2file != 1) {
+    if (g_globalConfig.autoHeight && modeDoUpdateFlag == 0 && g_myPrinter.write2file != 1) {
         // debugPush("挂件高度应当设为", $("body").outerHeight());
         let tempHeight = $("body").outerHeight() + 50;
         if (isValidStr(g_globalConfig.height_2widget_min) && tempHeight < g_globalConfig.height_2widget_min) tempHeight = g_globalConfig.height_2widget_min;
@@ -479,6 +487,9 @@ async function __main(manual = false, justCreate = false) {
     if (g_globalConfig["showBtnArea"] != "true") {
         msgLayer = layui.layer.msg(language["working"], {icon: 0, time: 0, offset: "t"});
     }
+    /* 
+    modeDoUpdateFlag: 1 模式进行更新； 0使用默认更新；-1 模式拒绝更新；-2更新或获取时出错
+     */
     let modeDoUpdateFlag = 1;
     // pushMsgAPI(language["startRefresh"], 4500);
     try {
@@ -496,10 +507,14 @@ async function __main(manual = false, justCreate = false) {
             "targetNotebook": notebook,
             "targetDocPath": targetDocPath,
             "widgetSetting": g_allData["config"],
+            "isAutoUpdate": !manual
         };
         //获取子文档层级文本
         let textString;
-        let modeGenerateString = await g_myPrinter.doGenerate(updateAttr);
+        let [modeGenerateString, tempRowCount] = await g_myPrinter.doGenerate(updateAttr);
+        if (tempRowCount != undefined) {
+            g_rowCount = tempRowCount;
+        }
         if (isValidStr(modeGenerateString)) {
             textString = modeGenerateString;
         }else{
@@ -509,11 +524,12 @@ async function __main(manual = false, justCreate = false) {
         $("#linksContainer").html("");
         // 由模式自行完成目录更新
         modeDoUpdateFlag = await g_myPrinter.doUpdate(textString, updateAttr);
+        logPush("Mode进行刷新In Main");
         //写入子文档链接
         if (modeDoUpdateFlag == 0 && g_myPrinter.write2file) {
             // 在初次启动且安全模式开时，禁止操作（第二次安全模式截停）；禁止初始化时创建块
             if (justCreate && (g_globalConfig.safeMode || g_allData["config"].childListId == "")) {
-                console.info("初次创建，不写入/更新块");
+                logPush("初次创建，不写入/更新块");
             } else if (!isValidStr(g_allData["config"].childListId)) {
                 debugPush("需要创建块", g_allData["config"]["childListId"]);
                 await addText2File(textString, g_allData["config"].childListId);
@@ -524,7 +540,8 @@ async function __main(manual = false, justCreate = false) {
                 await addText2File(textString, g_allData["config"].childListId);
             }
         }
-        await loadContentCache(textString, modeDoUpdateFlag, notebook, targetDocPath);
+        await loadContentCache({"textString": textString,
+            "modeDoUpdateFlag": modeDoUpdateFlag, "notebook": notebook, "targetDocPath": targetDocPath, "manual": manual, "modeRefreshed": true});
         if (g_myPrinter.write2file == 0) g_allData["cacheHTML"] = textString;
         if ((manual || g_globalConfig.saveCacheWhileAutoEnable) && g_myPrinter.write2file == 0 && isSafelyUpdate(g_currentDocId, {widgetMode: true}, g_workEnvId)) {
             saveContentCache(textString);
@@ -534,13 +551,27 @@ async function __main(manual = false, justCreate = false) {
     } catch (err) {
         console.error(err);
         errorShow(err.message);
-        modeDoUpdateFlag = 1;
+        modeDoUpdateFlag = -2;
     }finally{
         logPush("刷新计时", new Date() - startTime + "ms");
     }
     //写入更新时间
     let updateTime = new Date();
-    $("#updateTime").text(language["updateTime"] + updateTime.toLocaleTimeString());
+    switch (modeDoUpdateFlag) {
+        case 0:
+        case 1: {
+            $("#updateTime").text(language["updateTime"] + updateTime.toLocaleTimeString());
+            break;
+        }
+        case -1: {
+            $("#updateTime").text(language["refreshReject"] + updateTime.toLocaleTimeString());
+            break;
+        }
+        case -2: {
+            $("#updateTime").text(language["refreshFailed"] + updateTime.toLocaleTimeString());
+            break;
+        }
+    }
     if (g_globalConfig["showBtnArea"] != "true") {
         layui.layer.close(msgLayer);
     }
@@ -647,7 +678,7 @@ function __refreshPrinter(init = false) {
     }
    
     debugPush("放行了刷新Printer操作");
-    // $("#modeSetting").html("");
+    $("#modeSetting").html("");
     //重新获取Printer
     for (let printer of printerList) {
         if (printer.id == g_allData["config"].printMode) {
@@ -866,14 +897,14 @@ try {
  */
 async function __init__() {
     // 语言判定和跳转
-    // if (window.top.siyuan && window.top.siyuan.config.lang != "zh_CN") {
-    //     if (window.location.href.indexOf("index.html") == -1 && window.location.href.indexOf("index_en.html") == -1) {
-    //         window.location.replace(window.location.href + "index_en.html");
-    //     } else if (window.location.href.indexOf("index_en.html") == -1) {
-    //         window.location.replace(window.location.href.replace("index.html", "index_en.html"));
-    //     }
+    if (window.top.siyuan && window.top.siyuan.config.lang != "zh_CN") {
+        if (window.location.href.indexOf("index.html") == -1 && window.location.href.indexOf("index_en.html") == -1) {
+            window.location.replace(window.location.href + "index_en.html");
+        } else if (window.location.href.indexOf("index_en.html") == -1) {
+            window.location.replace(window.location.href.replace("index.html", "index_en.html"));
+        }
         
-    // }
+    }
     // 先做基础外观调整
     // 更新明亮/黑夜模式
     __changeAppearance();
@@ -884,7 +915,7 @@ async function __init__() {
         case WORK_ENVIRONMENT.WIDGET: {
             g_workEnvId = getCurrentWidgetId();
             g_currentDocId = await getCurrentDocIdF();
-            g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.WIDGET, g_workEnvId);
+            g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.WIDGET, g_workEnvId, );
             try {
                 const tempWidgetAttr = await getblockAttrAPI(g_workEnvId);
                 if (isValidStr(tempWidgetAttr.id)) {
@@ -900,9 +931,15 @@ async function __init__() {
             g_workEnvId = await getCurrentDocIdF();
             g_currentDocId = g_workEnvId;
             if (!isValidStr(g_workEnvId)) {
-
+                if (window.frameElement.getAttribute("id")) {
+                    g_workEnvId = window.frameElement.getAttribute("id");
+                }
             }
-            g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.PLUGIN, g_workEnvId);
+            let savePath = "/data/storage/petal/syplugin-hierarchyNavigate/listChildDocs/";
+            if (window.frameElement.getAttribute("savePath")) {
+                savePath = window.frameElement.getAttribute("savePath");
+            }
+            g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.PLUGIN, g_workEnvId, savePath);
         }
     }
     _loadUserCSS();
@@ -913,9 +950,9 @@ async function __init__() {
     
     g_configViewManager = new ConfigViewManager(g_configManager, __reloadSettings);
     // 涉及悬停逻辑判断的还有：_hoverBtnAreaBinder、_showSetting
-    if (g_globalConfig["showBtnArea"] === "true" && !isMobile()) {
+    if (g_globalConfig["showBtnArea"] === "true") {
         _showBtnArea(true);
-    } else if (g_globalConfig["showBtnArea"] === "hover" || isMobile()) {
+    } else if (g_globalConfig["showBtnArea"] === "hover" || (isMobile() && g_globalConfig["showBtnArea"] === "false")) {
         _hoverBtnAreaBinder(true);
     } else {
         _showBtnArea(false);
@@ -946,11 +983,11 @@ async function __init__() {
         $("#updateTime").text(language["loading"]);
         let loadResult = false;
         try{
-            loadResult = await loadContentCache(g_allData["cacheHTML"]);
+            loadResult = await loadContentCache({textString: g_allData["cacheHTML"]});
         }catch(err) {
             console.error(err);
         }
-        if (loadResult) {
+        if (loadResult == 0 || loadResult == 1) {
             $("#updateTime").text(language["cacheLoaded"]);
         }else{
             $("#updateTime").text(language["loadCacheFailed"]);
@@ -1171,7 +1208,13 @@ function __buttonBinder() {
     layui.util.on('lay-on', {
         "global-remove-distinct": removeDistinct,
         "global-remove-other": removeOther,
-        "global-remove-file": removeFile
+        "global-remove-file": removeFile,
+        "tabToModeSetting": function() {
+            layui.element.tabChange("setting-tab", "33");
+        },
+        "tabToGeneralSetting": function() {
+            layui.element.tabChange("setting-tab", "11");
+        }
     });
     const layer = layui.layer;
     function removeDistinct() {
@@ -1181,7 +1224,7 @@ function __buttonBinder() {
             await removeDistinctWorker();
             layui.layer.close(loadIndex);
         }, function(){
-            layui.layer.msg('已取消');
+            layui.layer.msg(language["dialog_cancel"]);
         });
     }
     function removeOther() {
@@ -1191,7 +1234,7 @@ function __buttonBinder() {
             await removeOtherWorker();
             layui.layer.close(loadIndex);
         }, function(){
-            layui.layer.msg('已取消');
+            layui.layer.msg(language["dialog_cancel"]);
         });
     }
     function removeFile() {
@@ -1201,7 +1244,7 @@ function __buttonBinder() {
             await removeUnusedConfigFileWorker();
             layui.layer.close(loadIndex);
         }, function(){
-            layui.layer.msg('已取消');
+            layui.layer.msg(language["dialog_cancel"]);
         });
     }
 }
