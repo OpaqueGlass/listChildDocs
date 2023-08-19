@@ -1058,7 +1058,7 @@ function __shortcutBinder(bindFlag = true) {
             __main(true);
             return;
         }
-        if (event.code == "KeyO" && event.ctrlKey == true) {
+        if (event.code == "KeyS" && event.ctrlKey == true) {
             event.stopPropagation();
             event.preventDefault();
             logPush("显示设置快捷键已被按下");

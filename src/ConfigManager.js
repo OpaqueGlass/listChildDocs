@@ -34,7 +34,8 @@ export class ConfigSaveManager {
         // hideRefreshBtn: true,
         sortBy: 256, //排序模式，具体取值请参考本文件最下方的DOC_SORT_TYPES，默认值15为跟随文档树排序
         maxListCount: 0,//控制每个文档的子文档显示数量,
-        floatWndEnable: false // 浮窗
+        floatWndEnable: false, // 浮窗
+        customModeSettings: {}
     };
     // 存储文件时，结构
     defaultAllData = {
@@ -269,6 +270,7 @@ export class ConfigSaveManager {
         if (this.saveMode == CONSTANTS_CONFIG_SAVE_MODE.WIDGET && !this.globalConfig.allSaveToFile) {
             let attrData = {};
             if (inputData["config"]) {
+                inputData["config"] = this.filterNonConfigData(inputData["config"]);
                 attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG] = JSON.stringify(inputData["config"]);
             }
             if (inputData["cacheHTML"]) {
@@ -281,6 +283,7 @@ export class ConfigSaveManager {
             logPush("saveDistinct", attrData);
             await addblockAttrAPI(attrData, this.relateId);
         } else {
+            inputData["config"] = this.filterNonConfigData(inputData["config"]);
             this.allData = inputData;
             logPush("saveDistinct", inputData);
             await putJSONFile(this.dataSavePath, inputData);
@@ -289,16 +292,17 @@ export class ConfigSaveManager {
     // 保存独立设置
     async saveDistinctConfig(distinctConfig) {
         debugPush("Manager保存DistinctConfig", distinctConfig);
+        distinctConfig = this.filterNonConfigData(distinctConfig);
         this.allData["config"] = distinctConfig;
         if (this.saveMode == CONSTANTS_CONFIG_SAVE_MODE.WIDGET && !this.globalConfig.allSaveToFile) {
             let attrData = {};
             attrData[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CONFIG] = JSON.stringify(distinctConfig);
-            logPush("saveDistinctConfig", attrData);
+            logPush("saveDistinctConfig-过滤后", attrData);
             await addblockAttrAPI(attrData, this.relateId);
         } else {
             let inputData = Object.assign({}, this.allData);
             inputData["config"] = distinctConfig;
-            logPush("saveDistinctConfig", inputData);
+            logPush("saveDistinctConfig-过滤后", inputData);
             await putJSONFile(this.dataSavePath, inputData);
         }
     }
@@ -463,6 +467,7 @@ export class ConfigSaveManager {
     getGlobalConfig() {
         return this.globalConfig;
     }
+    // 迁移设置使用的解析旧custom
     loadCustomSetting(allCustomConfig) {
         let customConfig = null;
         let customConfigName = "listChildDocs";
@@ -500,6 +505,28 @@ export class ConfigSaveManager {
         }
         debugPush("载入用户旧设置成功", setting, custom_attr);
         return [setting, custom_attr];
+    }
+     // 过滤非独立设置的项目
+    filterNonConfigData(input) {
+        if (!input) return {};
+        let output = {};
+        for (let key in input) {//改1处
+            if (key in this.defaultConfig) {//改1处
+                output[key] = input[key];//改2处
+            }
+        }
+        return output;
+    }
+    // 过滤非全局设置的项目
+    filterNonGlobalData(input) {
+        if (!input) return {};
+        let output = {};
+        for (let key in input) {//改1处
+            if (key in this.defaultGlobalConfig) {//改1处
+                output[key] = input[key];//改2处
+            }
+        }
+        return output;
     }
 }
 

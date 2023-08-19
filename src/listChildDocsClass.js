@@ -990,7 +990,7 @@ class PCFileDirectoryPrinter extends Printer {
      * 请只读取doc.id doc.name属性，否则请另外判断属性是否存在、是否合法
      * */
     oneDocLink(doc, rowCountStack) { 
-        return `* [${doc.name}](file://${doc.path})`;
+        return `* [${markdownUrlNameFilter(doc.name)}](file://${doc.path})`;
     }
     /**
      * 在所有输出文本写入之前被调用
@@ -1547,6 +1547,11 @@ function markdownRefBlockDocNameEncoder(inputStr) {
         inputStr = inputStr.replace(new RegExp(original[i], "g"), transfer[i]);
     }
     return inputStr;
+}
+
+function markdownUrlNameFilter(inputStr) {
+    let result = inputStr.replaceAll("$", "\\$");
+    return result;
 }
 
 export let printerList = [
