@@ -3,7 +3,7 @@
  * 用于生成子文档目录文本的Printer。
  */
 import { language} from './config.js';
-import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue, logPush, errorPush } from "./common.js";
+import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue, logPush, errorPush, debugPush } from "./common.js";
 import { openRefLink } from './ref-util.js';
 import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
@@ -1242,25 +1242,30 @@ class PCFileDirectoryPrinter extends Printer {
         </select>
         `);
         layui.util.on("mode13-on", {
-            "mode13_select_folder": async () => {
+            "mode13_select_folder": async (event) => {
                 if (!window.top.require) {
                     layui.layer.msg(language["mode13_cannot_select_folder"], {time: 3000, icon: 0});
                     return;
                 }
-                const remote = window.top.require("@electron/remote");
+                const remote = await window.top.require("@electron/remote");
                 if (remote && remote.dialog) {
-                    let path = await remote.dialog.showOpenDialog({
+                    let path = remote.dialog.showOpenDialog({
                         title: language["mode13_select_folder"],
                         properties: ["createDirectory", "openDirectory"],
-                    });
-                    if (path && path.filePaths.length > 0) {
-                        that.modeSettings["targetPath"] = path.filePaths[0];
-                        // 记录选择路径时的系统id，系统id不匹配时，刷新弹出提示确认
-                        that.modeSettings["sysId"] = window.top.siyuan ? [window.top.siyuan.config.system.id] : [];
-                        $("#mode13_selected_path").text(this.modeSettings["targetPath"]);
-                    } else {
-                        layui.layer.msg(language["mode13_not_select_folder"], {time: 3000, icon: 0});
-                    }
+                    }).then((path)=>{
+                        if (path && path.filePaths.length > 0) {
+                            that.modeSettings["targetPath"] = path.filePaths[0];
+                            // 记录选择路径时的系统id，系统id不匹配时，刷新弹出提示确认
+                            that.modeSettings["sysId"] = window.top.siyuan ? [window.top.siyuan.config.system.id] : [];
+                            $("#mode13_selected_path").text(this.modeSettings["targetPath"]);
+                        } else {
+                            layui.layer.msg(language["mode13_not_select_folder"], {time: 3000, icon: 0});
+                        }
+                    }).catch((err)=>{
+                        errorPush("选文件夹时错误", err);
+                        layui.layer.open({title: "ERROR", icon: 3, btn: [language["dialog_confirm"]], btn1: function(index, layero, that){return layui.layer.close(index);}, content: language["mode13_error_while_select_folder"]});
+                    })
+                    
                     
                 } else {
                     layui.layer.msg(language["mode13_cannot_select_folder"], {time: 3000, icon: 0});

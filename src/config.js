@@ -281,6 +281,7 @@ let zh_CN = {
     mode13_not_select_folder_when_refresh: "您似乎没有选择目录。请在模式设置中指定本机目标路径。",
     mode13_trust_sysid: "信任当前系统",
     mode13_another_sys_warn: "<p>和您选择目录时操作系统不匹配，继续刷新可能出现异常，确认继续？</p><p>若选择信任当前系统，您需要在刷新完成后，手动双击刷新按钮保存。选择信任后，对于当前所选的目录刷新将不再询问，视为允许刷新。</p>",
+    mode13_error_while_select_folder: "选文件夹时出现错误，请重选",
     // 对话框dialog
     dialog_canceled: "已取消",
     dialog_delete: "删除",
@@ -416,6 +417,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     mode13_not_select_folder_when_refresh: "It seems you have not selected a directory. Please specify the local path in the mode settings.",
     mode13_trust_sysid: "Allow Refresh in Current System",
     mode13_another_sys_warn: "<p>The current operating system does not match the one you when selecting the directory, continuing to refresh may cause abnormalities. Do you want to continue? </p><p>If you choose 'Allow Refresh in Current System', you need to manually double-click the refresh button to save after the refresh is complete.</p>",
+    mode13_error_while_select_folder: "An error occured during selecting folder, please try again",
     // dialog
     dialog_canceled: "Canceled",
     dialog_delete: "Delete",
