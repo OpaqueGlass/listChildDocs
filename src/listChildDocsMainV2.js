@@ -13,7 +13,6 @@ import {
     getCurrentWidgetId,
     updateBlockAPI,
     insertBlockAPI,
-    checkOs,
     getDocOutlineAPI,
     getNodebookList,
     getKramdown,
@@ -57,8 +56,12 @@ async function addText2File(markdownText, blockid = "") {
         delete attrData.updated;
         // 避免切换模式继承无序列表下的有序列表属性
         delete attrData["custom-list-format"];
-    }else if (g_globalConfig.blockInitAttrs != undefined){ // 为新创建的列表获取默认属性
-        attrData = Object.assign({}, g_globalConfig.blockInitAttrs);
+    }else if (isValidStr(g_globalConfig.blockInitAttrs)){ // 为新创建的列表获取默认属性
+        try {
+            attrData = Object.assign({}, JSON.parse(g_globalConfig.blockInitAttrs));
+        } catch (err) {
+            errorPush("为新创建的列表获取默认属性时出错", err);
+        }
     }
     // 导入模式属性
     let modeCustomAttr = g_myPrinter.getAttributes();
@@ -83,6 +86,7 @@ async function addText2File(markdownText, blockid = "") {
                 nColumn = Math.ceil(g_rowCount / rowPerColumn);
             }
             debugPush("autoColumn：设备高度、行高度、行计数、计算出的列数", deviceHeight, rowHeight, g_rowCount, nColumn);
+            if (nColumn >= 8) nColumn = 8;
         }
         markdownText = g_myPrinter.splitColumns(markdownText, nColumn, g_allData["config"]["listDepth"], attrData);
     }
@@ -348,6 +352,7 @@ function setColumn(rowOfText = g_rowCount) {
         // 分列数
         debugPush("rowOfText / (height / fontSize)", rowOfText / rowPerColumn);
         nColumns = Math.ceil(rowOfText / rowPerColumn);
+        if (nColumns >= 8) nColumns = 8;
     }
     if (window.screen.availWidth <= 768 || isMobile()) nColumns = "";
     $("#linksContainer").css("column-count", nColumns);
@@ -1209,7 +1214,9 @@ function __buttonBinder() {
         "global-remove-distinct": removeDistinct,
         "global-remove-other": removeOther,
         "global-remove-file": removeFile,
-        "tabToModeSetting": function() {
+        "tabToModeSetting": function(event) {
+            // 禁用时不跳转
+            if (event[0].classList.contains("layui-btn-disabled")) return;
             layui.element.tabChange("setting-tab", "33");
         },
         "tabToGeneralSetting": function() {
@@ -1402,17 +1409,15 @@ function __darkModeObserverBinder() {
     if (isMobile()) return;
     try {
         // UNSTABLE: 监视深色模式变化，依赖界面现实的外观模式按钮变化
-        if (checkOs()) {
-            let targetNode = null;
-            // v2.3.x -
-            if ($(window.parent.document).find("#barThemeMode").length >= 1) {
-                targetNode = $(window.parent.document).find("#barThemeMode").get(0);
-            } else {
-                // v2.4.1 + 
-                targetNode = window.top.document.querySelector("html");
-            }
-            mutationObserver2.observe(targetNode, { "attributes": true, "attributeFilter": ["aria-label", "data-theme-mode"] });
+        let targetNode = null;
+        // v2.3.x -
+        if ($(window.parent.document).find("#barThemeMode").length >= 1) {
+            targetNode = $(window.parent.document).find("#barThemeMode").get(0);
+        } else {
+            // v2.4.1 + 
+            targetNode = window.top.document.querySelector("html");
         }
+        mutationObserver2.observe(targetNode, { "attributes": true, "attributeFilter": ["aria-label", "data-theme-mode"] });
         // window.top.addEventListener("change", ()=>{debugPush("changed")});
     
     } catch (err) {
@@ -1424,8 +1429,8 @@ function __darkModeObserverBinder() {
 // UNSTABLE: 此方法通过显示的页面定位页签
 function __setObserver() {
     try {
-        //排除操作系统：
-        if (!checkOs()) {
+        // 检查设置
+        if (!g_globalConfig.switchBarAutoRefresh) {
             return;
         }
         //(思源主窗口)可见性变化时更新列表（导致在删除插件时仍然触发的错误）

@@ -61,7 +61,7 @@
                                 <div class="layui-form-item">
                                     <div class="layui-inline">
                                         <label class="layui-form-label">Level</label>
-                                        <div class="layui-input-inline" style="width: 65px;">
+                                        <div class="layui-input-inline flayui-limit-input-width-num">
                                             <input type="number" name="listDepth" placeholder="input num, please" lay-verify="required" id="listDepth"
                                                 autocomplete="off" class="layui-input" min="0" value="1">
                                         </div>
@@ -73,7 +73,7 @@
                                     </div>
                                     <div class="layui-inline">
                                         <label class="layui-form-label">Column</label>
-                                        <div class="layui-input-inline" style="width: 65px;">
+                                        <div class="layui-input-inline flayui-limit-input-width-num">
                                             <input type="number" name="listColumn" placeholder="" lay-verify="required" id="listColumn"
                                                 autocomplete="off" class="layui-input" min="0" value="1">
                                         </div>
@@ -111,7 +111,7 @@
                                                 </optgroup>
                                                 <optgroup label="Other 'In doc' Mode">
                                                     <option value="9">TODO List*</option>
-                                                    <option value="13">From Local Directory</option>
+                                                    <option value="13">Local Folder List</option>
                                                 </optgroup>
                                             </select>
                                         </div>
@@ -202,7 +202,7 @@
                                     
                                     <div class="layui-inline">
                                         <label class="layui-form-label">Maximum of child-docs</label>
-                                        <div class="layui-input-inline" style="width: 65px">
+                                        <div class="layui-input-inline flayui-limit-input-width-num">
                                             <input type="number" name="maxListCount" id="maxListCount" placeholder="Please enter number" autocomplete="off"
                                                 class="layui-input" min="0" value="0">
                                         </div>
@@ -216,7 +216,7 @@
                                 <div class="layui-form-item inline-vertical-center">
                                     <div class="layui-inline inline-vertical-center">
                                         <label class="layui-form-label">Leaf document outline</label>
-                                        <div class="layui-input-inline" style="width: 70px;">
+                                        <div class="layui-input-inline flayui-limit-input-btn">
                                             <input type="checkbox" checked name="endDocOutline" lay-skin="switch"
                                                 lay-filter="switchTest" id="endDocOutline" title="✓|✕">
                                         </div>
@@ -228,7 +228,7 @@
                                     </div>
                                     <div class="layui-inline inline-vertical-center">
                                         <label class="layui-form-label">Auto refresh</label>
-                                        <div class="layui-input-inline"  style="width: 70px;">
+                                        <div class="layui-input-inline flayui-limit-input-btn">
                                             <input type="checkbox" checked name="auto" id="auto" lay-skin="switch"
                                                 lay-filter="switchTest" title="✓|✕">
                                         </div>
@@ -240,7 +240,7 @@
                                     </div>
                                     <div class="layui-inline inline-vertical-center">
                                         <label class="layui-form-label">Simulate float window</label>
-                                        <div class="layui-input-inline"  style="width: 70px;">
+                                        <div class="layui-input-inline flayui-limit-input-btn">
                                             <input type="checkbox" checked name="floatWndEnable" id="floatWndEnable" lay-skin="switch"
                                                 lay-filter="switchTest" title="✓|✕">
                                         </div>
@@ -262,7 +262,6 @@
                         </div>
                         <div class="layui-tab-item">
                             <blockquote class="layui-elem-quote">
-                                <p>🚧In develop……It's not quite finished yet</p>
                                 <p>
                                     Please note: Double-click the refresh button does not save the global settings, please click the button at the bottom of this page to save.<br/>
                                     Most global settings will not take effect until you reopen the widget.</p>
@@ -292,7 +291,7 @@
                                             </div>
                                             <div class="layui-inline">
                                                 <label class="layui-form-label">Safe mode</label>
-                                                <div class="layui-input-inline" style="width: 70px;">
+                                                <div class="layui-input-inline flayui-limit-input-btn">
                                                     <input type="checkbox" checked name="safeMode" lay-skin="switch"
                                                     lay-filter="switchTest" id="safeMode" title="✓|✕">
                                                 </div>
@@ -317,7 +316,7 @@
                                             </div>
                                             <div class="layui-inline">
                                                 <label class="layui-form-label">Emoji enable</label>
-                                                <div class="layui-input-inline" style="width: 100px;">
+                                                <div class="layui-input-inline flayui-limit-input-btn">
                                                     <input type="checkbox" checked name="emojiEnable" lay-skin="switch"
                                                     lay-filter="switchTest" title="✓|✕">
                                                 </div>
@@ -332,18 +331,94 @@
                                         <div class="layui-form-item">
                                             <div class="layui-inline">
                                                 <label class="layui-form-label">Outline Distinguishing Prefix</label>
-                                                <div class="layui-input-inline">
-                                                    <input type="text" name="outlineDistinguishingWords" placeholder="请输入" autocomplete="off"
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="outlineDistinguishingWords" placeholder="Please input" autocomplete="off"
                                                     class="layui-input">
                                                 </div>
                                             </div>
-                                            <!-- <div class="layui-inline">
-                                                <label class="layui-form-label">导图：响应拖拽大小变化</label>
-                                                <div class="layui-input-inline" style="width: 100px;">
+                                            
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">Auto Refresh: refresh while switching tab</label>
+                                                <div class="layui-input-inline flayui-limit-input-btn">
+                                                    <input type="checkbox" checked name="switchBarAutoRefresh" lay-skin="switch"
+                                                    lay-filter="switchTest" title="✓|✕">
+                                                </div>
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    If enabled, auto refresh will be triggered not only when the widget is loaded but also when the tab is switched. However, it's not working on mobile."></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">Mark map: Responding to widget size changes</label>
+                                                <div class="layui-input-inline flayui-limit-input-btn">
                                                     <input type="checkbox" checked name="markmapResizeHandlerEnable" lay-skin="switch"
                                                     lay-filter="switchTest" title="✓|✕">
                                                 </div>
-                                            </div> -->
+                                            <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    If enabled, once the widget size is changed, a refresh will be triggered to ensure that the markmap size adapts to the widget size."></i>
+                                                </div>
+                                            </div>
+                                            
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">Group by date: Date format template</label>
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="dateTemplate" placeholder="Please input" autocomplete="off"
+                                                        class="layui-input">
+                                                </div>
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    'yyyy' will be replaced with year, 'MM' will be replaced with month, dd will be replaced with day.
+                                                    "></i>
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">Group by date: Time format template</label>
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="timeTemplate" placeholder="Please input" autocomplete="off"
+                                                        class="layui-input">
+                                                </div>
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    If set to empty, the time will not be displayed. HH will be replaced with hours (in 24-hour format), and mm will be replaced with minutes.
+                                                    "></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">Initial attributes of list blocks in the document</label>
+                                                <div class="layui-input-inline">
+                                                    <textarea name="blockInitAttrs" placeholder="{}" class="layui-textarea"></textarea>
+                                                </div>
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    These attributes are only added once when the list is initially created.<br/>
+                                                    Please input according to the JSON format specification.<br/>
+                                                    Notice that:
+                                                    1. Custom attributes' key should start with custom-
+                                                    2. Please do not add inherent attributes such as 'id' and 'update'.<br/>
+                                                    e.g.  {&quot;custom-type&quot;: &quot;map&quot;, &quot;custom-f&quot;: &quot;dt&quot;}"></i>
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">Mark map: Option</label>
+                                                <div class="layui-input-inline">
+                                                    <textarea name="markmapConfig" placeholder="{}" class="layui-textarea"></textarea>
+                                                </div>
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    Please input according to the JSON format specification.<br/>
+                                                    Notice that: 
+                                                    1. Options can refer to  https://markmap.js.org/docs/json-options#option-list <br/>
+                                                    2. The independent mode setting takes precedence over the options set here.<br/>
+                                                    "></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </fieldset>
@@ -354,28 +429,28 @@
                                         <div class="layui-inline">
                                             <label class="layui-form-label">Widget width when list is inserted into document</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="width_2file" placeholder="Please enter (with unit)" autocomplete="off"
+                                                <input type="text" name="width_2file" placeholder="Please enter with unit" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
                                         <div class="layui-inline">
                                             <label class="layui-form-label">Widget height when list is inserted into document</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="height_2file" placeholder="Please enter (with unit)" autocomplete="off"
+                                                <input type="text" name="height_2file" placeholder="Please enter with unit" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
                                         <div class="layui-inline">
                                             <label class="layui-form-label">Widget width when displaying settings</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="width_2file_setting" placeholder="Please enter (with unit)" autocomplete="off"
+                                                <input type="text" name="width_2file_setting" placeholder="Please enter with unit" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
                                         <div class="layui-inline">
                                             <label class="layui-form-label">Widget Height when displaying settings</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="height_2file_setting" placeholder="Please enter (with unit)" autocomplete="off"
+                                                <input type="text" name="height_2file_setting" placeholder="Please enter with unit" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
@@ -389,14 +464,14 @@
                                         <div class="layui-inline">
                                             <label class="layui-form-label">Auto Height Min</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="height_2widget_min" placeholder="Please enter (with unit)" autocomplete="off"
+                                                <input type="text" name="height_2widget_min" placeholder="Please enter with unit" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
                                         <div class="layui-inline">
                                             <label class="layui-form-label">Auto Height Max</label>
                                             <div class="layui-input-inline">
-                                                <input type="text" name="height_2widget_max" placeholder="Please enter (with unit)" autocomplete="off"
+                                                <input type="text" name="height_2widget_max" placeholder="Please enter with unit" autocomplete="off"
                                                     class="layui-input">
                                             </div>
                                         </div>
@@ -429,10 +504,15 @@
                         </div>
                         <div class="layui-tab-item">
                             <blockquote class="layui-elem-quote">
-                                This page is related to the mode. Currently, only "Group by Date" and "Markmap" has a mode independent setting. To save now, double-click the Refresh button.
+                                This page is related to the mode. Currently, only some mode has a mode independent setting. To save now, double-click the Refresh button.
                             </blockquote>
                             <div id="modeSetting">
 
+</div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button type="button" class="layui-btn layui-btn-primary" lay-on="tabToGeneralSetting">Turn to General Settings</button>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -3,7 +3,7 @@
  * 用于生成子文档目录文本的Printer。
  */
 import { language} from './config.js';
-import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue, logPush } from "./common.js";
+import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue, logPush, errorPush } from "./common.js";
 import { openRefLink } from './ref-util.js';
 import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
@@ -107,6 +107,7 @@ class Printer {
      * @return 
      */
     init(custom_attr) {
+        $("button[lay-on='tabToModeSetting']").addClass("layui-btn-disabled");
         // 通过修改custom_attr并返回修改后的值实现强制指定某个设置项，建议只在禁止用户更改时强制指定设置项的值
         return custom_attr;
     }
@@ -114,6 +115,7 @@ class Printer {
      * 模式退出时操作
      */
     destory(custom_attr) {
+        $("button[lay-on='tabToModeSetting']").removeClass("layui-btn-disabled");
         // 取消常规设置的禁用样式
         $("#listDepth, #listColumn, #targetId, #endDocOutline").prop("disabled", "");
         // 如果部分通用设定过于不合理，通过修改custom_attr并返回修改后的以重置。
@@ -615,7 +617,11 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             }
         }
         // logPush("导图模式限制层宽", markmapConfig.maxWidth);
-        Object.assign(markmapConfig, this.globalConfig.markmapConfig);
+        try {
+            Object.assign(markmapConfig, JSON.parse(this.globalConfig.markmapConfig));
+        } catch(err) {
+            errorPush("markmap全局配置导入失败", err);
+        }
         window.markmap.Markmap.create('#markmap', markmapConfig, root);
         $("#markmap a").on("click",(event)=>{
             event.preventDefault();
@@ -677,10 +683,12 @@ class ContentBlockPrinter extends Printer {
         custom_attr.endDocOutline = false;
         $("#listDepth, #listColumn, #endDocOutline").prop("disabled", "true");
         $("#linksContainer").css("column-count", "");
+        $("button[lay-on='tabToModeSetting']").addClass("layui-btn-disabled");
         return custom_attr;
     }
     destory() {
         $("#listDepth, #listColumn, #endDocOutline").prop("disabled", "");
+        $("button[lay-on='tabToModeSetting']").removeClass("layui-btn-disabled");
        super.destory();
     }
     async doGenerate(updateAttr) {
@@ -1224,7 +1232,7 @@ class PCFileDirectoryPrinter extends Printer {
      * @return 
      */
     init(custom_attr) {
-        $("#targetId, #endDocOutline").prop("disabled", "true");
+        $("#targetId, #endDocOutline, #sortBy, #maxListCount, [name='outlineStartAt'], [name='outlineEndAt']").prop("disabled", "true");
         $("#modeSetting").append(`
         <button class="layui-btn layui-btn-primary layui-border-green" mode13-on="mode13_select_folder">${language["mode13_select_folder"]}</button><span id="mode13_selected_path">${language["mode13_display_path_here"]}</span><br/><span>${language["mode13_show_what"]}</span>
         <select name="mode13_select_show_what" id="mode13_select_show_what">
@@ -1268,7 +1276,7 @@ class PCFileDirectoryPrinter extends Printer {
      */
     destory(custom_attr) {
         // 取消常规设置的禁用样式
-        $("#targetId, #endDocOutline").prop("disabled", "");
+        $("#targetId, #endDocOutline, #sortBy, #maxListCount, [name='outlineStartAt'], [name='outlineEndAt']").prop("disabled", "");
         // 如果部分通用设定过于不合理，通过修改custom_attr并返回修改后的以重置。
         return custom_attr;
     }

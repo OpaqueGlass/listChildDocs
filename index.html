@@ -61,7 +61,7 @@
                                 <div class="layui-form-item">
                                     <div class="layui-inline">
                                         <label class="layui-form-label">层级</label>
-                                        <div class="layui-input-inline" style="width: 65px;">
+                                        <div class="layui-input-inline flayui-limit-input-width-num">
                                             <input type="number" name="listDepth" placeholder="请输入" lay-verify="required" id="listDepth"
                                                 autocomplete="off" class="layui-input" min="0" value="1">
                                         </div>
@@ -73,7 +73,7 @@
                                     </div>
                                     <div class="layui-inline">
                                         <label class="layui-form-label">分列</label>
-                                        <div class="layui-input-inline" style="width: 65px;">
+                                        <div class="layui-input-inline flayui-limit-input-width-num">
                                             <input type="number" name="listColumn" placeholder="请输入" lay-verify="required" id="listColumn"
                                                 autocomplete="off" class="layui-input" min="0" value="1">
                                         </div>
@@ -103,20 +103,20 @@
                                                     <option value="6">1.URL</option>
                                                     <option value="8">1.1.URL</option>
                                                 </optgroup>
-                                                <optgroup label="挂件内其他 | Other">
+                                                <optgroup label="其他 | 挂件内">
                                                     <option value="10">导图</option>
                                                     <option value="11">预览方格</option>
                                                     <option value="12">按日期分组</option>
                                                 </optgroup>
-                                                <optgroup label="文档内其他">
+                                                <optgroup label="其他 | 文档内">
                                                     <option value="9">任务列表</option>
-                                                    <option value="13">创建本地文件夹目录</option>
+                                                    <option value="13">本地文件夹目录</option>
                                                 </optgroup>
                                             </select>
                                         </div>
                                         <div class="layui-form-mid layui-text-em">
                                             <i class="layui-icon layui-icon-tips" lay-tips="
-                                              这里选择挂件的工作模式，不同的模式会影响挂件的显示效果或子文档列表的插入效果。
+                                              这里选择挂件的工作模式，不同的模式会影响挂件的显示效果或子文档列表的插入结果。
                                             "></i>
                                         </div>
                                     </div>
@@ -203,7 +203,7 @@
                                     
                                     <div class="layui-inline">
                                         <label class="layui-form-label" style="width: 100px">子文档最大数量</label>
-                                        <div class="layui-input-inline" style="width: 65px">
+                                        <div class="layui-input-inline flayui-limit-input-width-num">
                                             <input type="number" name="maxListCount" id="maxListCount" placeholder="请输入" autocomplete="off"
                                                 class="layui-input" min="0" value="0">
                                         </div>
@@ -217,7 +217,7 @@
                                 <div class="layui-form-item">
                                     <div class="layui-inline">
                                         <label class="layui-form-label" style="width: 100px">叶子文档大纲</label>
-                                        <div class="layui-input-inline" style="width: 70px;">
+                                        <div class="layui-input-inline flayui-limit-input-btn">
                                             <input type="checkbox" checked name="endDocOutline" lay-skin="switch"
                                                 lay-filter="switchTest" id="endDocOutline" title="✓|✕">
                                         </div>
@@ -229,7 +229,7 @@
                                     </div>
                                     <div class="layui-inline">
                                         <label class="layui-form-label">自动刷新</label>
-                                        <div class="layui-input-inline"  style="width: 70px;">
+                                        <div class="layui-input-inline flayui-limit-input-btn"  >
                                             <input type="checkbox" checked name="auto" id="auto" lay-skin="switch"
                                                 lay-filter="switchTest" title="✓|✕">
                                         </div>
@@ -241,7 +241,7 @@
                                     </div>
                                     <div class="layui-inline">
                                         <label class="layui-form-label" style="width: 100px">悬停触发浮窗</label>
-                                        <div class="layui-input-inline"  style="width: 70px;">
+                                        <div class="layui-input-inline flayui-limit-input-btn"  >
                                             <input type="checkbox" checked name="floatWndEnable" id="floatWndEnable" lay-skin="switch"
                                                 lay-filter="switchTest" title="✓|✕">
                                         </div>
@@ -264,7 +264,6 @@
                         </div>
                         <div class="layui-tab-item">
                             <blockquote class="layui-elem-quote">
-                                <p>🚧施工中……还没有完全完成。</p>
                                 <p>
                                 请注意：双击刷新按钮不保存全局设置，请点击本页面最下方的按钮保存。<br/>
                                 大部分全局设置需要在您重新打开挂件后才能生效。</p>
@@ -295,7 +294,7 @@
                                             </div>
                                             <div class="layui-inline">
                                                 <label class="layui-form-label">安全模式</label>
-                                                <div class="layui-input-inline" style="width: 70px;">
+                                                <div class="layui-input-inline flayui-limit-input-btn">
                                                     <input type="checkbox" checked name="safeMode" lay-skin="switch"
                                                     lay-filter="switchTest" id="safeMode" title="✓|✕">
                                                 </div>
@@ -320,7 +319,7 @@
                                             </div>
                                             <div class="layui-inline">
                                                 <label class="layui-form-label">插入文档图标(emoji)</label>
-                                                <div class="layui-input-inline" style="width: 100px;">
+                                                <div class="layui-input-inline flayui-limit-input-btn">
                                                     <input type="checkbox" checked name="emojiEnable" lay-skin="switch"
                                                     lay-filter="switchTest" title="✓|✕">
                                                 </div>
@@ -335,18 +334,93 @@
                                         <div class="layui-form-item">
                                             <div class="layui-inline">
                                                 <label class="layui-form-label">大纲区分指示前缀</label>
-                                                <div class="layui-input-inline">
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
                                                     <input type="text" name="outlineDistinguishingWords" placeholder="请输入" autocomplete="off"
                                                     class="layui-input">
                                                 </div>
                                             </div>
-                                            <!-- <div class="layui-inline">
-                                                <label class="layui-form-label">导图：响应拖拽大小变化</label>
-                                                <div class="layui-input-inline" style="width: 100px;">
+                                            
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">切换页签自动刷新</label>
+                                                <div class="layui-input-inline flayui-limit-input-btn">
+                                                    <input type="checkbox" checked name="switchBarAutoRefresh" lay-skin="switch"
+                                                    lay-filter="switchTest" title="✓|✕">
+                                                </div>
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    启用后，自动刷新不仅在挂件载入时刷新，也将在页签切换后刷新；移动端无效。"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">导图：响应挂件大小变化</label>
+                                                <div class="layui-input-inline flayui-limit-input-btn">
                                                     <input type="checkbox" checked name="markmapResizeHandlerEnable" lay-skin="switch"
                                                     lay-filter="switchTest" title="✓|✕">
                                                 </div>
-                                            </div> -->
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    启用后，导图模式将在拖拽挂件大小变化后自动刷新，以适应大小变化。"></i>
+                                                </div>
+                                            </div>
+                                            
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">时间分组：日期格式</label>
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="dateTemplate" placeholder="请输入" autocomplete="off"
+                                                        class="layui-input">
+                                                </div>
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    yyyy将被替换为4位年，MM将被替换为两位数月份，dd将被替换为两位数日
+                                                    "></i>
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">时间分组：时间格式</label>
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="timeTemplate" placeholder="请输入" autocomplete="off"
+                                                        class="layui-input">
+                                                </div>
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    设置为空则不显示时间，HH将被替换为小时（24小时制），mm将被替换为分钟
+                                                    "></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">文档中列表块初始属性</label>
+                                                <div class="layui-input-inline">
+                                                    <textarea name="blockInitAttrs" placeholder="{}" class="layui-textarea"></textarea>
+                                                </div>
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    请按照JSON格式规范输入列表块初始属性，请注意：
+                                                    1. 自定义属性应当以custom-开头<br/>
+                                                    2. 使用英文双引号<br/>
+                                                    3. 请不要写入'id'，'update'等块固有属性<br/>
+                                                    示例  {&quot;custom-type&quot;: &quot;map&quot;, &quot;custom-f&quot;: &quot;dt&quot;}"></i>
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">导图：Markmap选项</label>
+                                                <div class="layui-input-inline">
+                                                    <textarea name="markmapConfig" placeholder="{}" class="layui-textarea"></textarea>
+                                                </div>
+                                                <div class="layui-form-mid layui-text-em">
+                                                    <i class="layui-icon layui-icon-tips" lay-tips="
+                                                    请按照JSON格式规范输入Markmap配置项，请注意：
+                                                    1. 可配置内容请参考https://markmap.js.org/docs/json-options#option-list<br/>
+                                                    2. 使用英文双引号<br/>
+                                                    3. 模式独立设置中的option优先生效<br/>
+                                                    "></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </fieldset>
@@ -354,56 +428,63 @@
                                 <fieldset class="layui-elem-field">
                                     <legend>挂件大小</legend>
                                     <div class="layui-field-box">
-                                        <div class="layui-inline">
-                                            <label class="layui-form-label">列表插入文档时,挂件宽</label>
-                                            <div class="layui-input-inline">
-                                                <input type="text" name="width_2file" placeholder="请输入(带单位)" autocomplete="off"
-                                                    class="layui-input">
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">列表插入文档时,挂件宽</label>
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="width_2file" placeholder="(加单位)" autocomplete="off"
+                                                        class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">列表插入文档时,挂件高</label>
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="height_2file" placeholder="(加单位)" autocomplete="off"
+                                                        class="layui-input">
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="layui-inline">
-                                            <label class="layui-form-label">列表插入文档时,挂件高</label>
-                                            <div class="layui-input-inline">
-                                                <input type="text" name="height_2file" placeholder="请输入(带单位)" autocomplete="off"
-                                                    class="layui-input">
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">显示设置时,挂件宽</label>
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="width_2file_setting" placeholder="(加单位)" autocomplete="off"
+                                                        class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">显示设置时,挂件高</label>
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="height_2file_setting" placeholder="(加单位)" autocomplete="off"
+                                                        class="layui-input">
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="layui-inline">
-                                            <label class="layui-form-label">显示设置时,挂件宽</label>
-                                            <div class="layui-input-inline">
-                                                <input type="text" name="width_2file_setting" placeholder="请输入(带单位)" autocomplete="off"
-                                                    class="layui-input">
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">自动高度</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="checkbox" checked name="autoHeight" lay-skin="switch"
+                                                        lay-filter="switchTest" id="safeMode" title="✓|✕">
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="layui-inline">
-                                            <label class="layui-form-label">显示设置时,挂件高</label>
-                                            <div class="layui-input-inline">
-                                                <input type="text" name="height_2file_setting" placeholder="请输入(带单位)" autocomplete="off"
-                                                    class="layui-input">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">自动高度最小值</label>
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="height_2widget_min" placeholder="(加单位)" autocomplete="off"
+                                                        class="layui-input">
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="layui-inline">
-                                            <label class="layui-form-label">自动高度</label>
-                                            <div class="layui-input-inline">
-                                                <input type="checkbox" checked name="autoHeight" lay-skin="switch"
-                                                    lay-filter="switchTest" id="safeMode" title="✓|✕">
-                                            </div>
-                                        </div>
-                                        <div class="layui-inline">
-                                            <label class="layui-form-label">自动高度最小值</label>
-                                            <div class="layui-input-inline">
-                                                <input type="text" name="height_2widget_min" placeholder="请输入(带单位)" autocomplete="off"
-                                                    class="layui-input">
-                                            </div>
-                                        </div>
-                                        <div class="layui-inline">
-                                            <label class="layui-form-label">自动高度最大值</label>
-                                            <div class="layui-input-inline">
-                                                <input type="text" name="height_2widget_max" placeholder="请输入(带单位)" autocomplete="off"
-                                                    class="layui-input">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label">自动高度最大值</label>
+                                                <div class="layui-input-inline flayui-limit-short-text-width">
+                                                    <input type="text" name="height_2widget_max" placeholder="(加单位)" autocomplete="off"
+                                                        class="layui-input">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                    
                                 </fieldset>
 
                                 <fieldset class="layui-elem-field">
@@ -432,7 +513,7 @@
                         </div>
                         <div class="layui-tab-item">
                             <blockquote class="layui-elem-quote">
-                                和模式有关，目前只有“按日期分组”、“导图”有模式独立设置。如要立即保存，请双击刷新按钮。
+                                和模式有关，目前只有部分模式独立设置。如要立即保存，请双击刷新按钮。
                             </blockquote>
                             <div id="modeSetting">
 

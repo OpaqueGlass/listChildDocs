@@ -2,7 +2,7 @@
  * 读取或保存配置
  */
 import { getJSONFile, putJSONFile, addblockAttrAPI, getblockAttrAPI } from "./API.js";
-import { debugPush, isFileNameIllegal, logPush } from "./common.js";
+import { debugPush, isFileNameIllegal, isValidStr, logPush } from "./common.js";
 /**
  * 负责配置文件的读取和写入
  */
@@ -108,12 +108,12 @@ export class ConfigSaveManager {
         // 将列表在挂件内展示、且启用自动高度，此项控制挂件的最大高度（单位px），若不限制，请设为空字符串
         height_2widget_max: "",
 
-        // 【在插入挂件时表现不稳定，可能在第二次打开时设定、保存样式】挂件保存1次自身的显示样式，设置为undefined以禁用
+        // 【弃用】【在插入挂件时表现不稳定，可能在第二次打开时设定、保存样式】挂件保存1次自身的显示样式，设置为undefined以禁用
         // issue #30 https://github.com/OpaqueGlass/listChildDocs/issues/30
         // 示例 "width: 2000px; height: 303px;"
         // saveDefaultWidgetStyle: undefined,
 
-        /*  挂件配置批量操作 
+        /*  挂件配置批量操作 【弃用】
         issue #31 https://github.com/OpaqueGlass/listChildDocs/issues/31
         ！同步用户请注意：以下两个配置启用后挂件将在载入后更新挂件属性，未同步时可能导致同步覆盖
         */
@@ -144,16 +144,14 @@ export class ConfigSaveManager {
         // 首次创建目录块时插入的目录属性
         // 请注意，您写入的属性如果是自定义属性，应当以"custom-"开头，示例 "custom-type": "map"
         // 请不要写入"id"，"update"等块固有属性
-        blockInitAttrs: {
-            
-        },
+        blockInitAttrs: "{}",
 
-        // 在页签切换文档时自动刷新功能将在列出的操作系统上启用，不支持不显示页签的客户端
+        // 【格式更改，弃用】在页签切换文档时自动刷新功能将在列出的操作系统上启用，不支持不显示页签的客户端
         // 若要禁用，值应当为[]；如要在windows启用，["windows"]；如要在多个操作系统上启用，示例：["linux", "windows"]
-        includeOs: ["windows"],
+        // includeOs: ["windows"],
 
         // 导图模式Markmap配置项，详见https://markmap.js.org/docs/json-options
-        markmapConfig: {},
+        markmapConfig: "{}",
         // 导图模式：响应挂件大小变化
         markmapResizeHandlerEnable: true,
 
@@ -178,7 +176,7 @@ export class ConfigSaveManager {
         showBtnArea: "true",
 
         // 切换页签刷新
-        switchBarAutoRefresh: false,
+        switchBarAutoRefresh: true,
     };
     constructor(saveMode, relateId, saveDirPath = "/data/storage/listChildDocs/") {
         // 载入全局配置
@@ -491,6 +489,24 @@ export class ConfigSaveManager {
                 for (let key in customConfig.setting) {
                     if (key in this.defaultGlobalConfig) {
                         setting[key] = customConfig.setting[key];
+                        // initAttr格式变更
+                        switch (key){
+                            case "blockInitAttrs": {
+                                if (setting["blockInitAttrs"]) {
+                                    setting["blockInitAttrs"] = JSON.stringify(setting["blockInitAttrs"]);
+                                }
+                                break;
+                            }
+                            case "markmapConfig": {
+                                if (setting["markmapConfig"]) {
+                                    setting["markmapConfig"] = JSON.stringify(setting["markmapConfig"]);
+                                }
+                                break;
+                            }
+                            default: {
+                                break;
+                            }
+                        }
                     }
                 }
             }

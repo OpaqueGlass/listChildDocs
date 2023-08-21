@@ -16,6 +16,10 @@
     cursor: pointer;
 }
 
+button:disabled {
+    cursor:not-allowed;
+}
+
 /* max-device-width 已过时，但替换为max-width可能导致电脑也变化*/
 @media screen and (max-device-width: 768px) { 
     .app button {
@@ -441,4 +445,16 @@ dl::-webkit-scrollbar-track {
 .inline-vertical-center {  
     display: flex;  
     align-items: center;  
+}
+
+.layui-form-item .layui-input-inline.flayui-limit-input-width-num {
+    width: 65px;
+}
+
+.layui-form-item .layui-input-inline.flayui-limit-input-btn {
+    width: 65px;
+}
+
+.layui-form-item .layui-input-inline.flayui-limit-short-text-width {
+    width: 75px;
 }
