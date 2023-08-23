@@ -871,13 +871,12 @@ try{
     }
 }catch(err) {
     pushDebug(err);
-    console.error(err);
+    errorPush(err);
 }
 }
 
 let refreshBtnTimeout;
 
-let thisWidgetId = "";
 let targetDocName = "";
 let mutex = 0;
 let g_targetDocPath;
@@ -888,7 +887,7 @@ let g_longTouchTimeout;
 try {
     g_notebooks = window.top.siyuan.notebooks;
 }catch (err) {
-    console.error("获取笔记本方法过时，请@开发者修复此问题！");
+    warnPush("获取笔记本方法过时，请@开发者修复此问题！");
 }
 
 
@@ -1221,7 +1220,8 @@ function __buttonBinder() {
         },
         "tabToGeneralSetting": function() {
             layui.element.tabChange("setting-tab", "11");
-        }
+        },
+        "resetWidgetHeight": resetWidgetStyle
     });
     const layer = layui.layer;
     function removeDistinct() {
@@ -1565,6 +1565,42 @@ async function removeUnusedConfigFileWorker() {
         title: language["workResult"],
         btn: [language["dialog_confirm"]]
     });
+}
+
+async function resetWidgetStyle() {
+    // 安全检查，工作环境必须为Widget
+    if (g_workEnvTypeCode != WORK_ENVIRONMENT.WIDGET) {
+        logPush("重设挂件高度：停止，非挂件")
+        return;
+    }
+    if (!isValidStr(g_globalConfig.height_2file) || !isValidStr(g_globalConfig.width_2file)) {
+        logPush("设置项为空，不能重设");
+        return;
+    }
+    // 获取kramdown
+    let widgetKramdown = await getKramdown(g_workEnvId);
+    // 重写Kramdown
+    let newWidgetKramdown = "";
+    debugPush("getKramdown", widgetKramdown);
+    if (widgetKramdown.includes("/widgets/listChildDocs")) {
+        if (widgetKramdown.includes("style=")) {
+            if (g_myPrinter.write2file == 1) {
+                newWidgetKramdown = widgetKramdown.replace(new RegExp(`style="[^"]*"`, ""), `style="height: ${g_globalConfig.height_2file}; width: ${g_globalConfig.width_2file}"`);
+            } else {
+                newWidgetKramdown = widgetKramdown.replace(new RegExp(`style="[^"]*"`, ""), ``);
+            }
+            
+        }else{
+            if (g_myPrinter.write2file == 1) {
+                newWidgetKramdown = widgetKramdown.replace(new RegExp("><\/iframe>", ""), ` style="height: ${g_globalConfig.height_2file}; width: ${g_globalConfig.width_2file}"><\/iframe>`);
+            }
+        }
+        debugPush("【挂件更新自身样式信息】!", newWidgetKramdown);
+        await updateBlockAPI(newWidgetKramdown, g_workEnvId);
+    }else{
+        debugPush(widgetKramdown);
+        warnPush("当前id不对应listChildDocs挂件，不设定挂件样式", g_workEnvId);
+    }
 }
 
 let mutationObserver = new MutationObserver(() => { __main(false) });//避免频繁刷新id

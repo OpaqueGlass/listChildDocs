@@ -56,7 +56,7 @@ export class ConfigSaveManager {
         // 将列表写入文件时，此项控制挂件的宽
         width_2file: "20em",
         // 将列表写入文件时，此项控制挂件的高
-        height_2file: "4em",
+        height_2file: "3em",
         // 将列表写入文件时，此项控制显示设置时挂件的高
         height_2file_setting: "30em",
         width_2file_setting: "50em",
