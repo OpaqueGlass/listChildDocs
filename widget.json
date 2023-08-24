@@ -9,9 +9,9 @@
     "en_US": "listChildDocs"
   },
   "description": {
-    "default": "Display child-doc list in widget, or insert list into the doc. [English is not fully supported at this time]",
+    "default": "Display child-doc list in widget, or insert list into the doc. [English is not fully supported]",
     "zh_CN": "在挂件里显示子文档列表，或向文档中插入子文档列表",
-    "en_US": "English is not fully supported at this time."
+    "en_US": "Display child-doc list in widget, or insert list into the doc. [English is not fully supported]"
   },
   "readme": {
     "default": "README.md",
