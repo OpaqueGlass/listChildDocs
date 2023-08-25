@@ -101,7 +101,11 @@ async function addText2File(markdownText, blockid = "") {
     if (isValidStr(blockid)) {
         response = await updateBlockAPI(markdownText, blockid);
     } else {
-        response = await insertBlockAPI(markdownText, g_workEnvId);
+        if (g_workEnvTypeCode == WORK_ENVIRONMENT.PLUGIN) {
+            response = await insertBlockAPI(markdownText, g_workEnvId, g_pluginWorkConfig.insertBlockAPI);
+        } else {
+            response = await insertBlockAPI(markdownText, g_workEnvId);
+        }
     }
     if (response != null && isValidStr(response.id)) {
         debugPush("成功保存", blockid, response.id);
@@ -943,6 +947,10 @@ async function __init__() {
             if (window.frameElement.getAttribute("savePath")) {
                 savePath = window.frameElement.getAttribute("savePath");
             }
+            if (window.frameElement.dataset) {
+                Object.assign(g_pluginWorkConfig, window.frameElement.dataset);
+                debugPush("插件环境参数", g_pluginWorkConfig);
+            }
             g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.PLUGIN, g_workEnvId, savePath);
         }
     }
@@ -1616,6 +1624,10 @@ let g_myPrinter = null;
 let g_currentDocId = null;
 let g_justCreate = false;
 let g_rowCount = 0;
+let g_pluginWorkConfig = {
+    "insertBlockAPI": "PARENT", // NEXT | PREVIOUS | PARENT
+    "prohibitWrite2FileMode": false,
+};
 
 // 旧全局变量
 

@@ -159,13 +159,35 @@ export async function updateBlockAPI(text, blockid, textType = "markdown"){
 /**
  * 插入块（返回值有删减）
  * @param {string} text 文本
- * @param {string} blockid 创建的块将平级插入于该块之后
+ * @param {string} blockid 指定的块
  * @param {string} textType 插入的文本类型，"markdown" or "dom"
+ * @param {string} addType 插入到哪里？默认插入为指定块之后，NEXT 为插入到指定块之前， PARENT 为插入为指定块的子块
  * @return 对象，为response.data[0].doOperations[0]的值，返回码为-1时也返回null
  */
-export async function insertBlockAPI(text, blockid, textType = "markdown"){
+export async function insertBlockAPI(text, blockid, addType = "previousID", textType = "markdown", ){
     let url = "/api/block/insertBlock";
-    let data = {dataType: textType, data: text, previousID: blockid};
+    let data = {dataType: textType, data: text};
+    switch (addType) {
+        case "parentID":
+        case "PARENT":
+        case "parentId": {
+            data["parentID"] = blockid;
+            break;
+        }
+        case "nextID":
+        case "NEXT":
+        case "nextId": {
+            data["nextID"] = blockid;
+            break;
+        }
+        case "previousID":
+        case "PREVIOUS":
+        case "previousId": 
+        default: {
+            data["previousID"] = blockid;
+            break;
+        }
+    }
     let response = await postRequest(data, url);
     try{
         if (response.code == 0 && response.data != null && isValidStr(response.data[0].doOperations[0].id)){

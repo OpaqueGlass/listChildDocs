@@ -1342,10 +1342,10 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, globa
     //分列间隔计算
     let splitInterval = Math.floor(firstBullets.length / nColumns);//仅计算首行，分列间隔
     let splitIntervalRef = Math.floor(allBullets.length / nColumns);//算上所有行，分列间隔
-    if ((allBullets.length / nColumns).toString().match(/\./) != null) {//均匀排布
+    if ((allBullets.length / nColumns) % 1 > 0) {//均匀排布
         splitIntervalRef++;
     }
-    if ((firstBullets.length / nColumns).toString().match(/\./) != null) {//均匀排布
+    if ((firstBullets.length / nColumns) % 1 > 0) {//均匀排布
         splitInterval++;
     }
     if (splitInterval <= 0) splitInterval = 1;
@@ -1388,20 +1388,69 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, globa
     } else {//禁用缩进中截断Mode2（依据首层折断）
         //分列方式尽可能均匀
         let splitAtFirstIndex = new Array();
-        //先按行分，从理应换行位置向后找不截断的换行位置，但在文档数超长时仍可能不均分
-        for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length && cColumn < nColumns - 1;
-            i += splitIntervalRef, cColumn++) {
-            for (let j = i; j < allBullets.length; j++) {//寻找合适的不截断换行位置（首层级）
-                let index = firstBullets.indexOf(allBullets[j]);
-                if (index != -1) {
-                    // 去重
-                    if (splitAtFirstIndex.indexOf(index) == -1) {
-                        splitAtFirstIndex.push(index);
+        debugPush("分列总行数", allBullets.length);
+        // 重复计算，分列数递增3次，直到结束，或分列数量达到要求
+        for (let cRetry = 0; cRetry < 3; cRetry++) {
+            splitAtFirstIndex = new Array();
+            let nColumnsRetryOnly = nColumns + cRetry;
+            let splitInterval = Math.floor(firstBullets.length / nColumnsRetryOnly);//仅计算首行，分列间隔
+            let splitIntervalRef = Math.floor(allBullets.length / nColumnsRetryOnly);//算上所有行，分列间隔
+            
+            if ((allBullets.length / nColumnsRetryOnly) % 1 > 0) {//均匀排布
+                splitIntervalRef++;
+            }
+            if ((firstBullets.length / nColumnsRetryOnly) % 1 > 0) {//均匀排布
+                splitInterval++;
+            }
+            debugPush("分列行计算值", splitIntervalRef);
+            //先按行分，从理应换行位置向后找不截断的换行位置，但在文档数超长时仍可能不均分
+            for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length && cColumn < nColumns - 1;
+                i += splitIntervalRef, cColumn++) {
+                for (let j = i; j < allBullets.length; j++) {//寻找合适的不截断换行位置（首层级）
+                    let index = firstBullets.indexOf(allBullets[j]);
+                    // debugPush("分列行位置推断", allBullets[j]);
+                    if (index != -1) {
+                        // 去重
+                        if (splitAtFirstIndex.indexOf(index) == -1) {
+                            splitAtFirstIndex.push(index);
+                            break;
+                        }
                     }
-                    break;
                 }
             }
+            debugPush("后推分列尝试结果", splitAtFirstIndex);
+            // 判断，分列数量足够则跳出
+            if (splitAtFirstIndex.length >= nColumns - 1) {
+                debugPush("分列结果", splitAtFirstIndex);
+                break;
+            } else {
+                debugPush("分列尝试", splitAtFirstIndex.length);
+            }
+            // 后推不能满足要求的，前推寻找匹配的分列点
+            let splitAtFirstIndexForwardPredict = new Array();
+            // 前推判断
+            for (let i = splitIntervalRef, cColumn = 0; i < allBullets.length && cColumn < nColumns - 1;
+                i += splitIntervalRef, cColumn++) {
+                for (let j = i; j >= 0; j--) {//寻找合适的不截断换行位置（首层级）
+                    let index = firstBullets.indexOf(allBullets[j]);
+                    // debugPush("分列行位置推断", allBullets[j]);
+                    if (index != -1) {
+                        // 去重
+                        if (splitAtFirstIndexForwardPredict.indexOf(index) == -1) {
+                            splitAtFirstIndexForwardPredict.push(index);
+                            break;
+                        }
+                    }
+                }
+            }
+            debugPush("前推分列尝试结果", splitAtFirstIndexForwardPredict);
+            if (splitAtFirstIndexForwardPredict.length == nColumns - 1) {
+                splitAtFirstIndex = splitAtFirstIndexForwardPredict;
+                debugPush("使用前推分列结果");
+                break;
+            }
         }
+        
         // logPush(splitAtFirstIndex);
         for (let index of splitAtFirstIndex) {
             let splitAtIndex = result.indexOf(firstBullets[index]);
