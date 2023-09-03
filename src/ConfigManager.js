@@ -24,7 +24,7 @@ export class ConfigSaveManager {
         childListId: "",//子文档列表块id，由挂件自动生成，对应的块将会被本挂件更新，请避免自行修改
         listDepth: 1,//列出子文档的最大层级，仅支持数字，过多层级将导致性能或其他潜在问题
         auto: true, //创建挂件、打开挂件时是否自动更新，如果您关闭了安全模式、使用同步且目录列表插入文档，请勿设定为true
-        listColumn: 1,//子文档列表列数，过多的列数将导致显示问题
+        listColumn: 0,//子文档列表列数，过多的列数将导致显示问题
         outlineDepth: 3,//大纲列出层级数，混合列出时此项只控制大纲部分
         targetId: "", //统计对象id，统计的目标应当为文档块或笔记本
         outlineStartAt: "h1",

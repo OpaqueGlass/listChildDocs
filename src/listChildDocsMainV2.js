@@ -86,7 +86,7 @@ async function addText2File(markdownText, blockid = "") {
                 nColumn = Math.ceil(g_rowCount / rowPerColumn);
             }
             debugPush("autoColumn：设备高度、行高度、行计数、计算出的列数", deviceHeight, rowHeight, g_rowCount, nColumn);
-            if (nColumn >= 8) nColumn = 8;
+            if (nColumn >= CONSTANTS.MAX_AUTO_COLUMNS) nColumn = CONSTANTS.MAX_AUTO_COLUMNS;
         }
         markdownText = g_myPrinter.splitColumns(markdownText, nColumn, g_allData["config"]["listDepth"], attrData);
     }
@@ -356,7 +356,7 @@ function setColumn(rowOfText = g_rowCount) {
         // 分列数
         debugPush("rowOfText / (height / fontSize)", rowOfText / rowPerColumn);
         nColumns = Math.ceil(rowOfText / rowPerColumn);
-        if (nColumns >= 8) nColumns = 8;
+        if (nColumns >= CONSTANTS.MAX_AUTO_COLUMNS) nColumns = CONSTANTS.MAX_AUTO_COLUMNS;
     }
     if (window.screen.availWidth <= 768 || isMobile()) nColumns = "";
     $("#linksContainer").css("column-count", nColumns);
@@ -887,6 +887,9 @@ let g_targetDocPath;
 let g_notebooks = null;
 let g_notebooksIDList = null;
 let g_longTouchTimeout;
+const CONSTANTS = {
+    MAX_AUTO_COLUMNS: 5
+}
 // FIXME: 笔记本获取方式
 try {
     g_notebooks = window.top.siyuan.notebooks;
