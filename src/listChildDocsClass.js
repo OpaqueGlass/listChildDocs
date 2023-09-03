@@ -1413,8 +1413,9 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, globa
                         // 去重
                         if (splitAtFirstIndex.indexOf(index) == -1) {
                             splitAtFirstIndex.push(index);
-                            break;
                         }
+                        // 遇到了重复的再往后找也没意义，退出
+                        break;
                     }
                 }
             }
@@ -1437,9 +1438,10 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, globa
                     if (index != -1) {
                         // 去重
                         if (splitAtFirstIndexForwardPredict.indexOf(index) == -1) {
-                            splitAtFirstIndexForwardPredict.push(index);
-                            break;
+                            splitAtFirstIndexForwardPredict.push(index);   
                         }
+                        // 遇到了重复的再往前找也没意义，退出
+                        break;
                     }
                 }
             }
