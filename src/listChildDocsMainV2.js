@@ -237,7 +237,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) 
     if (rowCountStack.length > g_allData["config"].listDepth) {
         return insertData;
     }
-    let docs = await getSubDocsAPI(notebook, nowDocPath, g_allData["config"]["maxListCount"], g_allData["config"]["sortBy"]);
+    let docs = await getSubDocsAPI(notebook, nowDocPath, g_allData["config"]["maxListCount"], parseInt(g_allData["config"]["sortBy"]));
     //生成写入文本
     for (let doc of docs) {
         insertData += g_myPrinter.align(rowCountStack.length);
