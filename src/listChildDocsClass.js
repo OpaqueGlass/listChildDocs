@@ -578,12 +578,19 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
                 docName = undefined;
             }
         }
-        if (isValidStr(docName) && !isValidStr(widgetAttr["targetId"])) {
-            textString = `# ${docName}\n` + textString;
-        }else if (isValidStr(docName) && docNameQuery[0].type == "d"){
-            textString = `# [${docName}](siyuan://blocks/${docNameQuery[0].id})\n` + textString;
-        }else if (isValidStr(updateAttr.targetDocName)) {
-            textString = `# ${updateAttr.targetDocName}\n` + textString;
+        // 获取首个层级标题
+        let regex = /^\* .*/gm;
+        let firstBullets = textString.match(regex);
+        // 如果最高标题层级无法判断或最高层级标题有多个，那么添加文档标题
+        if (firstBullets == null || firstBullets.length > 1) {
+            // 这里处理多种来源的文档名
+            if (isValidStr(docName) && !isValidStr(widgetAttr["targetId"])) {
+                textString = `# ${docName}\n` + textString;
+            }else if (isValidStr(docName) && docNameQuery[0].type == "d"){
+                textString = `# [${docName}](siyuan://blocks/${docNameQuery[0].id})\n` + textString;
+            }else if (isValidStr(updateAttr.targetDocName)) {
+                textString = `# ${updateAttr.targetDocName}\n` + textString;
+            }
         }
         // textString = `# ${window.top.document.querySelector(`li[data-type="tab-header"].item.item--focus .item__text`).innerText}\n` + textString;
         document.getElementById("linksContainer").insertAdjacentHTML("beforeend", `<svg id="markmap" style="width: 100%; display: none;"></svg>`);
