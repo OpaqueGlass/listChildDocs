@@ -584,6 +584,11 @@ async function __main(manual = false, justCreate = false) {
     if (g_globalConfig["showBtnArea"] != "true") {
         layui.layer.close(msgLayer);
     }
+    // 文档内模式，更新成功，则恢复挂件高度（之前如果有错误提示更改高度的售后）
+    if (modeDoUpdateFlag != -2 && g_myPrinter.write2file == 1) {
+        window.frameElement.style.width = g_globalConfig.width_2file;
+        window.frameElement.style.height = g_globalConfig.height_2file;
+    }
     //issue #13 挂件自动高度
     // 挂件内自动高度
     adjustHeight(modeDoUpdateFlag);

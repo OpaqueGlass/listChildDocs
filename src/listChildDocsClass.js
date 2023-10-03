@@ -858,7 +858,7 @@ class OrderByTimePrinter extends Printer {
         }else if (dayGap < 7) {
             formatedStr += ` ${language["mode12_day_ago"].replace(new RegExp("%%", "g"), dayGap)}`;
         }
-        return `<li><span class="mode12_date_text">${formatedStr}</span></li><ul class="linksList" id="linksList">`;
+        return `<li><span class="mode12_date_text">${formatedStr}</span></li><ul>`;
     }
     endOneDate() {
         return `</ul>`;
