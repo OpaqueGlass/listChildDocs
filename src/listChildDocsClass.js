@@ -233,6 +233,7 @@ class MarkdownUrlUnorderListPrinter extends Printer {
             docName = docName.substring(0, docName.length - 3);
         }
         docName = htmlTransferParser(docName);
+        docName = markdownUrlNameFilter(docName);
         let emoji = "";
         if (this.globalConfig.emojiEnable) {
             emoji = getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0);
@@ -404,6 +405,7 @@ class MarkdownUrlOrderListPrinter extends MarkdownUrlUnorderListPrinter {
             docName = docName.substring(0, docName.length - 3);
         }
         docName = htmlTransferParser(docName);
+        docName = markdownUrlNameFilter(docName);
         let emoji = "";
         if (this.globalConfig.emojiEnable) {
             emoji = getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0);
@@ -457,6 +459,8 @@ class MarkdownUrlStandardOrderListPrinter extends MarkdownUrlUnorderListPrinter 
         if (doc.name.indexOf(".sy") >= 0) {
             docName = docName.substring(0, docName.length - 3);
         }
+        docName = htmlTransferParser(docName);
+        docName = markdownUrlNameFilter(docName);
         let countStr = "";
         for (let num of rowCountStack) {
             countStr += num + ".";
@@ -489,6 +493,8 @@ class MarkdownTodoListPrinter extends MarkdownUrlUnorderListPrinter {
         if (doc.name.indexOf(".sy") >= 0) {
             docName = docName.substring(0, docName.length - 3);
         }
+        docName = htmlTransferParser(docName);
+        docName = markdownUrlNameFilter(docName);
         let emoji = "";
         if (this.globalConfig.emojiEnable) {
             emoji = getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0);
@@ -1613,8 +1619,21 @@ function markdownRefBlockDocNameEncoder(inputStr) {
     return inputStr;
 }
 
+/**
+ * Markdown 字符转义
+ * 仅文档名&URL类型使用
+ * @param {*} inputStr 
+ * @returns 
+ */
 function markdownUrlNameFilter(inputStr) {
-    let result = inputStr.replaceAll("$", "\\$");
+    if (inputStr == null || inputStr == "") return "";
+    // original里，由于$是正则标记，需要转义，别看着很离谱，但就是这样
+    let original = [`\\$`];
+    let transfer = [`\\$`];
+    for (let i = 0; i < original.length; i++) {
+        inputStr = inputStr.replace(new RegExp(original[i], "g"), transfer[i]);
+    }
+    return inputStr;
     return result;
 }
 
