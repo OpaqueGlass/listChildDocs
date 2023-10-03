@@ -53,7 +53,6 @@
                     <ul class="layui-tab-title">
                         <li class="layui-this" lay-id="11">常规设置</li>
                         <li lay-id="22">全局设置</li>
-                        <li lay-id="33">模式设置</li>
                     </ul>
                     <div class="layui-tab-content">
                         <div class="layui-tab-item layui-show">
@@ -253,16 +252,21 @@
                                         </div>
                                     </div>
                                 </div>
+                                
                                 <div class="layui-form-item">
                                     <div class="layui-input-block">
                                         <button type="submit" class="layui-btn" lay-submit lay-filter="save">保存</button>
                                         <button type="submit" class="layui-btn  layui-btn-primary" lay-submit
                                             lay-filter="savedefault">保存为默认</button>
-                                        <button type="button" class="layui-btn layui-btn-primary" lay-on="tabToModeSetting">跳转到模式设置</button>
                                         <button type="button" class="layui-btn layui-btn-primary" lay-on="resetWidgetHeight">重设挂件宽高</button>
                                     </div>
                                 </div>
                             </form>
+                            <div class="layui-form-item">
+                                <div id="modeSetting">
+
+                                </div>
+                            </div>
                         </div>
                         <div class="layui-tab-item">
                             <blockquote class="layui-elem-quote">
@@ -512,19 +516,6 @@
                                     </div>
                                 </div>
                             </form>
-                        </div>
-                        <div class="layui-tab-item">
-                            <blockquote class="layui-elem-quote">
-                                和模式有关，目前只有部分模式独立设置。如要立即保存，请双击刷新按钮。
-                            </blockquote>
-                            <div id="modeSetting">
-
-                            </div>
-                            <div class="layui-form-item">
-                                <div class="layui-input-block">
-                                    <button type="button" class="layui-btn layui-btn-primary" lay-on="tabToGeneralSetting">跳转到常规设置</button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

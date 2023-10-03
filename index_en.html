@@ -53,7 +53,6 @@
                     <ul class="layui-tab-title">
                         <li class="layui-this" lay-id="11">General Settings</li>
                         <li lay-id="22">Global Settings</li>
-                        <li lay-id="33">Mode Settings</li>
                     </ul>
                     <div class="layui-tab-content">
                         <div class="layui-tab-item layui-show">
@@ -257,11 +256,13 @@
                                         <button type="submit" class="layui-btn" lay-submit lay-filter="save">Save</button>
                                         <button type="submit" class="layui-btn  layui-btn-primary" lay-submit
                                             lay-filter="savedefault">Save as default</button>
-                                        <button type="button" class="layui-btn layui-btn-primary" lay-on="tabToModeSetting">Turn to mode settings</button>
                                         <button type="button" class="layui-btn layui-btn-primary" lay-on="resetWidgetHeight">Reset widget width and height</button>
                                     </div>
                                 </div>
                             </form>
+                            <div id="modeSetting">
+
+                            </div>
                         </div>
                         <div class="layui-tab-item">
                             <blockquote class="layui-elem-quote">
@@ -504,19 +505,6 @@
                                     </div>
                                 </div>
                             </form>
-                        </div>
-                        <div class="layui-tab-item">
-                            <blockquote class="layui-elem-quote">
-                                This page is related to the mode. Currently, only some mode has a mode independent setting. To save now, double-click the Refresh button.
-                            </blockquote>
-                            <div id="modeSetting">
-
-</div>
-                            <div class="layui-form-item">
-                                <div class="layui-input-block">
-                                    <button type="button" class="layui-btn layui-btn-primary" lay-on="tabToGeneralSetting">Turn to General Settings</button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

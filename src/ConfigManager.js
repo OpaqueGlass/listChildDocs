@@ -622,7 +622,7 @@ export class ConfigViewManager {
         return false; // 阻止默认 form 跳转
     }
     // 转换数据
-    loadUISettings(formElement, formData) {
+    loadUISettings(formElement, formData, filter = null) {
         let data = formData;
         // if (data == null) {
         //     // FIXME: formData获取失败
@@ -656,7 +656,13 @@ export class ConfigViewManager {
         for (let number of numbers) {
             result[number.name] = parseFloat(number.value);
         }
-    
+        // if (filter != null && filter.length > 0) {
+        //     for(let key in result){
+        //         if (filter.indexOf(key) == -1) {
+        //             delete result[key];
+        //         }
+        //     }
+        // }
         logPush("UI SETTING", result);
         return result;
     }
