@@ -1,7 +1,7 @@
 /**
  * 读取或保存配置
  */
-import { getJSONFile, putJSONFile, addblockAttrAPI, getblockAttrAPI } from "./API.js";
+import { getJSONFile, putJSONFile, addblockAttrAPI, getblockAttrAPI, listFileAPI } from "./API.js";
 import { debugPush, isFileNameIllegal, isValidStr, logPush } from "./common.js";
 /**
  * 负责配置文件的读取和写入
@@ -398,24 +398,46 @@ export class ConfigSaveManager {
         return putJSONFile(filePathName, Object.assign(this.globalConfig, globalConfig), true);
     }
     // TODO: schema
-    async loadSchema() {
-
+    async applySchema(schemaName) {
+        const filePathName = this.saveDirPath + "schema/" + schemaName + ".json";
+        const response = await getJSONFile(filePathName);
+        let temp = Object.assign({}, this.defaultConfig);
+        if (response) {
+            Object.assign(temp, response);
+        }
+        await this.saveDistinctConfig(temp);
+        debugPush("已经将内容载入");
     }
     async listSchema() {
-
+        const pathPrefix = this.saveDirPath + "schema/";
+        const listResult = await listFileAPI(pathPrefix);
+        let result = [];
+        for (let oneListRes of listResult) {
+            if (oneListRes.name.endsWith(".json")) {
+                result.push({
+                    name: oneListRes.name.replace(".json", ""),
+                    path: pathPrefix + oneListRes.name
+                });
+            }
+        }
+        return result;
+    }
+    async removeSchema(schemaName) {
+        const path = this.saveDirPath + "schema/" + schemaName + ".json";
+        await removeFileAPI(path);
     }
     /**
      * 保存为schema（设置模板）
-     * @param {*} configData 
+     * @param {*} distinctConfigData 
      * @param {*} schemaName 
      * @returns 
      */
-    async saveAsSchema(configData, schemaName) {
+    async saveAsSchema(distinctConfigData, schemaName) {
         if (isFileNameIllegal(schemaName)) {
             throw new Error("Illegal File Name");
         }
         const filePathName = this.saveDirPath + "schema/" + schemaName + ".json";
-        return await putJSONFile(filePathName, configData);
+        return await putJSONFile(filePathName, distinctConfigData);
     }
     /**
      * 生成文件存储路径

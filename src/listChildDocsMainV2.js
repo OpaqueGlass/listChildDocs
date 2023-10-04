@@ -998,6 +998,8 @@ async function __init__() {
         window.frameElement.style.width = g_globalConfig.width_2file;
         window.frameElement.style.height = g_globalConfig.height_2file;
     }
+    // 载入预设schema
+    _showSchemaSelect();
     // 载入缓存处理
     if (g_myPrinter.write2file == 0 && (!g_allData["config"].auto || g_globalConfig.loadCacheWhileAutoEnable) ) {
         $("#updateTime").text(language["loading"]);
@@ -1047,6 +1049,36 @@ function _loadUserCSS() {
             document.head.appendChild(style);
         }
     });
+}
+/**
+ * 在界面中显示schema选择栏
+ */
+function _showSchemaSelect() {
+    logPush("Schema载入", window.location);
+    const elem = document.createElement("select");
+    elem.setAttribute("id", "schemaSelect");
+    elem.setAttribute("lay-filter", "schemaSelect");
+    elem.setAttribute("name", "schemaName");
+    g_configManager.listSchema().then((listRes)=>{
+        debugPush("Schema列表", listRes);
+        for (let oneListRes of listRes) {
+            const optionElem = document.createElement("option");
+            optionElem.setAttribute("value", oneListRes.name);
+            optionElem.innerText = oneListRes.name;
+            elem.appendChild(optionElem);
+        }
+        document.getElementById("schema-select-area")?.appendChild(elem);
+        layui.use(function(){
+            var form = layui.form;
+            form.render("select", 'schema-config'); 
+          
+          });
+    });
+    // layui.form.on('select(schemaSelect)', async function(data){
+    //     debugPush("Selct选择变动", data);
+    //     await g_configManager.applySchema(data.value)
+    //     window.location.reload();
+    // });
 }
 
 /**
@@ -1225,6 +1257,9 @@ function __buttonBinder() {
     form.on("submit(save)", _saveDistinctConfig);
     form.on("submit(savedefault)", _saveDefaultConfigData);
     form.on("submit(saveglobal)", _saveGlobalConfigData);
+    form.on("submit(saveSchema)", _saveNewSchema);
+    form.on("submit(loadIn)", _loadOneSchema);
+    form.on("submit(removeSchema)", _removeOneSchema);
     layui.util.on('lay-on', {
         "global-remove-distinct": removeDistinct,
         "global-remove-other": removeOther,
@@ -1305,6 +1340,27 @@ function _saveDefaultConfigData(submitData) {
     return false; // 阻止默认 form 跳转
 }
 
+function _saveNewSchema(submitData) {
+    const distinctConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
+    layer.prompt({
+        formType: 0,
+        value: '',
+        title: '请输入配置名称',
+        area: ['800px', '350px'] // 自定义文本域宽高
+      }, function(value, index, elem){
+        // 保存设置项
+        g_configManager.saveAsSchema(distinctConfig, value).then(()=>{
+            // reload会使用本地设置Reload，可能和保存的默认设置不同,突然刷新感觉不太好
+            // __reloadSettings();
+            layui.layer.msg(language["saved"], {icon: 1, time: 700, offset: "t"});
+            $("#updateTime").text(language["saved"]);
+        });
+        layer.close(index); // 关闭层
+      });
+    
+    return false; // 阻止默认 form 跳转
+}
+
 function _saveGlobalConfigData(submitData) {
     const globalConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
 
@@ -1314,6 +1370,26 @@ function _saveGlobalConfigData(submitData) {
         $("#updateTime").text(language["saved"]);
     });
     return false;
+}
+
+function _loadOneSchema(submitData) {
+    const schemaConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
+    debugPush("选择的配置名称", schemaConfig.schemaName);
+    g_configManager.applySchema(schemaConfig.schemaName).then(()=>{
+        window.location.reload();
+    });
+    return false; // 阻止默认 form 跳转
+}
+
+function _removeOneSchema(submitData) {
+    const schemaConfig = g_configViewManager.loadUISettings(submitData.form, submitData.field);
+    debugPush("选择的配置名称", schemaConfig.schemaName);
+    if (schemaConfig.schemaName == "default") {
+        layui.layer.msg("默认配置不可删除", {time: 3000, icon: 0});
+        return false;
+    }
+    g_configManager.removeSchema(schemaConfig.schemaName);
+    return false; // 阻止默认 form 跳转
 }
 
 // 读取ConfigManager中缓存的设定，重新设定自动模式、刷新printer

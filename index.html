@@ -258,8 +258,28 @@
                                         <button type="submit" class="layui-btn" lay-submit lay-filter="save">保存</button>
                                         <button type="submit" class="layui-btn  layui-btn-primary" lay-submit
                                             lay-filter="savedefault">保存为默认</button>
+                                        <button type="submit" class="layui-btn  layui-btn-primary" lay-submit
+                                        lay-filter="saveSchema">保存为配置</button>
                                         <button type="button" class="layui-btn layui-btn-primary" lay-on="resetWidgetHeight">重设挂件宽高</button>
                                     </div>
+                                </div>
+                            </form>
+                            <form class="layui-form" lay-filter="schema-config" id="schema-config">
+                                <div class="layui-form-item">
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">选择配置</label>
+                                        <div class="layui-input-inline" id="schema-select-area">
+                                            
+                                        </div>
+                                        <div class="layui-form-mid layui-text-em">
+                                            <i class="layui-icon layui-icon-tips" lay-tips="
+                                              您可以在这里选择载入已有的配置，选择配置后，将自动保存并刷新挂件。
+                                            "></i>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="layui-btn" lay-submit lay-filter="loadIn">载入配置</button>
+                                    <button type="submit" class="layui-btn  layui-btn-primary" lay-submit
+                                        lay-filter="removeSchema">删除配置</button>
                                 </div>
                             </form>
                             <div class="layui-form-item">
@@ -477,14 +497,14 @@
                                             <div class="layui-inline">
                                                 <label class="layui-form-label">自动高度最小值</label>
                                                 <div class="layui-input-inline flayui-limit-short-text-width">
-                                                    <input type="text" name="height_2widget_min" placeholder="(单位px)" autocomplete="off"
+                                                    <input type="number" name="height_2widget_min" placeholder="(单位px)" autocomplete="off"
                                                         class="layui-input">
                                                 </div>
                                             </div>
                                             <div class="layui-inline">
                                                 <label class="layui-form-label">自动高度最大值</label>
                                                 <div class="layui-input-inline flayui-limit-short-text-width">
-                                                    <input type="text" name="height_2widget_max" placeholder="(单位px)" autocomplete="off"
+                                                    <input type="number" name="height_2widget_max" placeholder="(单位px)" autocomplete="off"
                                                         class="layui-input">
                                                 </div>
                                             </div>
