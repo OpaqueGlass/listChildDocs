@@ -1345,7 +1345,7 @@ function _saveNewSchema(submitData) {
     layer.prompt({
         formType: 0,
         value: '',
-        title: '请输入配置名称',
+        title: language["configNameSet"],
         area: ['800px', '350px'] // 自定义文本域宽高
       }, function(value, index, elem){
         // 保存设置项

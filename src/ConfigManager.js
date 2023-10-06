@@ -200,7 +200,7 @@ export class ConfigSaveManager {
         if (this.saveMode != CONSTANTS_CONFIG_SAVE_MODE.WIDGET && pathVariable != null) {
             [this.allData["config"], this.globalConfig] = this.loadFromPathVar(pathVariable);
         }
-        // TODO: 判断是否需要使用schema
+        // ~~判断是否需要使用schema~~ Schema使用一次导入的方案，这里不做处理
         return [this.allData, this.globalConfig];
     }
     // 从url中读取设置
@@ -337,6 +337,11 @@ export class ConfigSaveManager {
         const filePathName = this.saveDirPath + "schema/" + CONFIG_MANAGER_CONSTANTS.DEFAULT;
         const response = await getJSONFile(filePathName);
         let temp = Object.assign({}, this.defaultConfig);
+        // 防止其他情况可能引入保存了childListId的情况
+        // QA：之前为什么没有保存？——使用的是表单内容直接保存的，表单中不涉及childListId，因而没有保存
+        if (response) {
+            delete response["childListId"];
+        }
         if (!response) {
             // TODO: 尝试载入旧设置项
             try {
@@ -433,6 +438,7 @@ export class ConfigSaveManager {
      * @returns 
      */
     async saveAsSchema(distinctConfigData, schemaName) {
+        // FIXME: 移除设置项中的`childListId`
         if (isFileNameIllegal(schemaName)) {
             throw new Error("Illegal File Name");
         }

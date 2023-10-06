@@ -256,12 +256,34 @@
                                         <button type="submit" class="layui-btn" lay-submit lay-filter="save">Save</button>
                                         <button type="submit" class="layui-btn  layui-btn-primary" lay-submit
                                             lay-filter="savedefault">Save as default</button>
+                                        <button type="submit" class="layui-btn  layui-btn-primary" lay-submit
+                                        lay-filter="saveSchema">Save as configuration</button>
                                         <button type="button" class="layui-btn layui-btn-primary" lay-on="resetWidgetHeight">Reset widget width and height</button>
                                     </div>
                                 </div>
                             </form>
-                            <div id="modeSetting">
+                            <form class="layui-form" lay-filter="schema-config" id="schema-config">
+                                <div class="layui-form-item">
+                                    <div class="layui-inline">
+                                        <label class="layui-form-label">Choose configuration</label>
+                                        <div class="layui-input-inline" id="schema-select-area">
+                                            
+                                        </div>
+                                        <div class="layui-form-mid layui-text-em">
+                                            <i class="layui-icon layui-icon-tips" lay-tips="
+                                              You can select and load an existing configuration here. After clicking 'Load Configuration', it will be automatically saved and the widget will be refreshed.
+                                            "></i>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="layui-btn" lay-submit lay-filter="loadIn">Load Configuration</button>
+                                    <button type="submit" class="layui-btn  layui-btn-primary" lay-submit
+                                        lay-filter="removeSchema">Delete configuration</button>
+                                </div>
+                            </form>
+                            <div class="layui-form-item">
+                                <div id="modeSetting">
 
+                                </div>
                             </div>
                         </div>
                         <div class="layui-tab-item">
