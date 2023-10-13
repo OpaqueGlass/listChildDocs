@@ -1,7 +1,7 @@
 /**
  * listChildDocs main V2
  */
-import { logPush, errorPush, warnPush, checkWorkEnvironment, commonPushCheck, WORK_ENVIRONMENT, isValidStr, debugPush, pushDebug, isInvalidValue, isSafelyUpdate, transfromAttrToIAL } from "./common.js";
+import { logPush, errorPush, warnPush, checkWorkEnvironment, commonPushCheck, WORK_ENVIRONMENT, isValidStr, debugPush, pushDebug, isInvalidValue, isSafelyUpdate, transfromAttrToIAL, generateBlockId } from "./common.js";
 import { ConfigSaveManager, CONSTANTS_CONFIG_SAVE_MODE, ConfigViewManager } from "./ConfigManager.js";
 import { 
     queryAPI,
@@ -349,10 +349,11 @@ function setColumn(rowOfText = g_rowCount) {
     if (nColumns == 0 && rowOfText > 0) {
         let fontSize = $("#linksContainer").css("font-size");
         if (fontSize == undefined) fontSize = "16px";
-        debugPush("widgetHeight", window.frameElement.style.height, window.frameElement.clientHeight, $("#linksContainer").outerHeight());
+        debugPush("widgetStyleHeight, widgetClientHeight, linksContainer.outerHeight", window.frameElement.style.height, window.frameElement.clientHeight, $("#linksContainer").outerHeight());
         // 单列可容纳行数
-        debugPush("height / fontSize", $("#linksContainer").innerHeight() / $("#linksContainer li").outerHeight());
+        debugPush("linksContainer.outerHeight / fontSize", $("#linksContainer").innerHeight() / $("#linksContainer li").outerHeight());
         let rowPerColumn = parseFloat(window.frameElement.clientHeight) / $("#linksContainer li").outerHeight();
+        debugPush("rowOfText", rowOfText);
         // 分列数
         debugPush("rowOfText / (height / fontSize)", rowOfText / rowPerColumn);
         nColumns = Math.ceil(rowOfText / rowPerColumn);
@@ -471,9 +472,11 @@ function adjustHeight(modeDoUpdateFlag) {
     if (g_globalConfig.autoHeight && modeDoUpdateFlag == 0 && g_myPrinter.write2file != 1) {
         // debugPush("挂件高度应当设为", $("body").outerHeight());
         let tempHeight = $("body").outerHeight() + 50;
+        debugPush("挂件内调整高度 当前body+10", tempHeight);
         if (isValidStr(g_globalConfig.height_2widget_min) && tempHeight < g_globalConfig.height_2widget_min) tempHeight = g_globalConfig.height_2widget_min;
         if (isValidStr(g_globalConfig.height_2widget_max) && tempHeight > g_globalConfig.height_2widget_max) tempHeight = g_globalConfig.height_2widget_max;
         window.frameElement.style.height = tempHeight + "px";
+        debugPush("挂件内调整高度");
     }
 }
 

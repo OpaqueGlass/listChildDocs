@@ -916,6 +916,7 @@ class OrderByTimePrinter extends Printer {
         // 
         let queryStmt = `SELECT * FROM blocks WHERE type="d" `;
         let isUpdateTime = false;
+        let rowCount = 0;
         let result = this.beforeAll();
         // 检索时区分检索范围
         // / 或 笔记本 或path比对
@@ -950,13 +951,15 @@ class OrderByTimePrinter extends Printer {
             if (currentDocDate != lastDate) {
                 if (lastDate != "") result += this.endOneDate();
                 result += this.startOneDate(currentDocDate);
+                rowCount++;
             }
             result += this.oneDocLink({"id": doc.id, "name": doc.content, "time": currentDocDateTime.substring(8, 12), "hpath": doc.hpath});
+            rowCount++;
             lastDate = currentDocDate;
         }
         result += this.endOneDate() + this.afterAll();
         // logPush(result);
-        return [result, queryDocsResponse.length];
+        return [result, rowCount];
     }
 }
 
