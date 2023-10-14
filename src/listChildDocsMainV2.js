@@ -776,10 +776,25 @@ async function touchendHandler(touchEvent) {
 
 async function rightClickHandler(mouseEvent) {
     if (mouseEvent.buttons != 2) return;
-    if (g_globalConfig.backToParent != "false" && $(mouseEvent.currentTarget).text().includes("../")) return;
+    // 这里是临时支持../右键修改当前文档，依赖currentTarget只读取data-id
+    let tempId;
+    if (g_globalConfig.backToParent != "false" && $(mouseEvent.currentTarget).text().includes("../")) {
+        tempId = mouseEvent.currentTarget.getAttribute("data-id");
+        mouseEvent.currentTarget.setAttribute("data-id", g_currentDocId);
+        // return;
+    };
     mouseEvent.stopPropagation();
     mouseEvent.preventDefault();
-    await deleteOrRename(mouseEvent.currentTarget, mouseEvent.ctrlKey);
+    try {
+        await deleteOrRename(mouseEvent.currentTarget, mouseEvent.ctrlKey);
+    } catch (err) {
+        errorPush("删除或重命名时出现错误", err);
+    }
+    // 这里是临时支持../右键修改当前页面，还原现场，防止跳转时再出错
+    if (g_globalConfig.backToParent != "false" && $(mouseEvent.currentTarget).text().includes("../")) {
+        mouseEvent.currentTarget.setAttribute("data-id", tempId);
+        // return;
+    };
 }
 
 // 删除或重命名处理
@@ -810,8 +825,13 @@ try{
         cancelValue: language["dialog_cancel"],
         skin: isDarkMode()?"dark_dialog delete_dialog":"delete_dialog"
     });
+    // 依据选择对象更改标题
+    let renameDialogTitle = `${language["dialog_option"]}: ${docName}`;
+    if (docId == g_currentDocId) {
+        renameDialogTitle = `${language["dialog_option"]}: 【${language["currentDoc"]}】${docName}`;
+    }
     let renameDialog = dialog({
-        title: `${language["dialog_option"]}: ${docName}`,
+        title: renameDialogTitle,
         content: `<input id="dialog_rename_input" type="text" value="${docName}" autofocus onfocus="this.select();" />`,
         quickClose: true,
         button: [
@@ -871,7 +891,7 @@ try{
             })
         }
     });
-    if (ctrlKey){
+    if (ctrlKey && docId != g_currentDocId){
         deleteDialog.show(target);
     }else{
         renameDialog.show(target);
