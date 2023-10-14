@@ -1,7 +1,7 @@
 /**
  * 读取或保存配置
  */
-import { getJSONFile, putJSONFile, addblockAttrAPI, getblockAttrAPI, listFileAPI } from "./API.js";
+import { getJSONFile, putJSONFile, addblockAttrAPI, getblockAttrAPI, listFileAPI, removeFileAPI } from "./API.js";
 import { debugPush, isFileNameIllegal, isValidStr, logPush } from "./common.js";
 /**
  * 负责配置文件的读取和写入

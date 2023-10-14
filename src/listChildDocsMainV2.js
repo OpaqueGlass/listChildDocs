@@ -1090,7 +1090,11 @@ function _showSchemaSelect() {
             optionElem.innerText = oneListRes.name;
             elem.appendChild(optionElem);
         }
-        document.getElementById("schema-select-area")?.appendChild(elem);
+        const schemaSelectArea = document.getElementById("schema-select-area");
+        if (schemaSelectArea) {
+            schemaSelectArea.innerHTML = "";
+            schemaSelectArea.appendChild(elem);
+        }
         layui.use(function(){
             var form = layui.form;
             form.render("select", 'schema-config'); 
@@ -1377,6 +1381,7 @@ function _saveNewSchema(submitData) {
             // __reloadSettings();
             layui.layer.msg(language["saved"], {icon: 1, time: 700, offset: "t"});
             $("#updateTime").text(language["saved"]);
+            setTimeout(_showSchemaSelect, 500);
         });
         layer.close(index); // 关闭层
       });
@@ -1411,7 +1416,9 @@ function _removeOneSchema(submitData) {
         layui.layer.msg("默认配置不可删除", {time: 3000, icon: 0});
         return false;
     }
-    g_configManager.removeSchema(schemaConfig.schemaName);
+    g_configManager.removeSchema(schemaConfig.schemaName).then(()=>{
+        setTimeout(_showSchemaSelect, 500);
+    });
     return false; // 阻止默认 form 跳转
 }
 
