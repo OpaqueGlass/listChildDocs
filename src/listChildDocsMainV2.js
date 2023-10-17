@@ -473,8 +473,8 @@ function adjustHeight(modeDoUpdateFlag) {
         // debugPush("挂件高度应当设为", $("body").outerHeight());
         let tempHeight = $("body").outerHeight() + 50;
         debugPush("挂件内调整高度 当前body+10", tempHeight);
-        if (isValidStr(g_globalConfig.height_2widget_min) && tempHeight < g_globalConfig.height_2widget_min) tempHeight = g_globalConfig.height_2widget_min;
-        if (isValidStr(g_globalConfig.height_2widget_max) && tempHeight > g_globalConfig.height_2widget_max) tempHeight = g_globalConfig.height_2widget_max;
+        if (isValidStr(g_globalConfig.height_2widget_min) && tempHeight < g_globalConfig.height_2widget_min) tempHeight = parseInt(g_globalConfig.height_2widget_min);
+        if (isValidStr(g_globalConfig.height_2widget_max) && tempHeight > g_globalConfig.height_2widget_max) tempHeight = parseInt(g_globalConfig.height_2widget_max);
         window.frameElement.style.height = tempHeight + "px";
         debugPush("挂件内调整高度");
     }
@@ -1153,77 +1153,85 @@ function __shortcutBinder(bindFlag = true) {
  */
 function findDialogCreate() {
     if (g_myPrinter.write2file == 1) return;
+    // 关闭最高的那个
     /* search对话框面板 */
-    let findDialog = dialog({
-        title: language["dialog_search_panel"],
-        content: `<input id="dialog_find_input" type="text"" autofocus onfocus="this.select();" />`,
-        quickClose: true,
-        ok: function() {
-            let searchText = $("#dialog_find_input").val().toLowerCase().split(" ");
-            let matchAnyFlag = false;
-            $(".search_highlight").removeClass("search_highlight");
-            $("#linksList li, .needSearch").each(function() {
-                let liHtml = $(this).html();
-                let liText = $(this).text().toLowerCase();
-                let matchFlag = false;
-                for (let i = 0; i < searchText.length; i++) {
-                    if (liText.indexOf(searchText[i]) == -1) {
-                        break;
-                    }
-                    if (i == searchText.length - 1) {
-                        matchFlag = true;
-                    }
-                }
-                if (matchFlag) {
-                    $(this).addClass("search_highlight");
-                    matchAnyFlag = true;
-                }
-            });
-            if (matchAnyFlag) {
-                this.close();
-                this.remove();
-                return false;
-            }else{
-                $(".search_dialog button[i-id='ok']").text(language["dialog_search_nomatch"]);
-                setTimeout(()=>{$(".search_dialog button[i-id='ok']").text(language["dialog_search"]);}, 2000);
-                return false;
-            }
-            
-        },
-        button: [{
-            value: language["dialog_search_cancel"],
-            callback:  function() {
-                // $(".search_target").removeClass("search_target");
+    if (g_findDialog) {
+        g_findDialog.remove();
+        g_findDialog = null;
+    } else {
+        g_findDialog = dialog({
+            title: language["dialog_search_panel"],
+            content: `<input id="dialog_find_input" type="text"" autofocus onfocus="this.select();" />`,
+            quickClose: true,
+            ok: function() {
+                let searchText = $("#dialog_find_input").val().toLowerCase().split(" ");
+                let matchAnyFlag = false;
                 $(".search_highlight").removeClass("search_highlight");
+                $("#linksList li, .needSearch").each(function() {
+                    let liHtml = $(this).html();
+                    let liText = $(this).text().toLowerCase();
+                    let matchFlag = false;
+                    for (let i = 0; i < searchText.length; i++) {
+                        if (liText.indexOf(searchText[i]) == -1) {
+                            break;
+                        }
+                        if (i == searchText.length - 1) {
+                            matchFlag = true;
+                        }
+                    }
+                    if (matchFlag) {
+                        $(this).addClass("search_highlight");
+                        matchAnyFlag = true;
+                    }
+                });
+                if (matchAnyFlag) {
+                    this.close();
+                    this.remove();
+                    return false;
+                }else{
+                    $(".search_dialog button[i-id='ok']").text(language["dialog_search_nomatch"]);
+                    setTimeout(()=>{$(".search_dialog button[i-id='ok']").text(language["dialog_search"]);}, 2000);
+                    return false;
+                }
+                
+            },
+            button: [{
+                value: language["dialog_search_cancel"],
+                callback:  function() {
+                    // $(".search_target").removeClass("search_target");
+                    $(".search_highlight").removeClass("search_highlight");
+                    this.close();
+                    this.remove();
+                    return false;
+                }
+            }],
+            cancel: function(){
                 this.close();
                 this.remove();
                 return false;
-            }
-        }],
-        cancel: function(){
-            this.close();
-            this.remove();
-            return false;
-        },
-        okValue: language["dialog_search"],
-        cancelDisplay: false,
-        skin: isDarkMode()?"dark_dialog search_dialog":"search_dialog",
-        onshow: function() {
-            $("#dialog_find_input").on("keyup", (event)=>{
-                if (event.keyCode == 13) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    let okBtn = $(".search_dialog button[i-id='ok']");
-                    if (okBtn.length == 1) {
-                        okBtn.click();
-                    }else{
-                        warnPush("回车匹配到多个按钮，已停止操作");
+            },
+            okValue: language["dialog_search"],
+            cancelDisplay: false,
+            skin: isDarkMode()?"dark_dialog search_dialog":"search_dialog",
+            onshow: function() {
+                $("#dialog_find_input").on("keyup", (event)=>{
+                    if (event.keyCode == 13) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        let okBtn = $(".search_dialog button[i-id='ok']");
+                        if (okBtn.length == 1) {
+                            okBtn.click();
+                        }else{
+                            warnPush("回车匹配到多个按钮，已停止操作");
+                        }
                     }
-                }
-            })
-        }
-    });
-    findDialog.show(this);
+                })
+            }
+        });
+        
+        g_findDialog.show(this);
+    }
+    
 }
 
 function __formInputChangeBinder() {
@@ -1417,6 +1425,7 @@ function _removeOneSchema(submitData) {
         return false;
     }
     g_configManager.removeSchema(schemaConfig.schemaName).then(()=>{
+        layui.layer.msg(language["deletedSchema"], {icon: 1, time: 700, offset: "t"});
         setTimeout(_showSchemaSelect, 500);
     });
     return false; // 阻止默认 form 跳转
@@ -1742,6 +1751,7 @@ let g_pluginWorkConfig = {
     "insertBlockAPI": "PARENT", // NEXT | PREVIOUS | PARENT
     "prohibitWrite2FileMode": false,
 };
+let g_findDialog = null;
 
 // 旧全局变量
 

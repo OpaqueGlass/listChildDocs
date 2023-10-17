@@ -325,7 +325,8 @@ let zh_CN = {
     removeFileSuccess: "成功删除%1%个配置文件。另有%2%个在使用中的配置文件未清理。",
     confirmTitle: "二次确认",
     configNameSet: "请输入配置名称",
-    currentDoc: "当前文档"
+    currentDoc: "当前文档",
+    deletedSchema: "所选配置已删除",
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
@@ -464,6 +465,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     confirmTitle: "Secondary Confirmation",
     configNameSet: "Please enter the configuration name",
     currentDoc: "Current Doc",
+    deletedSchema: "The selected schema has been deleted."
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~

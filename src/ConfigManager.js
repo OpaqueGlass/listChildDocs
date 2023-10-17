@@ -387,6 +387,12 @@ export class ConfigSaveManager {
             // END: 
             return Object.assign({}, this.defaultGlobalConfig);
         } else {
+            if (response.height_2widget_max) {
+                response.height_2widget_max = parseInt(response.height_2widget_max);
+            }
+            if (response.height_2widget_min) {
+                response.height_2widget_min = parseInt(response.height_2widget_min);
+            }
             let temp = Object.assign({}, this.defaultGlobalConfig);
             return Object.assign(temp, response);
         }
