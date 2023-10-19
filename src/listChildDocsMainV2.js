@@ -837,17 +837,9 @@ try{
         button: [
             {
                 value: language["dialog_create_doc"],
-                callback: async function() {
-                    let newName = $("#dialog_rename_input").val();
-                    if (newName == docName || !isValidStr(newName)) {
-                        newName = "Untitled";
-                    }
-                    // 这个createDocWithMdAPI不太稳定 @_@
-                    // let id = await createDocWithMdAPI(queryResponse[0].box, queryResponse[0].hpath + `/${newName}`, "");
-                    let id = generateBlockId();
-                    await createDocWithPath(queryResponse[0].box,
-                         queryResponse[0].path.substring(0, queryResponse[0].path.length - 3) + `/${id}.sy`, newName);
-                    openRefLink(undefined, id);
+                callback: function() {
+                    createChildDoc(docName, queryResponse, false);
+                    return true;
                 }
             },
             {
@@ -878,7 +870,7 @@ try{
         skin: isDarkMode()?"dark_dialog rename_dialog":"rename_dialog",
         onshow: function() {
             $("#dialog_rename_input").on("keyup", (event)=>{
-                if (event.keyCode == 13) {
+                if (event.keyCode == 13 && !event.ctrlKey && !event.shiftKey) {
                     event.preventDefault();
                     event.stopPropagation();
                     let okBtn = $(".rename_dialog button[i-id='ok']");
@@ -887,6 +879,17 @@ try{
                     }else{
                         warnPush("回车匹配到多个按钮，已停止操作");
                     }
+                }else if (event.keyCode == 13 && event.ctrlKey) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    createChildDoc(docName, queryResponse, true);
+                    // let createBtn = $(`.rename_dialog button[i-id='${language["dialog_create_doc"]}']`);
+                    // debugPush("createBtn", createBtn);
+                    // if (createBtn.length == 1) {
+                    //     createBtn.click();
+                    // }else{
+                    //     warnPush("回车匹配到多个按钮，已停止操作");
+                    // }
                 }
             })
         }
@@ -905,6 +908,25 @@ try{
     pushDebug(err);
     errorPush(err);
 }
+    // 非工具类，需要传入 原文档名，原文档数据库信息，是否连续输入
+    function createChildDoc(docName, queryResponse, continueInput = false) {
+        let newName = $("#dialog_rename_input").val();
+        if (newName == docName || !isValidStr(newName)) {
+            newName = "Untitled";
+        }
+        // 这个createDocWithMdAPI不太稳定 @_@
+        // let id = await createDocWithMdAPI(queryResponse[0].box, queryResponse[0].hpath + `/${newName}`, "");
+        let id = generateBlockId();
+        createDocWithPath(queryResponse[0].box,
+             queryResponse[0].path.substring(0, queryResponse[0].path.length - 3) + `/${id}.sy`, newName).then(()=>{
+                layui.layer.msg(language["childDocsCreated"]);
+             });
+        $("#dialog_rename_input").select();
+        if (!continueInput) {
+            setTimeout(function(){__main(true)}, 300);
+            openRefLink(undefined, id);
+        }
+    }
 }
 
 let refreshBtnTimeout;
