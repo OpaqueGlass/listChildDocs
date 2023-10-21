@@ -492,7 +492,6 @@ async function __main(manual = false, justCreate = false) {
     } else {
         return;
     }
-    g_allData["config"] = await g_configManager.getDistinctConfig();
     let msgLayer;
     let startTime = new Date();
     $("#updateTime").text(language["working"]);
@@ -505,6 +504,7 @@ async function __main(manual = false, justCreate = false) {
     let modeDoUpdateFlag = 1;
     // pushMsgAPI(language["startRefresh"], 4500);
     try {
+        g_allData["config"] = await g_configManager.getDistinctConfig();
         //获取挂件参数
         if (manual) {
             await __reloadSettings();
@@ -1066,7 +1066,13 @@ async function __init__() {
         if (g_globalConfig.safeMode && g_myPrinter.write2file == 1) return;
         // 挂件刚创建，且写入文档，禁止操作，因为widgetId未入库，无法创建；
         if (g_justCreate && g_myPrinter.write2file == 1) return;
-        __main(false, g_justCreate);//初始化模式
+        try {
+            __main(false, g_justCreate);//初始化模式
+        } catch (e) {
+            errorPush("初始化时发生错误", e);
+            errorShow(err.message);
+        }
+        
     }
 }
 
