@@ -74,3 +74,89 @@ If you are not satisfied with the default style of the widget, you can modify it
 - About writing custom emoji pictures:
    - Please avoid including special symbols in the image path, such as `()%&`, if included, the actual effect cannot be determined;
    - Internet emoji is not supported for now;
+
+
+## Reference & Thanks
+
+This widget uses/references the following projects:
+
+| Developer | Project | Open Source Agreement | Detail |
+| -------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- | -------------------------------- |
+| [leolee9086](https://github.com/leolee9086) | [cc-template](https://github.com/leolee9086/cc-template) | [Mulan Permissive License, Version 2](https://github.com/leolee9086/cc-template/blob/main/LICENSE) | Display the "reference block" in the widget |
+| [InEase](https://github.com/InEase) | [Note Map](https://github.com/InEase/SiYuan-Xmind) | N/A | API Usage |
+| [Zuoqiu-Yingyi](https://github.com/Zuoqiu-Yingyi) | [widget-query](https://github.com/Zuoqiu-Yingyi/widget-query) | AGPL-3.0 | From custom. js import custom settings |
+| | [Trilium](https://github.com/zadam/trilium) / note-list-widget | | Preview grid mode css style, and functional design |
+
+The following developer participated in code contributions:
+
+- [Zuoqiu-Yingyi](https://github.com/Zuoqiu-Yingyi);
+
+(For details, see [Contributor (Developer) List](https://github.com/OpaqueGlass/listChildDocs/graphs/contributors))
+
+
+### Dependencies
+
+1. [jQuery](https://jquery.com/) (In this project, page elements are selected through jQuery);
+
+```
+jQuery JavaScript Library v3.6.0 https://jquery.com/
+Copyright OpenJS Foundation and other contributors
+Released under the MIT license https://jquery.org/license
+```
+
+2. [markmap](https://markmap.js.org/);
+
+```
+markmap-lib v0.14.3 | MIT License
+markmap-view v0.14.3 | MIT License
+https://github.com/markmap/markmap
+https://markmap.js.org/
+```
+
+3. [d3.js](https://d3js.org);
+
+```
+BSD-3-Clause https://opensource.org/licenses/BSD-3-Clause
+https://d3js.org v6.7.0 Copyright 2021 Mike Bostock
+```
+
+4. [day.js](https://day.js.org/);
+
+```
+Day.js is licensed under a MIT License.
+https://github.com/iamkun/dayjs/
+https://day.js.org/
+```
+
+5. [artDialog](https://github.com/aui/artDialog);
+
+```
+Free and open source, based on the LGPL-3.0 license.
+https://github.com/aui/artDialog
+aui.github.io/artDialog/
+```
+
+6. [layui](https://gitee.com/layui/layui)
+
+```
+Layui is released under the MIT license. 
+For other relevant agreements, please refer to the "Disclaimer"
+https://gitee.com/layui/layui/blob/main/DISCLAIMER.md.
+```
+
+7. [Sortable.js](https://github.com/SortableJS/Sortable)
+
+```
+https://github.com/SortableJS/Sortable
+MIT LICENSE
+```
+
+### icon
+
+1. [Refresh button icon](https://www.iconfinder.com/icons/5402417/refresh_rotate_sync_update_reload_repeat_icon), author: [amoghdesign](https://www.iconfinder.com/amoghdesign), license agreement: [CC3.0 BY-NC](http://creativecommons.org/licenses/by-nc/3.0/);
+
+2. [Setting button icon](https://lucide.dev/?search=setting), [Lucide](https://github.com/lucide-icons/lucide), [ISC License](https://lucide.dev/license);
+
+3. [Search button icon](https://lucide.dev/?search=search), [Lucide](https://github.com/lucide-icons/lucide), [ISC License](https://lucide.dev/license).
+
+[^1]: Clicking the refresh button will update the directory list, directory cache or save settings in the widget, and the current device document editing time will also be updated. If the current device is not synced, the current device's "old" documents will overwrite the cloud content, causing edits from other devices to be lost.
