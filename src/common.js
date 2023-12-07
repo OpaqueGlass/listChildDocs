@@ -1,7 +1,7 @@
 /**
  * common.js 一些可能常用的方法
  */
-import {isMobile} from "./API.js";
+
 /**
  * 检查窗口状况，防止在历史预览页面刷新更改文档
  * @param thisDocId 待判断的文档id
@@ -23,16 +23,16 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
             if (key in config) {
                 config[key] = customConfig[key];
             }else{
-                console.warn("传入的自定义检查项配置部分不存在", key);
+                warnPush("传入的自定义检查项配置部分不存在", key);
             }
         }
     }
-    // console.log($(window.top.document).find(".b3-dialog--open #historyContainer")); // 防止历史预览界面刷新
+    // logPush($(window.top.document).find(".b3-dialog--open #historyContainer")); // 防止历史预览界面刷新
     try{
         // 判定历史预览页面 history
         // $(window.top.document).find(".b3-dialog--open #historyContainer").length >= 1
         if (window.top.document.querySelectorAll(".b3-dialog--open #historyContainer").length >= 1 && config.history) {
-            console.log("安全刷新：在历史页面");
+            logPush("安全刷新：在历史页面");
             return false;
         }
         // 旧方法：存在多个编辑窗口只判断第一个的问题；保留用于判断界面是否大改
@@ -42,17 +42,17 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
         // $(window.top.document).find(".protyle-wysiwyg").attr("contenteditable") == undefined
         let anyDocEditable = window.top.document.querySelector(".protyle-wysiwyg").getAttribute("contenteditable");
         if (anyDocEditable == undefined || anyDocEditable == null) {
-            console.warn("界面更新，请@开发者重新适配");
+            warnPush("界面更新，请@开发者重新适配");
             return false;
         }
         // if (anyDocEditable == "false" && config.anyDoc) {
-        //     console.warn("存在一个文档为只读状态");
+        //     warnPush("存在一个文档为只读状态");
         //     return false;
         // }
         // 判定文档已打开&只读模式【挂件所在文档在窗口中，且页面为编辑状态，则放行】
         // 只读模式判定警告：若在闪卡页面，且后台开启了当前文档（编辑模式），只读不会拦截
-        // console.log($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false");
-        // console.log($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`));
+        // logPush($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false");
+        // logPush($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`));
         // $(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`)
         let candidateThisDocEditor = window.top.document.querySelector(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`);
         let candidateThisDocPopup = window.top.document.querySelector(`.block__popover[data-oid="${thisDocId}"] .protyle-wysiwyg`);
@@ -60,25 +60,25 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
                 && (!isValidStr(candidateThisDocPopup) || candidateThisDocPopup.length <= 0)) {
             if (config.widgetMode && config.targetDoc) {
                 if (window.top.document.querySelector(`.block__popover[data-oid] [data-node-id="${thisWidgetId}"]`).length <= 0) {
-                    console.warn("未在窗口中找到挂件所在的文档（文档所在文档编辑器可能未打开），为防止后台更新，此操作已拦截。");
+                    warnPush("未在窗口中找到挂件所在的文档（文档所在文档编辑器可能未打开），为防止后台更新，此操作已拦截。");
                     return false;
                 }
             }else if (config.targetDoc) {
-                console.warn("未在窗口中找到目标文档（文档所在文档编辑器可能未打开），为防止后台更新，此操作已拦截。");
+                warnPush("未在窗口中找到目标文档（文档所在文档编辑器可能未打开），为防止后台更新，此操作已拦截。");
                 return false;
             }
         }
         if (candidateThisDocEditor == null && candidateThisDocPopup == null) {
-            console.warn("找不到挂件所在文档");
+            warnPush("找不到挂件所在文档");
         }
         // 判定只读模式
         // $(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false"
         if (!isMobile() && config.targetDoc && (candidateThisDocEditor == null ? candidateThisDocPopup : candidateThisDocEditor).getAttribute("contenteditable") == "false") {
-            console.log("安全刷新：candidateEditor或Popup判定在只读模式", candidateThisDocEditor, candidateThisDocPopup, thisDocId);
+            logPush("安全刷新：candidateEditor或Popup判定在只读模式", candidateThisDocEditor, candidateThisDocPopup, thisDocId);
             return false;
         }
     }catch (err) {
-        console.warn(`安全检查时出现错误，已${config.allowWhenError?"放行":"禁止"}刷新操作，错误为：`, err);
+        warnPush(`安全检查时出现错误，已${config.allowWhenError?"放行":"禁止"}刷新操作，错误为：`, err);
         return config.allowWhenError;
     }
     
@@ -254,3 +254,7 @@ export const WORK_ENVIRONMENT = {
     "WIDGET": 2, // 在挂件中，有挂件上下文
     "IFRAME":3, // 在页面中嵌入，但无window.siyuan上下文
 }
+
+export function isMobile() {
+    return window.top.document.getElementById("sidebar") ? true : false;
+};

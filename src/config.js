@@ -483,67 +483,6 @@ if (siyuanLanguage != "zh_CN" && siyuanLanguage != undefined) {
 
 
 // 导入外部config.js 测试功能，如果您不清楚，请避免修改此部分；
-let allCustomConfig = null;
-let syntaxCheck = true;
-// try {
-//     let hello = undefined?.a;
-// }catch(err) {
-//     syntaxCheck = false;
-// }
-function loadCustomSetting(allCustomConfig) {
-    let customConfig = null;
-    let customConfigName = "listChildDocs";
-    if (allCustomConfig[customConfigName] != undefined) {
-        customConfig = allCustomConfig[customConfigName];
-    }else if (allCustomConfig.config != undefined && allCustomConfig.config[customConfigName] != undefined) {
-        customConfig = allCustomConfig.config[customConfigName];
-    }
-    // 导入token
-    if (allCustomConfig.token != undefined) {
-        token = allCustomConfig.token;
-    }else if (allCustomConfig.config != undefined && allCustomConfig.config.token != undefined) {
-        token = allCustomConfig.config.token;
-    }
-    
-    // 仅限于config.setting/config.defaultAttr下一级属性存在则替换，深层对象属性将完全覆盖
-    if (customConfig != null) {
-        if ("setting" in customConfig) {
-            for (let key in customConfig.setting) {
-                if (key in setting) {
-                    setting[key] = customConfig.setting[key];
-                }
-            }
-        }
-        // dev： 引入每一个，每一行都要改
-        if ("custom_attr" in customConfig) { //改1处
-            for (let key in customConfig.custom_attr) {//改1处
-                if (key in custom_attr) {//改1处
-                    custom_attr[key] = customConfig.custom_attr[key];//改2处
-                }
-            }
-        }
-
-        if ("helperSettings" in customConfig) {
-            for (let key in customConfig.helperSettings) {
-                if (key in helperSettings) {
-                    helperSettings[key] = customConfig.helperSettings[key];
-                }
-            }
-        }
-        
-    }
-    console.log("成功从配置文件载入用户配置");
-}
-try {
-    if (syntaxCheck) {
-        allCustomConfig = import('/widgets/custom.js').then((res)=>{
-            loadCustomSetting(res["config"]);
-    });
-    }
-    
-}catch (err) {
-    console.warn("导入用户自定义设置时出现错误", err);
-}
 
 //注：下方的排序分类可能不会随着思源版本而及时更新
 const SORT_TYPES = {

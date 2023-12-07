@@ -3,7 +3,7 @@
  * 用于发送思源api请求。
  */
 import {token, setting} from "./config.js";
-import { isValidStr } from "./common.js";
+import { isValidStr, logPush, warnPush, errorPush, debugPush } from "./common.js";
 /**向思源api发送请求
  * @param data 传递的信息（body）
  * @param url 请求的地址
@@ -146,12 +146,12 @@ export async function updateBlockAPI(text, blockid, textType = "markdown"){
             return response.data[0].doOperations[0];
         }
         if (response.code == -1){
-            console.warn("更新块失败", response.msg);
+            warnPush("更新块失败", response.msg);
             return null;
         }
     }catch(err){
-        console.error(err);
-        console.warn(response.msg);
+        errorPush(err);
+        warnPush(response.msg);
     }
     return null;
 }
@@ -194,12 +194,12 @@ export async function insertBlockAPI(text, blockid, addType = "previousID", text
             return response.data[0].doOperations[0];
         }
         if (response.code == -1){
-            console.warn("插入块失败", response.msg);
+            warnPush("插入块失败", response.msg);
             return null;
         }
     }catch(err){
-        console.error(err);
-        console.warn(response.msg);
+        errorPush(err);
+        warnPush(response.msg);
     }
     return null;
 
@@ -237,12 +237,12 @@ export async function prependBlockAPI(text, parentId, textType = "markdown"){
             return response.data[0].doOperations[0];
         }
         if (response.code == -1){
-            console.warn("插入块失败", response.msg);
+            warnPush("插入块失败", response.msg);
             return null;
         }
     }catch(err){
-        console.error(err);
-        console.warn(response.msg);
+        errorPush(err);
+        warnPush(response.msg);
     }
     return null;
 
@@ -263,12 +263,12 @@ export async function appendBlockAPI(text, parentId, textType = "markdown"){
             return response.data[0].doOperations[0];
         }
         if (response.code == -1){
-            console.warn("插入块失败", response.msg);
+            warnPush("插入块失败", response.msg);
             return null;
         }
     }catch(err){
-        console.error(err);
-        console.warn(response.msg);
+        errorPush(err);
+        warnPush(response.msg);
     }
     return null;
 
@@ -299,11 +299,15 @@ export async function getCurrentDocIdF(){
     
     //依靠widgetId sql查，运行时最稳定方案（但挂件刚插入时查询不到！）
     if (isValidStr(thisWidgetId)){
-        let queryResult = await queryAPI("SELECT root_id as parentId FROM blocks WHERE id = '" + thisWidgetId + "'");
-        console.assert(queryResult != null && queryResult.length == 1, "SQL查询失败", queryResult);
-        if (queryResult!= null && queryResult.length >= 1){
-            console.log("获取当前文档idBy方案A"+queryResult[0].parentId);
-            return queryResult[0].parentId;
+        try {
+            let queryResult = await queryAPI("SELECT root_id as parentId FROM blocks WHERE id = '" + thisWidgetId + "'");
+            console.assert(queryResult != null && queryResult.length == 1, "SQL查询失败", queryResult);
+            if (queryResult!= null && queryResult.length >= 1){
+                logPush("获取当前文档idBy方案A"+queryResult[0].parentId);
+                return queryResult[0].parentId;
+            }
+        } catch (error) {
+            logPush("获取文档idBy方案A失败", error);
         }
     }
 
@@ -312,13 +316,13 @@ export async function getCurrentDocIdF(){
             //通过获取挂件所在页面题头图的data-node-id获取文档id【安卓下跳转返回有问题，原因未知】
             let thisDocId = window.top.document.querySelector(`div.protyle-content:has(.iframe[data-node-id="${thisWidgetId}"]) .protyle-background`).getAttribute("data-node-id");
             if (isValidStr(thisDocId)){
-                console.log("获取当前文档idBy方案B" + thisDocId);
+                logPush("获取当前文档idBy方案B" + thisDocId);
                 return thisDocId;
             }
         }
         
     }catch(err){
-        console.warn(err);
+        warnPush(err);
     }
 
     // 移动端文档id获取
@@ -336,15 +340,15 @@ export async function getCurrentDocIdF(){
                     break;
                 }
             }
-            console.debug("文档图标获取当前文档id", temp);
+            debugPush("文档图标获取当前文档id", temp);
             thisDocId = temp;
         }catch(e){
-            console.warn("通过文档图标获取当前文档id失败", e);
+            warnPush("通过文档图标获取当前文档id失败", e);
             temp = null;
         }
         if (!thisDocId) {
             thisDocId = window.top.document.querySelector(".protyle.fn__flex-1:not(.fn__none) .protyle-background")?.getAttribute("data-node-id");
-            console.debug("使用background的匹配值", thisDocId);
+            debugPush("使用background的匹配值", thisDocId);
         }
         return thisDocId;
     }
@@ -353,9 +357,9 @@ export async function getCurrentDocIdF(){
     if (!isValidStr(thisWidgetId)){
         try{
             thisDocId = window.top.document.querySelector(".layout__wnd--active .protyle.fn__flex-1:not(.fn__none) .protyle-background").getAttribute("data-node-id");
-            console.log("获取当前文档idBy方案C" + thisDocId);
+            logPush("获取当前文档idBy方案C" + thisDocId);
         }catch(err){
-            console.warn("获取当前文档id均失败");
+            warnPush("获取当前文档id均失败");
             return null;
         }
         return thisDocId;
@@ -375,7 +379,7 @@ export function getCurrentWidgetId(){
             return window.frameElement.parentElement.parentElement.dataset.nodeId;
         }
     }catch(err){
-        console.warn("getCurrentWidgetId window...nodeId方法失效");
+        warnPush("getCurrentWidgetId window...nodeId方法失效");
         return null;
     }
 }
@@ -390,8 +394,8 @@ export function getCurrentWidgetId(){
             return true;
         }
     }catch(err){
-        console.error(err);
-        console.warn("检查操作系统失败");
+        errorPush(err);
+        warnPush("检查操作系统失败");
     }
     
     return false;
@@ -407,7 +411,7 @@ export async function removeBlockAPI(blockid){
     if (response.code == 0){
         return true;
     }
-    console.warn("删除块失败", response);
+    warnPush("删除块失败", response);
     return false;
 }
 
@@ -459,7 +463,7 @@ export function getNotebookInfoLocallyF(notebookId = undefined) {
         }
         return undefined;
     }catch(err) {
-        console.error(err);
+        errorPush(err);
         return undefined;
     }
 }
@@ -480,7 +484,7 @@ export function getNotebookSortModeF(notebookId = undefined) {
         }
         return notebookSortMode;
     }catch(err) {
-        console.error(err);
+        errorPush(err);
         return undefined;
     }
 }
@@ -500,14 +504,13 @@ export async function addRiffCards(ids, deckId, oldCardsNum = -1) {
     };
     let response = await postRequest(postBody, url);
     if (response.code == 0 && response.data != null && "size" in response.data) {
-        console.log(response.data);
         if (oldCardsNum < 0) {
             return response.data.size;
         }else{
             return response.data.size - oldCardsNum;
         }
     }
-    console.warn("添加闪卡出错", response);
+    warnPush("添加闪卡出错", response);
     return null;
 }
 
@@ -526,14 +529,13 @@ export async function removeRiffCards(ids, deckId, oldCardsNum = -1) {
     };
     let response = await postRequest(postBody, url);
     if (response.code == 0 && response.data != null && "size" in response.data) {
-        console.log(response.data);
         if (oldCardsNum < 0) {
             return response.data.size;
         }else{
             return oldCardsNum - response.data.size;
         }
     }
-    console.warn("移除闪卡出错", response);
+    warnPush("移除闪卡出错", response);
     return null;
 }
 
@@ -595,7 +597,7 @@ export async function removeDocAPI(notebookid, path) {
     if (response.code == 0) {
         return response.code;
     }
-    console.warn("删除文档时发生错误", response.msg);
+    warnPush("删除文档时发生错误", response.msg);
     return response.code;
 }
 /**
@@ -611,7 +613,7 @@ export async function renameDocAPI(notebookid, path, title) {
     if (response.code == 0) {
         return response.code;
     }
-    console.warn("重命名文档时发生错误", response.msg);
+    warnPush("重命名文档时发生错误", response.msg);
     return response.code;
 }
 
