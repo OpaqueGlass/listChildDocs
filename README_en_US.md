@@ -28,6 +28,10 @@
   - Why doesn't the directory list in the document automatically refresh?
 
     The safe mode is enabled by default. Please make sure that after disabling synchronization, you can also turn off the secure mode.
+- Shortcuts (When focus is on widget)
+  - `Ctrl+S` Show or hide setting panel.
+  - `F5` Refresh
+  - `Ctrl+F` Show or hide search dialog.
 
 
 ### Custom Description
