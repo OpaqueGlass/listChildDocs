@@ -301,7 +301,9 @@ export async function getCurrentDocIdF(){
     if (isValidStr(thisWidgetId)){
         try {
             let queryResult = await queryAPI("SELECT root_id as parentId FROM blocks WHERE id = '" + thisWidgetId + "'");
-            console.assert(queryResult != null && queryResult.length == 1, "SQL查询失败", queryResult);
+            if (!(queryResult != null && queryResult.length == 1)) {
+                debugPush("SQL查询失败", queryResult);
+            }
             if (queryResult!= null && queryResult.length >= 1){
                 logPush("获取当前文档idBy方案A"+queryResult[0].parentId);
                 return queryResult[0].parentId;
