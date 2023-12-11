@@ -375,16 +375,6 @@ export class ConfigSaveManager {
         const filePathName = this.saveDirPath + CONFIG_MANAGER_CONSTANTS.GLOBAL;
         const response = await getJSONFile(filePathName);
         if (response == null) {
-            // TODO: 尝试载入旧设置项
-            try {
-                let allCustomConfig = await import('/widgets/custom.js');
-                let [globalSetting, defaultDistinct] = this.loadCustomSetting(allCustomConfig["config"]);
-                await this.saveGlobalConfig(globalSetting);
-                return Object.assign(Object.assign({}, this.defaultGlobalConfig), globalSetting);
-            } catch (err) {
-                logPush("载入旧设置项失败", err);
-            }
-            // END: 
             return Object.assign({}, this.defaultGlobalConfig);
         } else {
             if (response.height_2widget_max) {
