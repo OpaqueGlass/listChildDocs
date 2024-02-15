@@ -79,7 +79,8 @@ export async function getSubDocsAPI(notebookId, path, maxListCount = undefined, 
     let url = "/api/filetree/listDocsByPath";
     let body = {
         "notebook": notebookId,
-        "path": path
+        "path": path,
+        "ignoreMaxListHint": true,
     }
     if (maxListCount != undefined && maxListCount >= 0) {
         body["maxListCount"] = (maxListCount > 32 || maxListCount == 0) ? maxListCount : 32;
