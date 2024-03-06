@@ -504,6 +504,10 @@ async function __main(manual = false, justCreate = false) {
     let modeDoUpdateFlag = 1;
     // pushMsgAPI(language["startRefresh"], 4500);
     try {
+        if (!isValidStr(g_currentDocId)) {
+            // FIXME: 这边可能要抽出来，如果PLUGIN指定的话，再向PLUGIN要Id
+            g_currentDocId = await getCurrentDocIdF();
+        }
         g_allData["config"] = await g_configManager.getDistinctConfig();
         //获取挂件参数
         if (manual) {
