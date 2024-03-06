@@ -192,31 +192,38 @@ export class ConfigSaveManager {
         // 载入默认设置
         let userDefaultConfig = await this.loadUserConfigDefault();
         logPush("userDefaultConfig", userDefaultConfig);
+        // 插件写入的设置应当作为userDefaultConfig存在，以允许保存的独立设置覆盖
+        // 非挂件模式将尝试读入url中的设置
+        if (this.saveMode != CONSTANTS_CONFIG_SAVE_MODE.WIDGET && pathVariable != null) {
+            let tempAssignedUserDefault = null, tempAssignedGlobalConfig = null;
+            [tempAssignedUserDefault, tempAssignedGlobalConfig] = this.loadFromPathVar(pathVariable);
+            Object.assign(userDefaultConfig, tempAssignedUserDefault);
+            Object.assign(this.globalConfig, tempAssignedGlobalConfig);
+            logPush("pluginAssignedUserDefault", userDefaultConfig, tempAssignedUserDefault);
+        }
         // 读取独立设置（和数据等）
         const distinctAll = await this.loadDistinct(userDefaultConfig);
         logPush("distinctAll", userDefaultConfig);
         this.allData = distinctAll;
-        // 非挂件模式将尝试读入url中的设置
-        if (this.saveMode != CONSTANTS_CONFIG_SAVE_MODE.WIDGET && pathVariable != null) {
-            [this.allData["config"], this.globalConfig] = this.loadFromPathVar(pathVariable);
-        }
         // ~~判断是否需要使用schema~~ Schema使用一次导入的方案，这里不做处理
         return [this.allData, this.globalConfig];
     }
     // 从url中读取设置
     loadFromPathVar(pathVariable) {
-        let tempDistinct = Object.assign({}, this.allData["config"]);
-        let tempGlobal = Object.assign({}, this.globalConfig);
+        logPush("尝试载入URL参数", pathVariable);
+        // 独立设置在 loadAll中还有写入默认，这里不给出默认
+        let tempDistinct = {};
+        let tempGlobal = {};
         if (pathVariable == null) {
             return [tempDistinct, tempGlobal];
         }
         
-        for (let key in tempDistinct) {
+        for (let key in this.defaultConfig) {
             if (key in pathVariable) {
                 tempDistinct[key] = pathVariable[key];
             }
         }
-        for (let key in tempGlobal) {
+        for (let key in this.globalConfig) {
             if (key in pathVariable) {
                 tempGlobal[key] = pathVariable[key];
             }
@@ -228,6 +235,7 @@ export class ConfigSaveManager {
         if (this.saveMode != CONSTANTS_CONFIG_SAVE_MODE.WIDGET || this.globalConfig.allSaveToFile) {
             let response = await getJSONFile(this.getDataJSONFilePath(this.relateId));
             if (response) {
+                logPush("载入用户独立设置：从配置文件JSON中找到", response["config"]);
                 if (userDefaultConfig != null) {
                     let dictinctConfig = response["config"];
                     if (dictinctConfig == null) {

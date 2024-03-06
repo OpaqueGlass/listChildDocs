@@ -1,7 +1,7 @@
 /**
  * listChildDocs main V2
  */
-import { logPush, errorPush, warnPush, checkWorkEnvironment, commonPushCheck, WORK_ENVIRONMENT, isValidStr, debugPush, pushDebug, isInvalidValue, isSafelyUpdate, transfromAttrToIAL, generateBlockId } from "./common.js";
+import { logPush, errorPush, warnPush, checkWorkEnvironment, commonPushCheck, WORK_ENVIRONMENT, isValidStr, debugPush, pushDebug, isInvalidValue, isSafelyUpdate, transfromAttrToIAL, generateBlockId, getUrlParams } from "./common.js";
 import { ConfigSaveManager, CONSTANTS_CONFIG_SAVE_MODE, ConfigViewManager } from "./ConfigManager.js";
 import { 
     queryAPI,
@@ -1013,7 +1013,7 @@ async function __init__() {
     }
     _loadUserCSS();
     // 载入设置项
-    [g_allData, g_globalConfig] = await g_configManager.loadAll();
+    [g_allData, g_globalConfig] = await g_configManager.loadAll(getUrlParams());
     logPush("启动时载入的allData", g_allData);
     logPush("启动时载入的全局设置globalConfig", g_globalConfig);
     
@@ -1339,7 +1339,8 @@ function __buttonBinder() {
         "tabToGeneralSetting": function() {
             layui.element.tabChange("setting-tab", "11");
         },
-        "resetWidgetHeight": resetWidgetStyle
+        "resetWidgetHeight": resetWidgetStyle,
+        "deleteCurrentDistinct": deleteCurrentDistinctConfig,
     });
     const layer = layui.layer;
     function removeDistinct() {
@@ -1368,6 +1369,19 @@ function __buttonBinder() {
             let loadIndex = layer.load(1);
             await removeUnusedConfigFileWorker();
             layui.layer.close(loadIndex);
+        }, function(){
+            layui.layer.msg(language["dialog_cancel"]);
+        });
+    }
+    function deleteCurrentDistinctConfig() {
+        layui.layer.confirm(language["removeCurrentDistinctConfim"], {icon: 3, btn: [language["dialog_confirm"], language["dialog_cancel"]], title: language["confirmTitle"]}, async function(){
+            layer.closeLast("dialog");
+            let loadIndex = layer.load(1);
+            // 删除原有的子列表
+            await removeBlockAPI(g_allData["config"].childListId)
+            await g_configManager.saveDistinctConfig({});
+            window.location.reload();
+            // layui.layer.close(loadIndex);
         }, function(){
             layui.layer.msg(language["dialog_cancel"]);
         });

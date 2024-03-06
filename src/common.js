@@ -168,6 +168,17 @@ export function isFileNameIllegal(str) {
     return regex.test(str);
 }
 
+export function getUrlParams() {
+    const queryString = window.location.search;
+    // https://developer.mozilla.org/zh-CN/docs/Web/API/URLSearchParams
+    const urlParams = new URLSearchParams(queryString);
+    let result = {};
+    for (var pair of urlParams.entries()) {
+        result[pair[0]] = pair[1];
+    }
+    return result;
+}
+
 
 // debug push
 let g_DEBUG = 2;
