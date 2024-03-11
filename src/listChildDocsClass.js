@@ -707,7 +707,7 @@ class ContentBlockPrinter extends Printer {
     async doGenerate(updateAttr) {
         let result = `<div class="mode11-box">`;
         // 获取子文档列表
-        let directChildDocs = await getSubDocsAPI(updateAttr["targetNotebook"], updateAttr["targetDocPath"], updateAttr["widgetSetting"]["maxListCount"], updateAttr["widgetSetting"]["sortBy"]);
+        let directChildDocs = await getSubDocsAPI(updateAttr["targetNotebook"], updateAttr["targetDocPath"], updateAttr["widgetSetting"]["maxListCount"], updateAttr["widgetSetting"]["sortBy"], updateAttr["widgetSetting"]["showHiddenDocs"]);
         // 获取子文档内容
         for (let oneChildDoc of directChildDocs) {
             let docName = oneChildDoc.name;
@@ -720,7 +720,7 @@ class ContentBlockPrinter extends Printer {
             let [previewText, removeSpace] = await this.generatePreview(oneChildDoc.id);
 
             if (!isValidStr(removeSpace)) {
-                result += await this.generateSecond(updateAttr["targetNotebook"], oneChildDoc.path, updateAttr["widgetSetting"]["maxListCount"], updateAttr["widgetSetting"]["sortBy"]);
+                result += await this.generateSecond(updateAttr["targetNotebook"], oneChildDoc.path, updateAttr["widgetSetting"]["maxListCount"], updateAttr["widgetSetting"]["sortBy"], updateAttr["widgetSetting"]["showHiddenDocs"]);
             }else{
                 result += `<div class="mode11-doc-content">${previewText}</div>`;
             }
@@ -744,9 +744,9 @@ class ContentBlockPrinter extends Printer {
      * @param {*} docPath 文档路径
      * @returns 
      */
-    async generateSecond(notebook, docPath, maxListCount, sortBy) {
+    async generateSecond(notebook, docPath, maxListCount, sortBy, showHidden) {
         let result = `<div class="mode11-child-p-container">`;
-        let childDocResponse = await getSubDocsAPI(notebook, docPath, maxListCount, sortBy);
+        let childDocResponse = await getSubDocsAPI(notebook, docPath, maxListCount, sortBy, showHidden);
         for (let oneChildDoc of childDocResponse) {
             let docName = oneChildDoc.name;
             if (oneChildDoc.name.indexOf(".sy") >= 0) {

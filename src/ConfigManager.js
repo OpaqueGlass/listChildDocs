@@ -35,7 +35,8 @@ export class ConfigSaveManager {
         sortBy: 256, //排序模式，具体取值请参考本文件最下方的DOC_SORT_TYPES，默认值15为跟随文档树排序
         maxListCount: 0,//控制每个文档的子文档显示数量,
         floatWndEnable: false, // 浮窗
-        customModeSettings: {}
+        customModeSettings: {},
+        showHiddenDocs: false, // 显示文档树隐藏文档
     };
     // 存储文件时，结构
     defaultAllData = {

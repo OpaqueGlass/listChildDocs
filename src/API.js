@@ -75,7 +75,7 @@ export async function reindexDoc(docpath){
  * @param maxListCount 子文档最大显示数量
  * @param sort 排序方式（类型号）
  */
-export async function getSubDocsAPI(notebookId, path, maxListCount = undefined, sort = undefined){
+export async function getSubDocsAPI(notebookId, path, maxListCount = undefined, sort = undefined, showHidden = undefined){
     let url = "/api/filetree/listDocsByPath";
     let body = {
         "notebook": notebookId,
@@ -90,6 +90,9 @@ export async function getSubDocsAPI(notebookId, path, maxListCount = undefined, 
     }else if (false){
         let sortMode = getNotebookSortModeF(notebookId);
         if (sortMode) body["sort"] = sortMode;
+    }
+    if (showHidden != undefined) {
+        body["showHidden"] = showHidden;
     }
     let response = await postRequest(body, url);
     if (response.code != 0 || response.data == null){

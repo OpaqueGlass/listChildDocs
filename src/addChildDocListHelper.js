@@ -1,5 +1,6 @@
 /**
  * 创建顶栏按钮，快速插入子文档列表
+ * 此为历史遗留，现已废弃。
  * 插入设置跟随config.js的custom_attr默认设置，只支持url 、 引用块 、 1.url、 1. 引用块模式。
  */
 import { getCurrentDocIdF, queryAPI, getSubDocsAPI, insertBlockAPI, updateBlockAPI, prependBlockAPI, getDocOutlineAPI } from "./API.js";

@@ -237,7 +237,7 @@ async function getOneLevelText(notebook, nowDocPath, insertData, rowCountStack) 
     if (rowCountStack.length > g_allData["config"].listDepth) {
         return insertData;
     }
-    let docs = await getSubDocsAPI(notebook, nowDocPath, g_allData["config"]["maxListCount"], parseInt(g_allData["config"]["sortBy"]));
+    let docs = await getSubDocsAPI(notebook, nowDocPath, g_allData["config"]["maxListCount"], parseInt(g_allData["config"]["sortBy"]), g_allData["config"]["showHiddenDocs"]);
     //生成写入文本
     for (let doc of docs) {
         insertData += g_myPrinter.align(rowCountStack.length);
@@ -970,11 +970,12 @@ async function __init__() {
         }
         
     }
+    
+    // 判断工作模式
+    const workEnviroment = checkWorkEnvironment();
     // 先做基础外观调整
     // 更新明亮/黑夜模式
     __changeAppearance();
-    // 判断工作模式
-    const workEnviroment = checkWorkEnvironment();
     g_workEnvTypeCode = workEnviroment;
     switch (workEnviroment) {
         case WORK_ENVIRONMENT.WIDGET: {
@@ -996,8 +997,8 @@ async function __init__() {
             g_workEnvId = await getCurrentDocIdF();
             g_currentDocId = g_workEnvId;
             if (!isValidStr(g_workEnvId)) {
-                if (window.frameElement.getAttribute("id")) {
-                    g_workEnvId = window.frameElement.getAttribute("id");
+                if (window.frameElement.getAttribute("data-doc-id")) {
+                    g_workEnvId = window.frameElement.getAttribute("data-doc-id");
                 }
             }
             let savePath = "/data/storage/petal/syplugin-hierarchyNavigate/listChildDocs/";
@@ -1088,9 +1089,9 @@ function __changeAppearance() {
         document.body.classList.remove("dark-mode");
         document.getElementById('layui_theme_css').removeAttribute('href');
     }
-    if (g_workEnvTypeCode != WORK_ENVIRONMENT.PLUGIN && g_workEnvTypeCode != WORK_ENVIRONMENT.WIDGET) {
+    if (g_workEnvTypeCode == WORK_ENVIRONMENT.PLUGIN || g_workEnvTypeCode == WORK_ENVIRONMENT.WIDGET) {
         $("#linksContainer").css("font-size", (window.top.siyuan.config.editor.fontSize) + "px");
-    } else {
+    } else if (g_globalConfig && g_globalConfig.fontSize) {
         $("#linksContainer").css("font-size", g_globalConfig.fontSize + "px");
     }
 }

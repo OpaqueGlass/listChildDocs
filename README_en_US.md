@@ -148,12 +148,6 @@ For other relevant agreements, please refer to the "Disclaimer"
 https://gitee.com/layui/layui/blob/main/DISCLAIMER.md.
 ```
 
-7. [Sortable.js](https://github.com/SortableJS/Sortable)
-
-```
-https://github.com/SortableJS/Sortable
-MIT LICENSE
-```
 
 ### icon
 
