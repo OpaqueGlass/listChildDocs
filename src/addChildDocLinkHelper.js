@@ -1,5 +1,6 @@
 /**
  * addChildDocLink.js 全局监视文件创建/删除操作，向父文档插入文本内容
+ * 此为历史遗留，现已废弃。
  * 此代码文件是listChildDocs的一部分，基于AGPL-3.0许可协议开源。（许可协议详见：https://www.gnu.org/licenses/agpl-3.0.txt，或本项目根目录/LICENSE文件）
  * THIS FILE IS A PART OF listChildDocs PROJECT, LICENSED UNDER AGPL-3.0 LICENSE (SEE AS https://www.gnu.org/licenses/agpl-3.0.txt).
  * @author OpaqueGlass
