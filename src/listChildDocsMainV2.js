@@ -973,10 +973,10 @@ async function __init__() {
     
     // 判断工作模式
     const workEnviroment = checkWorkEnvironment();
+    g_workEnvTypeCode = workEnviroment;
     // 先做基础外观调整
     // 更新明亮/黑夜模式
     __changeAppearance();
-    g_workEnvTypeCode = workEnviroment;
     switch (workEnviroment) {
         case WORK_ENVIRONMENT.WIDGET: {
             g_workEnvId = getCurrentWidgetId();
