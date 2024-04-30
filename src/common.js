@@ -59,7 +59,7 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
         if ((!isValidStr(candidateThisDocEditor) || candidateThisDocEditor.length <= 0)
                 && (!isValidStr(candidateThisDocPopup) || candidateThisDocPopup.length <= 0)) {
             if (config.widgetMode && config.targetDoc) {
-                if (window.top.document.querySelector(`.block__popover[data-oid] [data-node-id="${thisWidgetId}"]`).length <= 0) {
+                if (window.top.document.querySelectorAll(`.block__popover[data-oid] [data-node-id="${thisWidgetId}"]`).length <= 0) {
                     warnPush("未在窗口中找到挂件所在的文档（文档所在文档编辑器可能未打开），为防止后台更新，此操作已拦截。");
                     return false;
                 }

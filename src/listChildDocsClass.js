@@ -1060,7 +1060,8 @@ class PCFileDirectoryPrinter extends Printer {
         // 路径是点击选择后保存的，其他设置需要重新载入
         this.modeSettings["showWhat"] = $("#mode13_select_show_what").val();
         logPush("showWhat", $("#mode13_select_show_what").val());
-        if (!isValidStr(this.modeSettings.targetPath)) {
+        logPush("路径信息", JSON.stringify(this.modeSettings["targetPathv2"]));
+        if (!this.modeSettings["targetPathv2"] || Object.keys(this.modeSettings["targetPathv2"]).length == 0) {
             throw new Error(language["mode13_not_select_folder_when_refresh"]);
         }
         this.fs = window.top.require("fs");
@@ -1070,8 +1071,9 @@ class PCFileDirectoryPrinter extends Printer {
             throw new Error(language["mode13_cannot_refresh"]);
         }
         // 系统检查
-        let currentSysId = window.top.siyuan ? window.top.siyuan.config.system.id : "";
-        if (this.modeSettings["sysId"] && this.modeSettings["sysId"].length > 0 && isValidStr(currentSysId) && this.modeSettings["sysId"].indexOf(currentSysId) == -1) {
+        let currentSysId = this.getSysId();
+        const that = this;
+        if (this.modeSettings["targetPathv2"] && !isValidStr(this.modeSettings["targetPathv2"][currentSysId])) {
             if (updateAttr.isAutoUpdate) {
                 this.continue = false;
                 logPush("自动刷新触发，但系统不匹配，停止");
@@ -1093,7 +1095,8 @@ class PCFileDirectoryPrinter extends Printer {
                     title: language["confirmTitle"],
                     btn1: function(){
                         layer.closeLast("dialog");
-                        resolve(true);
+                        that.selectPathDialog();
+                        resolve(false);
                     },
                     btn2: function() {
                         layui.layer.msg(language["dialog_cancel"]);
@@ -1101,8 +1104,12 @@ class PCFileDirectoryPrinter extends Printer {
                     },
                     btn3: () => {
                         layer.closeLast("dialog");
-                        this.modeSettings["sysId"].push(currentSysId);
-                        resolve(true);
+                        this.modeSettings["targetPathv2"][currentSysId] = this.modeSettings["targetPath"];
+                        if (isValidStr(this.modeSettings["targetPath"])) {
+                            resolve(true);
+                        } else {
+                            resolve(false);
+                        }
                     }
                 });
             });
@@ -1116,7 +1123,7 @@ class PCFileDirectoryPrinter extends Printer {
             }
             
         }
-        let result = await this.getOneLevelDirectory(this.modeSettings.targetPath, 1);
+        let result = await this.getOneLevelDirectory(this.modeSettings["targetPathv2"][this.getSysId()], 1);
         if (isValidStr(result)) {
             this.continue = true;
         } else {
@@ -1250,14 +1257,40 @@ class PCFileDirectoryPrinter extends Printer {
     init(custom_attr) {
         $("#targetId, #endDocOutline, #sortBy, #maxListCount, [name='outlineStartAt'], [name='outlineEndAt']").prop("disabled", "true");
         $("#modeSetting").append(`
-        <button class="layui-btn layui-btn-primary layui-border-green" mode13-on="mode13_select_folder">${language["mode13_select_folder"]}</button><span id="mode13_selected_path">${language["mode13_display_path_here"]}</span><br/><span>${language["mode13_show_what"]}</span>
+        <button class="layui-btn layui-btn-primary layui-border-green" mode13-on="mode13_select_folder">${language["mode13_select_folder"]}</button>
+        <button class="layui-btn layui-btn-primary layui-border-green" mode13-on="mode13_clear_folder">${language["mode13_clear_all_path"]}</button>
+        <span id="mode13_selected_path">${language["mode13_display_path_here"]}</span><br/><span>${language["mode13_show_what"]}</span>
         <select name="mode13_select_show_what" id="mode13_select_show_what">
             <option value="folder">${language["mode13_only_folder"]}</option>
             <option value="file">${language["mode13_only_file"]}</option>
             <option value="all" selected>${language["mode13_show_all"]}</option>
         </select>
         `);
+        logPush("模式中", custom_attr);
+        if (!custom_attr["customModeSettings"]) {
+            custom_attr["customModeSettings"] = {};
+        }
+        if (!custom_attr["customModeSettings"]["targetPathv2"]) {
+            logPush("设置中", custom_attr);
+            custom_attr["customModeSettings"]["targetPathv2"] = {};
+        }
+        // 检查旧版本设置遗留
+        if (custom_attr["customModeSettings"]["targetPath"] && custom_attr["customModeSettings"]["sysId"] && custom_attr["customModeSettings"]["sysId"].length > 0
+         && custom_attr["customModeSettings"]["targetPathv2"] && Object.keys(custom_attr["customModeSettings"]["targetPathv2"]).length == 0){
+            logPush("移动历史sysid");
+            for (let sysId in custom_attr["customModeSettings"]["sysId"]) {
+                custom_attr["customModeSettings"]["targetPathv2"][sysId] = custom_attr["customModeSettings"]["targetPath"];
+            }
+            // delete custom_attr["targetPath"];
+            delete custom_attr["customModeSettings"]["sysId"];
+        }
         layui.util.on("mode13-on", {
+            "mode13_clear_folder": async (event) => {
+                that.modeSettings["targetPathv2"] = {};
+                that.modeSettings["targetPath"] = "";
+                $("#mode13_selected_path").text(language["mode13_display_path_here"]);
+                layui.layer.msg("清除后，请手动保存挂件设置", {time: 3000, icon: 0});
+            },
             "mode13_select_folder": async (event) => {
                 if (!window.top.require) {
                     layui.layer.msg(language["mode13_cannot_select_folder"], {time: 3000, icon: 0});
@@ -1271,9 +1304,10 @@ class PCFileDirectoryPrinter extends Printer {
                     }).then((path)=>{
                         if (path && path.filePaths.length > 0) {
                             that.modeSettings["targetPath"] = path.filePaths[0];
+                            that.modeSettings["targetPathv2"][that.getSysId()] = path.filePaths[0];
                             // 记录选择路径时的系统id，系统id不匹配时，刷新弹出提示确认
-                            that.modeSettings["sysId"] = window.top.siyuan ? [window.top.siyuan.config.system.id] : [];
-                            $("#mode13_selected_path").text(this.modeSettings["targetPath"]);
+                            // that.modeSettings["sysId"] = window.top.siyuan ? [window.top.siyuan.config.system.id] : [];
+                            $("#mode13_selected_path").text(path.filePaths[0]);
                         } else {
                             layui.layer.msg(language["mode13_not_select_folder"], {time: 3000, icon: 0});
                         }
@@ -1292,6 +1326,38 @@ class PCFileDirectoryPrinter extends Printer {
         // 通过修改custom_attr并返回修改后的值实现强制指定某个设置项，建议只在禁止用户更改时强制指定设置项的值
         return custom_attr;
     }
+    getSysId() {
+        return window.top.siyuan ? window.top.siyuan.config.system.id : "default"
+    }
+    async selectPathDialog() {
+        const that = this;
+        if (!window.top.require) {
+            layui.layer.msg(language["mode13_cannot_select_folder"], {time: 3000, icon: 0});
+            return;
+        }
+        const remote = await window.top.require("@electron/remote");
+        if (remote && remote.dialog) {
+            let path = remote.dialog.showOpenDialog({
+                title: language["mode13_select_folder"],
+                properties: ["createDirectory", "openDirectory"],
+            }).then((path)=>{
+                if (path && path.filePaths.length > 0) {
+                    that.modeSettings["targetPath"] = path.filePaths[0];
+                    that.modeSettings["targetPathv2"][window.top.siyuan ? window.top.siyuan.config.system.id : "default"] = path.filePaths[0];
+                    // 记录选择路径时的系统id，系统id不匹配时，刷新弹出提示确认
+                    // that.modeSettings["sysId"] = window.top.siyuan ? [window.top.siyuan.config.system.id] : [];
+                    $("#mode13_selected_path").text(path.filePaths[0]);
+                } else {
+                    layui.layer.msg(language["mode13_not_select_folder"], {time: 3000, icon: 0});
+                }
+            }).catch((err)=>{
+                errorPush("选文件夹时错误", err);
+                layui.layer.open({title: "ERROR", icon: 3, btn: [language["dialog_confirm"]], btn1: function(index, layero, that){return layui.layer.close(index);}, content: language["mode13_error_while_select_folder"]});
+            })
+        } else {
+            layui.layer.msg(language["mode13_cannot_select_folder"], {time: 3000, icon: 0});
+        }
+    }
     /**
      * 模式退出时操作
      */
@@ -1308,8 +1374,11 @@ class PCFileDirectoryPrinter extends Printer {
     load(savedAttrs) {
         if (savedAttrs) {
             Object.assign(this.modeSettings, savedAttrs);
-            if (this.modeSettings["targetPath"]) {
-                $("#mode13_selected_path").text(this.modeSettings["targetPath"]);
+            // if (this.modeSettings["targetPath"]) {
+            //     $("#mode13_selected_path").text(this.modeSettings["targetPath"]);
+            // }
+            if (this.modeSettings["targetPathv2"] && this.modeSettings["targetPathv2"][this.getSysId()]) {
+                $("#mode13_selected_path").text(this.modeSettings["targetPathv2"][this.getSysId()]);
             }
             if (this.modeSettings["showWhat"]) {
                 $("#mode13_select_show_what").val(this.modeSettings["showWhat"]);
