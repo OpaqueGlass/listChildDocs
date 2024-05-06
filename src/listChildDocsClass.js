@@ -1286,7 +1286,9 @@ class PCFileDirectoryPrinter extends Printer {
         }
         layui.util.on("mode13-on", {
             "mode13_clear_folder": async (event) => {
-                that.modeSettings["targetPathv2"] = {};
+                if (that.modeSettings["targetPathv2"]) {
+                    delete that.modeSettings["targetPathv2"][that.getSysId()];
+                }
                 that.modeSettings["targetPath"] = "";
                 $("#mode13_selected_path").text(language["mode13_display_path_here"]);
                 layui.layer.msg("清除后，请手动保存挂件设置", {time: 3000, icon: 0});

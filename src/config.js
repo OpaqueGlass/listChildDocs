@@ -281,7 +281,7 @@ let zh_CN = {
     mode13_not_select_folder_when_refresh: "您似乎没有选择目录。请在模式设置中指定本机目标路径。",
     mode13_trust_sysid: "在当前系统使用相同的目录路径",
     mode13_another_sys_warn: "<p>和您选择目录时操作系统不匹配，继续刷新可能出现异常。</p><p>选择“确认”需要您为当前系统重新选择路径（其他系统路径仍然保留），选择“取消”则终止本次刷新。</p>",
-    mode13_clear_all_path: "取消指定（所有系统）",
+    mode13_clear_all_path: "取消指定（当前系统）",
     mode13_error_while_select_folder: "选文件夹时出现错误，请重选",
     // 对话框dialog
     dialog_canceled: "已取消",
@@ -423,7 +423,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     mode13_not_select_folder_when_refresh: "It seems you have not selected a directory. Please specify the local path in the mode settings.",
     mode13_trust_sysid: "Allow Refresh in Current System with Same Directory",
     mode13_another_sys_warn: "<p>The operating system you selected does not match. Continuing the refresh may lead to exceptions. Clicking 'Confirm' requires you to reselect the path for the current system (other system paths will remain unchanged). Clicking 'Cancel' will abort the refresh.</p>",
-    mode13_mode13_clear_all_path: "Unset Directory (For All Systems)",
+    mode13_mode13_clear_all_path: "Unset Directory (For Current System)",
     mode13_error_while_select_folder: "An error occured during selecting folder, please try again",
     // dialog
     dialog_canceled: "Canceled",

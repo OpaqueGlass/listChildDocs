@@ -54,8 +54,9 @@ export function isSafelyUpdate(thisDocId, customConfig = null, thisWidgetId = ""
         // logPush($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`).attr("contenteditable") == "false");
         // logPush($(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`));
         // $(window.top.document).find(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`)
-        let candidateThisDocEditor = window.top.document.querySelector(`.protyle-background[data-node-id="${thisDocId}"] ~ .protyle-wysiwyg`);
+        let candidateThisDocEditor = window.top.document.querySelector(`.protyle-background[data-node-id="${thisDocId}"]`);
         let candidateThisDocPopup = window.top.document.querySelector(`.block__popover[data-oid="${thisDocId}"] .protyle-wysiwyg`);
+        debugPush("安全刷新：candidateEditor或Popup判定", candidateThisDocEditor, candidateThisDocPopup, thisDocId);
         if ((!isValidStr(candidateThisDocEditor) || candidateThisDocEditor.length <= 0)
                 && (!isValidStr(candidateThisDocPopup) || candidateThisDocPopup.length <= 0)) {
             if (config.widgetMode && config.targetDoc) {
