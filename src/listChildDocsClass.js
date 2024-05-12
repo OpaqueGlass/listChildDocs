@@ -1277,8 +1277,8 @@ class PCFileDirectoryPrinter extends Printer {
         // 检查旧版本设置遗留
         if (custom_attr["customModeSettings"]["targetPath"] && custom_attr["customModeSettings"]["sysId"] && custom_attr["customModeSettings"]["sysId"].length > 0
          && custom_attr["customModeSettings"]["targetPathv2"] && Object.keys(custom_attr["customModeSettings"]["targetPathv2"]).length == 0){
-            logPush("移动历史sysid");
-            for (let sysId in custom_attr["customModeSettings"]["sysId"]) {
+            logPush("移动历史sysid", custom_attr["customModeSettings"]["sysId"]);
+            for (let sysId of custom_attr["customModeSettings"]["sysId"]) {
                 custom_attr["customModeSettings"]["targetPathv2"][sysId] = custom_attr["customModeSettings"]["targetPath"];
             }
             // delete custom_attr["targetPath"];
