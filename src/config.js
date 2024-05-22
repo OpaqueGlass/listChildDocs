@@ -269,7 +269,7 @@ let zh_CN = {
     mode12_day_ago: "（%%天前）",
     mode12_week_day: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
     // 模式内部提示13
-    mode13_cannot_select_folder: "此模式只适用于桌面端（electron&notejs环境），当前无法选择目录。",
+    mode13_cannot_select_folder: "此模式只适用于桌面端（electron 或 nodejs环境），当前无法选择目录。",
     mode13_select_folder: "指定本地目录",
     mode13_not_select_folder: "您似乎没有选择目录",
     mode13_show_what: "显示什么？",
@@ -411,7 +411,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     mode12_day_ago: "(%% days ago)",
     mode12_week_day: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"],
     // 模式内部提示  tips in mode13 
-    mode13_cannot_select_folder: " This mode is only applicable in desktop environments (electron & notejs), so you cannot select a directory at present.",
+    mode13_cannot_select_folder: " This mode is only applicable in desktop environments (electron or nodejs), so you cannot select a directory at present.",
     mode13_select_folder: "Specify the local directory",
     mode13_show_what: "What should be included?",
     mode13_display_path_here: "[The path you selected should be displayed here",

@@ -20,6 +20,8 @@
 
 ### Quick Start
 
+> Please note that `listChildDocs` is a widget, not a plugin. Widgets exist as content blocks in the document and need to be manually inserted into the document (via the `/` menu in the editor -> Widget). Please also refer to: Siyuan help guide.
+
 - Double-click refresh button: Save settings；
 - Hover over the "i" icon next to buttons or settings items to display tooltips.
 - About modes: You can switch to the corresponding mode and then click refresh to give it a try.
