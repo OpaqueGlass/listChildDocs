@@ -493,6 +493,11 @@ async function __main(manual = false, justCreate = false) {
         return;
     }
     let msgLayer;
+    // 非手动下，安全模式拦截
+    if (g_myPrinter && g_myPrinter.write2file == 1 && g_globalConfig.safeMode && !manual) {
+        logPush("安全模式拦截刷新", g_myPrinter.write2file, g_globalConfig.safeMode);
+        return;
+    }
     let startTime = new Date();
     $("#updateTime").text(language["working"]);
     if (g_globalConfig["showBtnArea"] != "true") {
