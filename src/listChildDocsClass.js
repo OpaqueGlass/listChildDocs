@@ -5,7 +5,7 @@
 import { language} from './config.js';
 import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue, logPush, errorPush, debugPush } from "./common.js";
 import { openRefLink } from './ref-util.js';
-import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode } from './API.js';
+import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode, getAttributeView, getAttributeViewPrimaryKeyValues, addAttributeViewValues } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //
@@ -1110,7 +1110,10 @@ class PCFileDirectoryPrinter extends Printer {
                         } else {
                             resolve(false);
                         }
-                    }
+                    },
+                    shadeClose: false,
+                    // 设置closeBtn为0禁止显示关闭按钮
+                    closeBtn: 0
                 });
             });
             let confireResult = await waitForApprove;
@@ -1393,6 +1396,198 @@ class PCFileDirectoryPrinter extends Printer {
      */
     save() {
         return Object.assign({}, this.modeSettings);
+    }
+}
+
+class AttributeViewPrinter {
+    //写入到文件or写入到挂件
+    //0写入到挂件（以HTML格式），1写入到当前文档（以Markdown格式）
+    static id = 14;
+    id = 14;
+    write2file = 1;
+    globalConfig = null;
+    dataCache = null;
+    savedAttrs = undefined;
+    setGlobalConfig(config) {
+        this.globalConfig = Object.assign({}, config);
+    }
+    /**
+     * 输出对齐、缩进文本
+     * 它在输出当前文档链接之前调用
+     * @param {*} nowDepth 当前文档所在层级，层级号从1开始
+     * @returns 
+     */
+    align(nowDepth) { return ""; }
+    /**
+     * 输出子文档列表格式文本
+     * 在下一层级子文档列出之前被调用
+     * @param {*} nowDepth 
+     * @returns 
+     */
+    beforeChildDocs(nowDepth) { return ""; }
+    /**
+     * 在下一层级子文档列出之后被调用
+     * @param {*} nowDepth 
+     * @returns
+     * */
+    afterChildDocs(nowDepth) { return ""; }
+    /**输出当前文档链接
+     * @param {doc} doc为listDocsByPath伪API输出格式
+     * 兼容性警告，目前这个参数也输入大纲对象，大纲对象情况较为复杂，
+     * 请只读取doc.id doc.name属性，否则请另外判断属性是否存在、是否合法
+     * */
+    oneDocLink(doc, rowCountStack) { 
+        // 将内容写入到模式内部属性
+        let oneSrc = {
+            "id": doc.id,
+            "isDetached": false,
+            "content": ""
+        };
+        this.dataCache.push(oneSrc);
+        return ""; 
+    }
+    /**
+     * 在所有输出文本写入之前被调用
+     * @returns
+     * */
+    beforeAll() { 
+        this.dataCache = [];    
+        return ""; 
+    }
+    /**
+     * 在所有输出文本写入之后被调用
+     * @returns 
+     */
+    afterAll() { return ""; }
+    /**
+     * 如果不存在子文档，将输出错误提示，错误提示可能需要包装以便展示
+     * @params {*} emptyText 无子文档时错误信息文本
+     * @returns
+     */
+    noneString(emptyText) { return emptyText; }
+
+    /**
+     * 分栏操作
+     * 如果不需要实现，请直接返回初始值
+     * (挂件内分栏通过css实现，请直接返回初始值)
+     * （只在 将块写入文档的默认实现中调用此函数，如果模式自行doUpdate，则Main.js不调用）
+     * @params {string} originalText 初始值
+     * @params {int} nColumns 列数
+     * @params {int} nDepth 文档列出层级/深度
+     * @returns 分栏后的初始值
+     */
+    splitColumns(originalText, nColumns, nDepth, blockAttrData) { return originalText; }
+    /**
+     * （如果必要）模式自行生成待插入的内容块文本
+     * （挂件内为html，文档内为markdown(勿在结尾加ial)）
+     * @param {*} updateAttr 基本信息参数，详见listChildDocsMain.js __main()方法下的updateAttr对象
+     * @return [返回值1，返回值2] 返回值1： 非空字符串【若返回undefined、null、""，将由__main()执行内容文本的生成。；返回值2：文档（行号计数）如果自行生成，记录的行数用于自动分列
+     */
+    async doGenerate(updateAttr) {
+        // 检查附近是否有attributeView
+        // 检查已有的绑定顺序
+        return [undefined, undefined];
+    }
+    /**
+     * （如果必要）模式自行处理内容块写入（更新）操作
+     * @param {*} textString 待写入的内容
+     * @param {*} updateAttr 基本参数，详见listChildDocsMain.js __main()方法下的updateAttr对象
+     * @return 1: 由模式自行处理写入；0: 由挂件统一执行写入和更新；-1：模式拒绝刷新；-2：遇到错误；
+     * 不应在此方法中执行耗时的子文档获取操作，此方法仅用于将textString写入到文档中或挂件中
+     */
+    async doUpdate(textString, updateAttr) {
+        logPush("结果src", this.dataCache);
+        // 获取id
+        const id = window.frameElement?.parentElement?.parentElement?.nextSibling?.getAttribute("data-av-id")
+            || window.frameElement?.parentElement?.parentElement?.previousSibling?.getAttribute("data-av-id");
+        logPush("avId", id);
+        if (this.savedAttrs == undefined || !isValidStr(id)) {
+            window.frameElement.style.height = "293px";
+            window.frameElement.style.width = "1068px";
+            let waitForApprove = new Promise((resolve, reject)=>{
+                layui.layer.open({
+                    type: 0,
+                    content: language["mode14_first_use_content"],
+                    icon: 3, 
+                    btn: [language["dialog_confirm"]], 
+                    title: language["mode14_first_use"],
+                    btn1: function(){
+                        layui.layer.closeLast("dialog");
+                        resolve(false);
+                    },
+                    shadeClose: false,
+                    // 设置closeBtn为0禁止显示关闭按钮
+                    closeBtn: 0
+                });
+            });
+            this.savedAttrs = {"firstUse": false};
+            let confireResult = await waitForApprove;
+        }
+        if (!isValidStr(id)) {
+            throw new Error(language["mode14_view_notfound"]);
+        }
+        // 获取已有顺序
+        const avResponse = await getAttributeViewPrimaryKeyValues(id);
+        logPush("avContent", avResponse);
+        const existKey = avResponse.rows?.values?.map((value)=>value.blockID) || [];
+        // 比对插入位置
+        logPush("avKey", existKey);
+        const filteredSrcs = [];
+        this.dataCache.forEach((value) => {
+            if (!existKey.includes(value.id)) {
+                filteredSrcs.push(value);
+            }
+        });
+        logPush("filtered src", filteredSrcs);
+        
+        await addAttributeViewValues(id, filteredSrcs, existKey.length > 0 ? existKey[0] : undefined);
+        return 1;
+    }
+    /**
+     * 对于文档中列表块的方式，这里返回需要作为列表块（分列时为外层超级块）的块属性
+     * （只在 将块写入文档的默认实现中调用此函数，如果模式自行doUpdate，则Main.js不调用）
+     * @return
+     */
+    getAttributes() {
+        return null;
+    }
+    /**
+     * 模式初始化操作
+     * @return 
+     */
+    init(custom_attr) {
+        $("button[lay-on='tabToModeSetting']").addClass("layui-btn-disabled");
+        // 通过修改custom_attr并返回修改后的值实现强制指定某个设置项，建议只在禁止用户更改时强制指定设置项的值
+        $("#endDocOutline, #listColumn, #outlineStartAt, #outlineEndAt").prop("disabled", "true");
+        custom_attr["endDocOutline"] = false;
+        custom_attr["listColumn"] = 1;
+        return custom_attr;
+    }
+    /**
+     * 模式退出时操作
+     */
+    destory(custom_attr) {
+        $("button[lay-on='tabToModeSetting']").removeClass("layui-btn-disabled");
+        // 取消常规设置的禁用样式
+        $("#listDepth, #listColumn, #targetId, #endDocOutline, #outlineStartAt, #outlineEndAt").prop("disabled", "");
+        // 如果部分通用设定过于不合理，通过修改custom_attr并返回修改后的以重置。
+        return custom_attr;
+    }
+    /**
+     * 载入配置
+     * 注意，可能不存在相应设置
+     */
+    load(savedAttrs) {
+        if (savedAttrs) {
+            this.savedAttrs = savedAttrs;
+        }
+    }
+    /**
+     * 保存配置
+     * @return 请返回一个对象
+     */
+    save() {
+        return this.savedAttrs;
     }
 }
 
@@ -1733,6 +1928,7 @@ export let printerList = [
     ContentBlockPrinter, //11内容预览块
     OrderByTimePrinter, //12按时间分组
     PCFileDirectoryPrinter, //13文件夹目录
+    AttributeViewPrinter, //14属性视图
 ];
 export { Printer, DefaultPrinter };
 /** 附录：doc对象（由文档树api获得），示例如下

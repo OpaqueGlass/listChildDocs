@@ -283,6 +283,9 @@ let zh_CN = {
     mode13_another_sys_warn: "<p>和您选择目录时操作系统不匹配，继续刷新可能出现异常。</p><p>选择“确认”需要您为当前系统重新选择路径（其他系统路径仍然保留），选择“取消”则终止本次刷新。</p>",
     mode13_clear_all_path: "取消指定（当前系统）",
     mode13_error_while_select_folder: "选文件夹时出现错误，请重选",
+    mode14_view_notfound: "没有在紧邻下方块找到数据库",
+    mode14_first_use: "看起来这是您首次使用",
+    mode14_first_use_content: "<p>由于写入不可撤销、个人开发测试不周，因此请只用于对空白数据库的写入，如果包含大量其他内容，请做好备份（深克隆数据库、不是镜像数据库）；</p><p>使用此模式，请先在挂件紧邻下方块（位于同一父块）使用斜杠菜单创建数据库；使用时，请避免连续刷新。</p><p>稍后手动保存挂件设置以忽略此提示</p>",
     // 对话框dialog
     dialog_canceled: "已取消",
     dialog_delete: "删除",
@@ -425,6 +428,9 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     mode13_another_sys_warn: "<p>The operating system you selected does not match. Continuing the refresh may lead to exceptions. Clicking 'Confirm' requires you to reselect the path for the current system (other system paths will remain unchanged). Clicking 'Cancel' will abort the refresh.</p>",
     mode13_mode13_clear_all_path: "Unset Directory (For Current System)",
     mode13_error_while_select_folder: "An error occured during selecting folder, please try again",
+    mode14_view_notfound: "No database found in the immediately adjacent block below.",
+    mode14_first_use: "It looks like this is your first use",
+    mode14_first_use_content: "<p>Since write operations are irreversible and personal development testing is insufficient, please use this mode only for writing to a blank database. If the database contains a lot of other content, make sure to back it up first (Deep clone it, not mirror).</p><p>To use this mode, please first use the slash menu to create a database in the block immediately below the widget (within the same parent block). Please avoid refreshing continuously.</p><p>Save the widget settings manually later to ignore this prompt.</p>",
     // dialog
     dialog_canceled: "Canceled",
     dialog_delete: "Delete",

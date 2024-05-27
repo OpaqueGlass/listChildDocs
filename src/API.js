@@ -761,6 +761,54 @@ export async function removeFileAPI(path) {
     }
 }
 
+/**
+ * 添加数据库行
+ * @param {string} avID 
+ * @param {*} srcs 结构为 id 行id或绑定块id  isDetached 是否不是绑定块（绑定块为false） content 非绑定块时的内容
+ * @param {*} previousID 指定插入位置
+ * @param {*} ignoreFillFilter 是否忽略填充过滤器（默认true)
+ * @returns 
+ */
+export async function addAttributeViewValues(avID, srcs, previousID = undefined, ignoreFillFilter = undefined) {
+    let url = "/api/av/addAttributeViewValues";
+    let postBody = {
+        avID,
+        srcs,
+        previousID,
+        ignoreFillFilter
+    };
+    let response = await postRequest(postBody, url);
+    if (response.code == 0) {
+        return true;
+    }
+    warnPush("添加数据库行失败", response);
+    return false;
+}
+
+export async function getAttributeView(id) {
+    let url = "/api/av/getAttributeView";
+    let postBody = {
+        id: id,
+    };
+    let response = await postRequest(postBody, url);
+    if (response.code == 0 && response.data != null) {
+        return response.data.av;
+    }
+    return null;
+}
+
+export async function getAttributeViewPrimaryKeyValues(id) {
+    let url = "/api/av/getAttributeViewPrimaryKeyValues";
+    let postBody = {
+        id: id,
+    };
+    let response = await postRequest(postBody, url);
+    if (response.code == 0 && response.data != null) {
+        return response.data;
+    }
+    return null;
+}
+
 export function isMobile() {
     return window.top.document.getElementById("sidebar") ? true : false;
 };
