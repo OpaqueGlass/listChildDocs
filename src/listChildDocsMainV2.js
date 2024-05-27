@@ -487,17 +487,18 @@ function adjustHeight(modeDoUpdateFlag) {
  * 
  */
 async function __main(manual = false, justCreate = false) {
-    if (mutex == 0) {//并没有什么用的试图防止同时执行的信号量hhhh
-        mutex = 1;
-    } else {
-        return;
-    }
-    let msgLayer;
     // 非手动下，安全模式拦截
     if (g_myPrinter && g_myPrinter.write2file == 1 && g_globalConfig.safeMode && !manual) {
         logPush("安全模式拦截刷新", g_myPrinter.write2file, g_globalConfig.safeMode);
         return;
     }
+    if (mutex == 0) {//并没有什么用的试图防止同时执行的信号量hhhh
+        mutex = 1;
+    } else {
+        debugPush("mutex拦截")
+        return;
+    }
+    let msgLayer;
     let startTime = new Date();
     $("#updateTime").text(language["working"]);
     if (g_globalConfig["showBtnArea"] != "true") {
