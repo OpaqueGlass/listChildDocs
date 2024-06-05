@@ -5,7 +5,7 @@
 import { language} from './config.js';
 import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue, logPush, errorPush, debugPush } from "./common.js";
 import { openRefLink } from './ref-util.js';
-import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode, getAttributeView, getAttributeViewPrimaryKeyValues, addAttributeViewValues } from './API.js';
+import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode, getAttributeView, getAttributeViewPrimaryKeyValues, addAttributeViewBlocks } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //
@@ -1540,7 +1540,7 @@ class AttributeViewPrinter {
         });
         logPush("filtered src", filteredSrcs);
         
-        await addAttributeViewValues(id, filteredSrcs, existKey.length > 0 ? existKey[0] : undefined);
+        await addAttributeViewBlocks(id, filteredSrcs, existKey.length > 0 ? existKey[0] : undefined);
         return 1;
     }
     /**

@@ -769,8 +769,8 @@ export async function removeFileAPI(path) {
  * @param {*} ignoreFillFilter 是否忽略填充过滤器（默认true)
  * @returns 
  */
-export async function addAttributeViewValues(avID, srcs, previousID = undefined, ignoreFillFilter = undefined) {
-    let url = "/api/av/addAttributeViewValues";
+export async function addAttributeViewBlocks(avID, srcs, previousID = undefined, ignoreFillFilter = undefined) {
+    let url = "/api/av/addAttributeViewBlocks";
     let postBody = {
         avID,
         srcs,
@@ -784,6 +784,8 @@ export async function addAttributeViewValues(avID, srcs, previousID = undefined,
     warnPush("添加数据库行失败", response);
     return false;
 }
+
+// export async function addAttributeViewValues()
 
 export async function getAttributeView(id) {
     let url = "/api/av/getAttributeView";
