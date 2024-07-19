@@ -261,6 +261,11 @@ let zh_CN = {
     helperAddBlockMemo: "自动插入的子文档链接块：在此块下的编辑将在文档变化时被覆盖",
     queryFilePathFailed: "获取文档路径失败，文档可能刚创建",
     helperErrorHint: "helper执行时发生错误，如果可以，请向开发者反馈：",
+    // 模式内部提示10
+    mode10_allow_pan: "启用拖拽平移",
+    mode10_allow_zoom: "启用滚轮缩放",
+    mode10_hint: "在导图内右键暂存当前缩放和平移状态；之后手动保存挂件设置才能持久化保存。",
+    mode10_reset: "重置缩放和平移",
     // 模式内部提示12
     mode12_doc_num_text: "展示的文档数",
     mode12_update_hint: "按照更新时间排列",
@@ -406,6 +411,11 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     helperAddBlockMemo: "Child-doc link block: the edits under this block will be overwritten when the child-docs changes.",
     queryFilePathFailed: "Failed to get the document path, the document may have just been created.",
     helperErrorHint: "An error occured during helper execution. If it's convenient for you, please give feedback to the developer.",
+    // markmap
+    mode10_allow_pan: "Enable Pan",
+    mode10_allow_zoom: "Enable zoom",
+    mode10_hint: "Right-click to temporarily save the current zoom and pan state within the mind map. To persistently save it, you need manually save the widget settings. ",
+    mode10_reset: "Reset pan and scale",
     // hint text in mode
     mode12_doc_num_text: "the num of doc",
     mode12_update_hint: "Order by update time",

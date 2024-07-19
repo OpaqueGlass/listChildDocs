@@ -521,17 +521,23 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     contentRectCache = {"width": 10, "height": 10};
     modeSettings = {
         "allowZoom": false,
-        "allowPan": false
+        "allowPan": false,
+        "transform": null,
     };
+    timer;
+    saveEvent = this.saveOnMouseUp.bind(this);
+    markMapInstance;
     init(custom_attr) {
         custom_attr.listColumn = 1;
         $("#listColumn").prop("disabled", "true");
         $("#linksContainer").css("column-count", "");
 
-        $("#modeSetting").append(`<span id="mode10_allow_pan_hint">${"允许平移Allow Pan"}</span>
+        $("#modeSetting").append(`<span id="mode10_allow_pan_hint">${language["mode10_allow_pan"]}</span>
         <input type="checkbox" name="mode10_allow_pan"  id="mode10_allow_pan">
-        <span id="mode10_allow_zoom_hint">${"允许缩放Allow zoom"}</span>
-        <input type="checkbox" name="mode10_allow_zoom"  id="mode10_allow_zoom">`);
+        <span id="mode10_allow_zoom_hint">${language["mode10_allow_zoom"]}</span>
+        <input type="checkbox" name="mode10_allow_zoom"  id="mode10_allow_zoom">
+        <button id="mode10_refit">${language["mode10_reset"]}</button>
+        <br/>${language["mode10_hint"]}`);
         return custom_attr;
     }
     load(modeSettings) {
@@ -539,11 +545,14 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         logPush("LOAD SETTINGS")
         $("#mode10_allow_zoom").prop("checked", modeSettings["allowZoom"]);
         $("#mode10_allow_pan").prop("checked", modeSettings["allowPan"]);
+        $("#mode10_refit").click(this.refit.bind(this));
+        this.modeSettings.transform = modeSettings["transform"];
     }
     save() {
         return {
             "allowZoom": $("#mode10_allow_zoom").prop("checked"),
             "allowPan": $("#mode10_allow_pan").prop("checked"),
+            "transform": this.modeSettings.transform
         }
     }
     oneDocLink(doc, rowCountStack) {
@@ -560,9 +569,16 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     destory() {
         $("#listColumn").prop("disabled", "");
         this.observer.disconnect();
+        this.markMapInstance?.destroy();
+    }
+    refit() {
+        logPush("refit", this.markMapInstance);
+        $("#innerSetting").css("display", "none");
+        this.markMapInstance?.fit();
     }
     async doUpdate(textString, updateAttr) {
         this.observer.disconnect();
+        document.getElementById("markmap")?.removeEventListener("mouseup", this.saveOnMouseUp);
         let widgetAttr = updateAttr.widgetSetting;
         // 匹配移除返回父文档
         textString = textString.replace(new RegExp("\\* \\[../\\][^\\n]*\\n"), "");
@@ -607,7 +623,19 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         if (this.globalConfig.markmapResizeHandlerEnable && !markmapConfig.zoom && !markmapConfig.pan) {
             this.observer.observe(window.frameElement.parentElement);
         }
+        document.getElementById("markmap")?.removeEventListener("mousedown", this.saveEvent);
+        document.getElementById("markmap").addEventListener("mousedown", this.saveEvent);
         return 1;
+    }
+    saveOnMouseUp(event) {
+        if (event.button !== 2) {
+            return;
+        }
+        clearTimeout(this.timer);
+        this.timer = setTimeout(()=>{
+            this.modeSettings.transform = this.parseTransformStr(document.getElementById("markmap")?.children[1].getAttribute("transform"));
+            logPush("保存transform", this.modeSettings.transform);
+        }, 100);
     }
     loadMarkmap(root, widgetAttr) {
         let markmapElem = document.getElementById("markmap");
@@ -635,7 +663,8 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         } catch(err) {
             errorPush("markmap全局配置导入失败", err);
         }
-        window.markmap.Markmap.create('#markmap', markmapConfig, root);
+        this.markMapInstance?.destroy();
+        this.markMapInstance = window.markmap.Markmap.create('#markmap', markmapConfig, root);
         $("#markmap a").on("click",(event)=>{
             event.preventDefault();
             event.stopPropagation();
@@ -645,6 +674,22 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             event.target.setAttribute("data-id", id);
             openRefLink(event);
         });
+        // this.markMapInstance.fit().then(()=>{
+            
+        // })
+        if (this.modeSettings.transform != null) {
+            let transform = window.d3.zoomTransform(this.markMapInstance.svg.node());
+            let newTransform = transform.translate(this.modeSettings.transform.x, this.modeSettings.transform.y);
+            newTransform = newTransform.scale(this.modeSettings.transform.scale, this.modeSettings.transform.scale);
+            // transform.translate(this.modeSettings.transform.x, this.modeSettings.transform.y);
+            // transform.scale(this.modeSettings.transform.scale, this.modeSettings.transform.scale);
+            this.markMapInstance.svg.call(this.markMapInstance.zoom.transform, newTransform);
+            // this.markMapInstance.svg.call(this.markMapInstance.zoom.translate, this.modeSettings.transform.x, this.modeSettings.transform.y);
+            // this.markMapInstance.svg.call(this.markMapInstance.zoom.scale, this.modeSettings.transform.scale, this.modeSettings.transform.scale);
+            // this.markMapInstance.rescale(this.modeSettings.transform.scale);
+            // this.markMapInstance.g.attr("transform", this.modeSettings.transstr);
+        }
+
         // $("#markmap a").mousedown((event)=>{
         //     if (event.buttons = 2) {
         //         // event.preventDefault();
@@ -668,6 +713,28 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         // });
         $("#markmap a").addClass("markmap_a handle_rename_menu needSearch");
         return markmapConfig;
+    }
+    parseTransformStr(transformString) {
+        if (!isValidStr(transformString)) {
+            return null;
+        }
+        const translateRegex = /translate\(([^,]+),?([^)]+)?\)/;
+        const scaleRegex = /scale\(([^)]+)\)/;
+        
+        let x = 0, y = 0, scale = 1;
+        
+        const translateMatch = transformString.match(translateRegex);
+        if (translateMatch) {
+            x = parseFloat(translateMatch[1]);
+            y = translateMatch[2] ? parseFloat(translateMatch[2]) : 0;
+        }
+        
+        const scaleMatch = transformString.match(scaleRegex);
+        if (scaleMatch) {
+            scale = parseFloat(scaleMatch[1]);
+        }
+        
+        return { x, y, scale };
     }
     resizeHandler(entries) {
         clearTimeout(this.observerTimeout);
