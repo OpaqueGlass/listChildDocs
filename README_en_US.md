@@ -1,6 +1,6 @@
 > [Translating...] This document was translated by Google Translate.
 
-> A widget for creating and updating sub-document directory lists in Siyuan Notes.
+> A widget for creating and updating sub-document directory lists in [Siyuan Notes](https://github.com/siyuan-note/siyuan).
 
 > Sorry, this widget has limited support for English.
 
@@ -17,6 +17,9 @@
    - The widget is loaded (for example: click on the document tree to open the document);
    - Click the document tab; (default only for windows)
 
+> The widget was initially released in August 2022. Thank you for your support! 
+>
+> As of now, the widget have entered the maintenance phase and no new features will be added. If you encounter any bugs, please [provide feedback](https://github.com/OpaqueGlass/listChildDocs/issues). Thank you.
 
 ### Quick Start
 
