@@ -23,9 +23,9 @@
 > 
 > 挂件最早在2022年8月发布，感谢陪伴！
 >
-> 挂件[现在进入维护阶段](https://github.com/OpaqueGlass/listChildDocs/issues/54)，停止功能新增；如遇bug缺陷请反馈。反馈方式请参考[“反馈bug”一节](#反馈bug)
+> 挂件[现在进入维护阶段](https://github.com/OpaqueGlass/listChildDocs/issues/49)，停止功能新增；如遇bug缺陷请反馈。反馈方式请参考[“反馈bug”一节](#反馈bug)
 > 
-> 如果正在使用文档内创建列表的模式，可考虑改为使用“[目录插件](https://github.com/TinkMingKing/siyuan-plugins-index)”，可以在（listChildDocs设置-全局设置-最下方“重置和危险操作”）中批量删除挂件。
+> 如果正在使用文档内创建列表的模式，可考虑改为使用由TinkMingKing开发的“[目录插件](https://github.com/TinkMingKing/siyuan-plugins-index)”，可以在（listChildDocs设置-全局设置-最下方“重置和危险操作”）中批量删除挂件。
 
 ### 快速开始
 
