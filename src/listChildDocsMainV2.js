@@ -472,6 +472,17 @@ function adjustHeight(modeDoUpdateFlag) {
     if (g_globalConfig.autoHeight && modeDoUpdateFlag == 0 && g_myPrinter.write2file != 1) {
         // debugPush("挂件高度应当设为", $("body").outerHeight());
         let tempHeight = $("body").outerHeight() + 50;
+        if ($("body").outerHeight() == 0) {
+            logPush("[临时调整]由于挂件被隐藏，自动高度将临时调整挂件显示位置")
+            var clonedBody = $("body").clone().css({
+                "display": "block",
+                "position": "absolute",
+                "visibility": "hidden"
+            }).appendTo(window.top.document.body);
+            tempHeight = clonedBody.outerHeight();
+            clonedBody.remove();
+            logPush("[临时调整]调整结束")
+        }
         debugPush("挂件内调整高度 当前body+10", tempHeight);
         if (isValidStr(g_globalConfig.height_2widget_min) && tempHeight < g_globalConfig.height_2widget_min) tempHeight = parseInt(g_globalConfig.height_2widget_min);
         if (isValidStr(g_globalConfig.height_2widget_max) && tempHeight > g_globalConfig.height_2widget_max) tempHeight = parseInt(g_globalConfig.height_2widget_max);
