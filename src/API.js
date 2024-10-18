@@ -799,16 +799,35 @@ export async function getAttributeView(id) {
     return null;
 }
 
-export async function getAttributeViewPrimaryKeyValues(id) {
+export async function getAttributeViewPrimaryKeyValues(id, page=1, pageSize=32) {
     let url = "/api/av/getAttributeViewPrimaryKeyValues";
     let postBody = {
         id: id,
+        page: page,
+        pageSize: pageSize
     };
     let response = await postRequest(postBody, url);
     if (response.code == 0 && response.data != null) {
         return response.data;
     }
     return null;
+}
+
+/**
+ * 自定义API：通过DatabaseId获取全部关联块id
+ * @param {*} attributeViewId 
+ * @returns 
+ */
+export async function getBlockIdsFromDatabase(attributeViewId) {
+    const pageSize = Number.MAX_SAFE_INTEGER;
+    const avResponse = await getAttributeViewPrimaryKeyValues(attributeViewId, 1, pageSize);
+    if (!avResponse) {
+        throw new Error("获取属性视图失败: " + attributeViewId);
+    }
+    if (!avResponse.rows || !avResponse.rows.values) {
+        return [];
+    }
+    return avResponse.rows.values.map(value => value.blockID).filter(key => key);
 }
 
 export function isMobile() {

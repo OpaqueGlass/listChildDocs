@@ -5,7 +5,7 @@
 import { language} from './config.js';
 import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue, logPush, errorPush, debugPush } from "./common.js";
 import { openRefLink } from './ref-util.js';
-import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode, getAttributeView, getAttributeViewPrimaryKeyValues, addAttributeViewBlocks } from './API.js';
+import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode, getAttributeView, getAttributeViewPrimaryKeyValues, addAttributeViewBlocks, getBlockIdsFromDatabase } from './API.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //
@@ -1594,11 +1594,13 @@ class AttributeViewPrinter {
             throw new Error(language["mode14_view_notfound"]);
         }
         // 获取已有顺序
-        const avResponse = await getAttributeViewPrimaryKeyValues(id);
-        logPush("avContent", avResponse);
-        const existKey = avResponse.rows?.values?.map((value)=>value.blockID) || [];
+        const existKey = await getBlockIdsFromDatabase(id);
         // 比对插入位置
         logPush("avKey", existKey);
+        function hasDuplicates(arr) {
+            return new Set(arr).size !== arr.length;
+        }
+        logPush("是否存在重复项？", hasDuplicates(existKey)); // 输出: true
         const filteredSrcs = [];
         this.dataCache.forEach((value) => {
             if (!existKey.includes(value.id)) {

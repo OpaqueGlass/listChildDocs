@@ -130,6 +130,9 @@ export function getUpdateString(){
  * @returns 
  */
 export function generateBlockId(){
+    if (window?.Lute?.NewNodeID) {
+        return window.Lute.NewNodeID();
+    }
     let timeStr = getUpdateString();
     let alphabet = new Array();
     for (let i = 48; i <= 57; i++) alphabet.push(String.fromCharCode(i));
