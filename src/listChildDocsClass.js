@@ -1849,8 +1849,17 @@ function generateSuperBlock(originalText, nColumns, nDepth, blockAttrData, globa
  */
 function getEmojiHtmlStr(iconString, hasChild) {
     if (iconString == undefined || iconString == null) return "";//没有icon属性，不是文档类型，不返回emoji
-    if (iconString == "") return hasChild ? `<span class="emojitext">📑</span>` : 
+    if (iconString == "") {
+        if (window.top.siyuan.storage["local-images"]) {
+            if (hasChild) {
+                return getEmojiHtmlStr(window.top.siyuan.storage["local-images"].folder, hasChild);
+            } else {
+                return getEmojiHtmlStr(window.top.siyuan.storage["local-images"].file, hasChild);
+            }
+        }
+        return hasChild ? `<span class="emojitext">📑</span>` : 
         `<span class="emojitext">📄</span>`;//无icon默认值
+    }
     let result = iconString;
     // emoji地址判断逻辑为出现.，但请注意之后的补全
     if (iconString.indexOf(".") != -1) {
@@ -1877,7 +1886,16 @@ function getEmojiHtmlStr(iconString, hasChild) {
  */
 function getEmojiMarkdownStr(iconString, hasChild) {
     if (iconString == undefined || iconString == null) return "";//没有icon属性，不是文档类型，不返回emoji
-    if (iconString == "") return hasChild ? "📑" : "📄";//无icon默认值
+    if (iconString == "") {
+        if (window.top.siyuan.storage["local-images"]) {
+            if (hasChild) {
+                return getEmojiMarkdownStr(window.top.siyuan.storage["local-images"].folder, hasChild);
+            } else {
+                return getEmojiMarkdownStr(window.top.siyuan.storage["local-images"].file, hasChild);
+            }
+        }
+        return hasChild ? "📑" : "📄";//无icon默认值
+    }
     let result = iconString;
     if (iconString.indexOf(".") != -1) {
         // if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时

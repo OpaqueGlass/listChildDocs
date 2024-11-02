@@ -40,6 +40,7 @@ let openRefLink = function(event, paramId = ""){
         altKey: event ? event.altKey : undefined,
         bubbles: true
     });
+    window.getSelection()?.removeAllRanges();
     虚拟链接.dispatchEvent(clickEvent);
     虚拟链接.remove();
 }

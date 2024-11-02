@@ -207,7 +207,7 @@ async function getTextFromNotebooks(rowCountStack) {
         let tempVirtualDocObj = {
             id: "",
             name: g_notebooks[i].name,
-            icon: g_notebooks[i].icon === "" ? "1f5c3" : g_notebooks[i].icon
+            icon: g_notebooks[i].icon === "" ? (window.top.siyuan.storage["local-images"].note ? window.top.siyuan.storage["local-images"].note : "1f5c3") : g_notebooks[i].icon
         };
         result += g_myPrinter.align(rowCountStack.length);
         result += g_myPrinter.oneDocLink(tempVirtualDocObj, rowCountStack);
