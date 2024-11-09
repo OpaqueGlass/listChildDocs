@@ -1862,7 +1862,9 @@ function getEmojiHtmlStr(iconString, hasChild) {
     }
     let result = iconString;
     // emoji地址判断逻辑为出现.，但请注意之后的补全
-    if (iconString.indexOf(".") != -1) {
+    if (iconString.startsWith("api/icon/getDynamicIcon")) {
+        result = `<img class="iconpic" src="/${iconString}"/>`;
+    } else if (iconString.indexOf(".") != -1) {
         // if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
         // emoji为网络地址时，不再补全/emojis路径
         if (iconString.indexOf("http://") != -1 || iconString.indexOf("https://") != -1) {
@@ -1897,7 +1899,10 @@ function getEmojiMarkdownStr(iconString, hasChild) {
         return hasChild ? "📑" : "📄";//无icon默认值
     }
     let result = iconString;
-    if (iconString.indexOf(".") != -1) {
+    // TODO: 文档正文中目前不支持动态emoji，这里打回默认值
+    if (iconString.startsWith("api/icon/getDynamicIcon")) {
+        result = getEmojiMarkdownStr("", hasChild);
+    } else if (iconString.indexOf(".") != -1) {
         // if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
         // emoji为网络地址时，不再补全/emojis路径
         if (iconString.indexOf("http://") != -1 || iconString.indexOf("https://") != -1) {
