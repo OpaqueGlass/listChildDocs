@@ -183,6 +183,27 @@ export function getUrlParams() {
     return result;
 }
 
+let cacheIsMacOs = undefined;
+export function isEventCtrlKey(event) {
+    let platform = window.top.siyuan.config.system.os ?? navigator.platform ?? "ERROR";
+    platform = platform.toUpperCase();
+    let isMacOS = cacheIsMacOs;
+    if (cacheIsMacOs == undefined) {
+        for (let platformName of ["DARWIN", "MAC", "IPAD", "IPHONE", "IOS"]) {
+            if (platform.includes(platformName)) {
+                isMacOS = true;
+                break;
+            }
+        }
+        cacheIsMacOs = isMacOS;
+    }
+    
+    if (isMacOS) {
+        return event.metaKey;
+    }
+    return event.ctrlKey;
+}
+
 
 // debug push
 let g_DEBUG = 2;

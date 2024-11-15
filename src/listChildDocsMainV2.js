@@ -1,7 +1,7 @@
 /**
  * listChildDocs main V2
  */
-import { logPush, errorPush, warnPush, checkWorkEnvironment, commonPushCheck, WORK_ENVIRONMENT, isValidStr, debugPush, pushDebug, isInvalidValue, isSafelyUpdate, transfromAttrToIAL, generateBlockId, getUrlParams } from "./common.js";
+import { logPush, errorPush, warnPush, checkWorkEnvironment, commonPushCheck, WORK_ENVIRONMENT, isValidStr, debugPush, pushDebug, isInvalidValue, isSafelyUpdate, transfromAttrToIAL, generateBlockId, getUrlParams, isEventCtrlKey } from "./common.js";
 import { ConfigSaveManager, CONSTANTS_CONFIG_SAVE_MODE, ConfigViewManager } from "./ConfigManager.js";
 import { 
     queryAPI,
@@ -807,7 +807,7 @@ async function rightClickHandler(mouseEvent) {
     mouseEvent.stopPropagation();
     mouseEvent.preventDefault();
     try {
-        await deleteOrRename(mouseEvent.currentTarget, mouseEvent.ctrlKey);
+        await deleteOrRename(mouseEvent.currentTarget, isEventCtrlKey(mouseEvent));
     } catch (err) {
         errorPush("删除或重命名时出现错误", err);
     }
@@ -891,7 +891,7 @@ try{
         skin: isDarkMode()?"dark_dialog rename_dialog":"rename_dialog",
         onshow: function() {
             $("#dialog_rename_input").on("keyup", (event)=>{
-                if (event.keyCode == 13 && !event.ctrlKey && !event.shiftKey) {
+                if (event.keyCode == 13 && !isEventCtrlKey(event) && !event.shiftKey) {
                     event.preventDefault();
                     event.stopPropagation();
                     let okBtn = $(".rename_dialog button[i-id='ok']");
@@ -900,7 +900,7 @@ try{
                     }else{
                         warnPush("回车匹配到多个按钮，已停止操作");
                     }
-                }else if (event.keyCode == 13 && event.ctrlKey) {
+                }else if (event.keyCode == 13 && isEventCtrlKey(event)) {
                     event.preventDefault();
                     event.stopPropagation();
                     createChildDoc(docName, queryResponse, true);
@@ -1171,7 +1171,7 @@ function __shortcutBinder(bindFlag = true) {
 
     function shortcutActor(event) {
         debugPush("event", event);
-        if (event.code == "KeyF" && event.ctrlKey == true) {
+        if (event.code == "KeyF" && isEventCtrlKey(event)) {
             event.stopPropagation();
             event.preventDefault();
             logPush("检索快捷键已被按下");
@@ -1187,7 +1187,7 @@ function __shortcutBinder(bindFlag = true) {
             __main(true);
             return;
         }
-        if (event.code == "KeyS" && event.ctrlKey == true) {
+        if (event.code == "KeyS" && isEventCtrlKey(event)) {
             event.stopPropagation();
             event.preventDefault();
             logPush("显示设置快捷键已被按下");

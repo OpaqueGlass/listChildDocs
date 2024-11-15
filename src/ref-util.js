@@ -38,6 +38,7 @@ let openRefLink = function(event, paramId = ""){
         ctrlKey: event ? event.ctrlKey : undefined,
         shiftKey: event? event.shiftKey : undefined,
         altKey: event ? event.altKey : undefined,
+        metaKey: event ? event.metaKey : undefined,
         bubbles: true
     });
     window.getSelection()?.removeAllRanges();
@@ -95,6 +96,7 @@ let showFloatWnd = function(event){
         "clientY": 500,
         "bubbles": true,
         "ctrlKey": event.ctrlKey,
+        "metaKey": event.metaKey,
         "relatedTarget": window.frameElement
     });
     // if (Y < 100 || X < 100) { 
