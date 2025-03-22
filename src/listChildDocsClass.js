@@ -234,6 +234,7 @@ class MarkdownUrlUnorderListPrinter extends Printer {
         }
         docName = htmlTransferParser(docName);
         docName = markdownUrlNameFilter(docName);
+        docName = outlineUrlNameCenterStyleFilter(docName);
         let emoji = "";
         if (this.globalConfig.emojiEnable) {
             emoji = getEmojiMarkdownStr(doc.icon, doc.subFileCount != 0);
@@ -2003,6 +2004,17 @@ function markdownUrlNameFilter(inputStr) {
     }
     return inputStr;
     return result;
+}
+
+function outlineUrlNameCenterStyleFilter(inputStr) {
+    if (inputStr == null || inputStr == "") return "";
+    const prefix = `<span style="text-align: center;">`;
+    const tail = `</span>`;
+    if (inputStr.startsWith(prefix) && inputStr.endsWith(tail)) {
+        inputStr = inputStr.replace(prefix, "");
+        inputStr = inputStr.substring(0, inputStr.length - tail.length);
+    }
+    return inputStr;
 }
 
 export let printerList = [
