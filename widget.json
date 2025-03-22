@@ -2,7 +2,7 @@
   "name": "listChildDocs",
   "author": "OpaqueGlass",
   "url": "https://github.com/OpaqueGlass/listChildDocs",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "displayName": {
     "default": "listChildDocs",
     "zh_CN": "列出子文档",
@@ -11,7 +11,7 @@
   "minAppVersion": "3.0.17",
   "description": {
     "default": "Display child-doc list in widget, or insert list into the doc. [English is not fully supported]",
-    "zh_CN": "在挂件里显示子文档列表，或向文档中插入子文档列表",
+    "zh_CN": "在挂件里显示文档/大纲列表，或向文档中插入文档/大纲列表",
     "en_US": "Display child-doc list in widget, or insert list into the doc. [English is not fully supported]"
   },
   "readme": {
