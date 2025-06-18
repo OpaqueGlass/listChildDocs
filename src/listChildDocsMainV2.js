@@ -305,11 +305,15 @@ function getOneLevelOutline(outlines, distinguish, rowCountStack) {
                 warnPush("未被处理的大纲情况");
             }
         } else { // 已到达开始层级~结束层级，正常处理
-            if (!isValidStr(outline.name)) {//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
+            if (!isValidStr(outline.name) && isValidStr(outline.content)) {//处理内部大纲类型NodeHeading的情况，也是由于Printer只读取name属性
                 outline.name = outline.content;
             }
             if (distinguish) {
                 outline.name = g_globalConfig.outlineDistinguishingWords + outline.name;
+            }
+            // 再次处理，content可能不存在
+            if (!isValidStr(outline.name)) {
+                outline.name = "";
             }
             result += g_myPrinter.align(rowCountStack.length);
             result += g_myPrinter.oneDocLink(outline, rowCountStack);
