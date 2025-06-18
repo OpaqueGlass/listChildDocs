@@ -153,11 +153,24 @@ export function generateBlockId(){
 export function transfromAttrToIAL(attrData) {
     let result = "{:";
     for (let key in attrData) {
-        result += ` ${key}=\"${attrData[key]}\"`;
+        result += ` ${key}=\"${escapeSpecialChars(attrData[key])}\"`;
     }
     result += "}";
     if (result == "{:}") return null;
     return result;
+}
+
+function escapeSpecialChars(str) {
+  const escapeMap = {
+    '"': '&quot;',
+    '{': '&#123;',
+    '}': '&#125;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '&': '&amp;',
+  };
+
+  return str.replace(/[\\"{}<>]/g, (char) => escapeMap[char]);
 }
 
 export function pushDebug(text) {
