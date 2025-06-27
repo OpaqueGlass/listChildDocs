@@ -524,6 +524,9 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         "allowZoom": false,
         "allowPan": false,
         "transform": null,
+        "settingUniqueFlag": "",
+        "foldStatus": {},
+        "defaultExpandLevel": 6,
     };
     timer;
     saveEvent = this.saveOnMouseUp.bind(this);
@@ -537,6 +540,8 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         <input type="checkbox" name="mode10_allow_pan"  id="mode10_allow_pan">
         <span id="mode10_allow_zoom_hint">${language["mode10_allow_zoom"]}</span>
         <input type="checkbox" name="mode10_allow_zoom"  id="mode10_allow_zoom">
+        <span id="mode10_default_expand_level_hint">${language["mode10_default_expand_level_hint"]}</span>
+        <input type="number" min="1" style="width:3em" name="mode10_default_expand_level"  id="mode10_default_expand_level" />
         <button id="mode10_refit">${language["mode10_reset"]}</button>
         <br/>${language["mode10_hint"]}`);
         return custom_attr;
@@ -546,17 +551,23 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         logPush("LOAD SETTINGS")
         $("#mode10_allow_zoom").prop("checked", modeSettings["allowZoom"]);
         $("#mode10_allow_pan").prop("checked", modeSettings["allowPan"]);
+        $("#mode10_default_expand_level").val(modeSettings["defaultExpandLevel"]);
         $("#mode10_refit").click(this.refit.bind(this));
         this.modeSettings.transform = modeSettings["transform"];
+        this.modeSettings.settingUniqueFlag = modeSettings["settingUniqueFlag"];
+        this.modeSettings.foldStatus = modeSettings["foldStatus"] ?? {};
     }
     save() {
         return {
             "allowZoom": $("#mode10_allow_zoom").prop("checked"),
             "allowPan": $("#mode10_allow_pan").prop("checked"),
-            "transform": this.modeSettings.transform
+            "transform": this.modeSettings.transform,
+            "settingUniqueFlag": this.modeSettings.settingUniqueFlag,
+            "foldStatus": this.modeSettings.foldStatus,
+            "defaultExpandLevel": $("#mode10_default_expand_level").val(),
         }
     }
-    oneDocLink(doc, rowCountStack) {
+    oneDocLink = (doc, rowCountStack) => {
         let docName = doc.name;
         if (doc.name.indexOf(".sy") >= 0) {
             docName = docName.substring(0, docName.length - 3);
@@ -565,7 +576,8 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             return `* ${docName}\n`;
         }
         // docName = htmlTransferParser(docName);//引用块文本是动态的，不用转义
-        return `* [${docName}](siyuan://blocks/${doc.id})\n`;
+        const FOLD_STR = `<!-- markmap: fold -->`;
+        return `* [${docName}](siyuan://blocks/${doc.id})${this.modeSettings.foldStatus[doc.id] == true ? FOLD_STR : ""}\n`;
     }
     destory() {
         $("#listColumn").prop("disabled", "");
@@ -576,11 +588,22 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         logPush("refit", this.markMapInstance);
         $("#innerSetting").css("display", "none");
         this.markMapInstance?.fit();
+        this.modeSettings.transform = null;
+        this.modeSettings.foldStatus = {};
     }
     async doUpdate(textString, updateAttr) {
         this.observer.disconnect();
         document.getElementById("markmap")?.removeEventListener("mouseup", this.saveOnMouseUp);
         let widgetAttr = updateAttr.widgetSetting;
+        // 确认设置项是否变化，变化则不再规整位置等
+        let resettedConfigFlag = false;
+        let modeTypeUniqueStr = widgetAttr["listDepth"] + widgetAttr["outlineStartAt"] + widgetAttr["outlineEndAt"] + widgetAttr["targetId"] + widgetAttr["endDocOutline"] + widgetAttr["sortBy"] + widgetAttr["maxListCount"] + widgetAttr["showHiddenDocs"];
+        if (this.modeSettings.settingUniqueFlag !== modeTypeUniqueStr) {
+            this.modeSettings.settingUniqueFlag = modeTypeUniqueStr;
+            this.modeSettings.transform = null;
+            resettedConfigFlag = true;
+            this.modeSettings.foldStatus = {};
+        }
         // 匹配移除返回父文档
         textString = textString.replace(new RegExp("\\* \\[../\\][^\\n]*\\n"), "");
         let tabHeaderElem = window.top.document.querySelector(`li[data-type="tab-header"].item.item--focus .item__text`);
@@ -610,6 +633,9 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             }
         }
         // textString = `# ${window.top.document.querySelector(`li[data-type="tab-header"].item.item--focus .item__text`).innerText}\n` + textString;
+        // 确认折叠状态：
+
+
         document.getElementById("linksContainer").insertAdjacentHTML("beforeend", `<svg id="markmap" style="width: 100%; display: none;"></svg>`);
         
         let transformer = new window.markmap.Transformer();
@@ -620,15 +646,29 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         const { styles, scripts } = transformer.getUsedAssets(features);
         if (styles) window.markmap.loadCSS(styles);
         if (scripts) window.markmap.loadJS(scripts, { getMarkmap: () => markmap });
-        const markmapConfig = this.loadMarkmap(root, widgetAttr);
+        const markmapConfig = this.loadMarkmap(root, widgetAttr, resettedConfigFlag);
         if (this.globalConfig.markmapResizeHandlerEnable && !markmapConfig.zoom && !markmapConfig.pan) {
             this.observer.observe(window.frameElement.parentElement);
         }
-        document.getElementById("markmap")?.removeEventListener("mousedown", this.saveEvent);
-        document.getElementById("markmap").addEventListener("mousedown", this.saveEvent);
+        document.getElementById("markmap")?.removeEventListener("mousedown", this.saveEvent, true);
+        document.getElementById("markmap").addEventListener("mousedown", this.saveEvent, true);
         return 1;
     }
     saveOnMouseUp(event) {
+        if (event.button == 0 && event.srcElement?.nodeName == "circle") {
+            let circleElem = event.srcElement;
+            let foldFlag = circleElem.getAttribute("fill") === "var(--markmap-circle-open-bg)";
+            const gElement = circleElem.parentElement;
+            const foreignObject = gElement.querySelector("foreignObject");
+            if (foreignObject) {
+                const aElement = foreignObject.querySelector('a');
+                if (aElement) {
+                    logPush('链接地址:', aElement.href);
+                    logPush('链接文本:', aElement.textContent);
+                    this.modeSettings.foldStatus[aElement.href.replace("siyuan://blocks/", "")] = foldFlag;
+                }
+            }
+        }
         if (event.button !== 2) {
             return;
         }
@@ -638,7 +678,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             logPush("保存transform", this.modeSettings.transform);
         }, 100);
     }
-    loadMarkmap(root, widgetAttr) {
+    loadMarkmap(root, widgetAttr, resettedConfigFlag) {
         let markmapElem = document.getElementById("markmap");
         markmapElem.innerHTML = "";
         markmapElem.style.height = "";
@@ -650,7 +690,10 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             duration: 0, 
             zoom: $("#mode10_allow_zoom").prop("checked"), 
             pan: $("#mode10_allow_pan").prop("checked"), 
-            maxWidth: 0};
+            maxWidth: 0,
+            autoFit: false,
+            initialExpandLevel: parseInt($("#mode10_default_expand_level").val()),
+        };
         if (widgetAttr.listDepth != undefined) {
             if (widgetAttr.listDepth == 0 || widgetAttr.endDocOutline) {
                 markmapConfig.maxWidth = $(window.frameElement).innerWidth() / (widgetAttr.listDepth + widgetAttr.outlineDepth);
@@ -678,19 +721,20 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         // this.markMapInstance.fit().then(()=>{
             
         // })
-        if (this.modeSettings.transform != null) {
-            let transform = window.d3.zoomTransform(this.markMapInstance.svg.node());
-            let newTransform = transform.translate(this.modeSettings.transform.x, this.modeSettings.transform.y);
-            newTransform = newTransform.scale(this.modeSettings.transform.scale, this.modeSettings.transform.scale);
-            // transform.translate(this.modeSettings.transform.x, this.modeSettings.transform.y);
-            // transform.scale(this.modeSettings.transform.scale, this.modeSettings.transform.scale);
-            this.markMapInstance.svg.call(this.markMapInstance.zoom.transform, newTransform);
-            // this.markMapInstance.svg.call(this.markMapInstance.zoom.translate, this.modeSettings.transform.x, this.modeSettings.transform.y);
-            // this.markMapInstance.svg.call(this.markMapInstance.zoom.scale, this.modeSettings.transform.scale, this.modeSettings.transform.scale);
-            // this.markMapInstance.rescale(this.modeSettings.transform.scale);
-            // this.markMapInstance.g.attr("transform", this.modeSettings.transstr);
-        }
-
+        setTimeout(()=>{
+            if (this.modeSettings.transform != null && !resettedConfigFlag) {
+                logPush("Do transform", this.modeSettings.transform);
+                // 先归位
+                this.markMapInstance.svg.call(this.markMapInstance.zoom.transform, window.d3.zoomIdentity);
+                // 调整到上次保存的位置
+                let transform = window.d3.zoomTransform(this.markMapInstance.svg.node());
+                let newTransform = transform.translate(this.modeSettings.transform.x, this.modeSettings.transform.y);
+                newTransform = newTransform.scale(this.modeSettings.transform.scale, this.modeSettings.transform.scale);
+                this.markMapInstance.svg.call(this.markMapInstance.zoom.transform, newTransform);
+            } else {
+                this.markMapInstance.fit();
+            }
+        }, 100);
         // $("#markmap a").mousedown((event)=>{
         //     if (event.buttons = 2) {
         //         // event.preventDefault();
@@ -744,7 +788,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         let curHeight = entries[0].contentRect.height;
         if ((curWidth != this.contentRectCache.width || curHeight != this.contentRectCache.height) &&
           (curWidth != 0)) {
-            this.observerTimeout = setTimeout(this.loadMarkmap.bind(this, this.root, this.widgetAttr), 300);
+            this.observerTimeout = setTimeout(this.loadMarkmap.bind(this, this.root, this.widgetAttr, false), 300);
             this.contentRectCache.width = curWidth;
             this.contentRectCache.height = curHeight;
         }
