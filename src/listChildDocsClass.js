@@ -1946,7 +1946,7 @@ function getEmojiMarkdownStr(iconString, hasChild) {
     let result = iconString;
     // TODO: 文档正文中目前不支持动态emoji，这里打回默认值
     if (iconString.startsWith("api/icon/getDynamicIcon")) {
-        result = getEmojiMarkdownStr("", hasChild);
+        result = `![docIcon](${iconString})`;
     } else if (iconString.indexOf(".") != -1) {
         // if (!setting.customEmojiEnable) return hasChild ? "📑" : "📄";//禁用自定义emoji时
         // emoji为网络地址时，不再补全/emojis路径
