@@ -590,6 +590,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         this.markMapInstance?.fit();
         this.modeSettings.transform = null;
         this.modeSettings.foldStatus = {};
+        $("#mode10_default_expand_level").val(999);
     }
     async doUpdate(textString, updateAttr) {
         this.observer.disconnect();
@@ -663,8 +664,8 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             if (foreignObject) {
                 const aElement = foreignObject.querySelector('a');
                 if (aElement) {
-                    logPush('链接地址:', aElement.href);
-                    logPush('链接文本:', aElement.textContent);
+                    debugPush('链接地址:', aElement.href);
+                    debugPush('链接文本:', aElement.textContent);
                     this.modeSettings.foldStatus[aElement.href.replace("siyuan://blocks/", "")] = foldFlag;
                 }
             }
@@ -719,7 +720,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             openRefLink(event);
         });
         // this.markMapInstance.fit().then(()=>{
-            
+        logPush("window", window.markmap);
         // })
         setTimeout(()=>{
             if (this.modeSettings.transform != null && !resettedConfigFlag) {
@@ -734,7 +735,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             } else {
                 this.markMapInstance.fit();
             }
-        }, 100);
+        }, 10);
         // $("#markmap a").mousedown((event)=>{
         //     if (event.buttons = 2) {
         //         // event.preventDefault();

@@ -264,7 +264,7 @@ let zh_CN = {
     // 模式内部提示10
     mode10_allow_pan: "启用拖拽平移",
     mode10_allow_zoom: "启用滚轮缩放",
-    mode10_hint: "折叠状态将被自动暂存，之后手动保存挂件设置才能持久化保存；<br/>在导图内右键暂存当前缩放和平移状态；之后手动保存挂件设置才能持久化保存。<br/>没有看到任何内容？点击“重置缩放、平移和折叠状态”按钮，然后手动保存挂件设置",
+    mode10_hint: "折叠状态将被自动暂存，之后手动保存挂件设置才能持久化保存；<br/>在导图内右键暂存当前缩放和平移状态；之后手动保存挂件设置才能持久化保存。<br/>没有看到任何内容？点击“重置缩放、平移和折叠状态”按钮，然后手动刷新、手动保存挂件设置",
     mode10_reset: "重置缩放、平移和折叠状态",
     mode10_default_expand_level_hint: "默认展开层级数",
     // 模式内部提示12
@@ -415,7 +415,7 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     // markmap
     mode10_allow_pan: "Enable Pan",
     mode10_allow_zoom: "Enable zoom",
-    mode10_hint: "The collapse state will be temporarily saved automatically. To make it persistent, please manually save the widget settings.<br/>Right-click inside the mind map to temporarily save the current zoom and pan state. Then manually save the widget settings to persist it.<br/>Not seeing any content? Click the “Reset Zoom, Pan, and Collapse State” button, then manually save the widget settings",
+    mode10_hint: "The collapse state will be temporarily saved automatically. To make it persistent, please manually save the widget settings.<br/>Right-click inside the mind map to temporarily save the current zoom and pan state. Then manually save the widget settings to persist it.<br/>Not seeing any content? Click the “Reset Zoom, Pan, and Collapse State” button, then manually refresh and save the widget settings",
     mode10_reset: "Reset Zoom, Pan, and Collapse State",
     mode10_default_expand_level_hint: "Default Expand Level",
     // hint text in mode
