@@ -1,5 +1,7 @@
 ## list Child Docs列出子文档
 
+[English](./README_en_US.md)
+
 > 用于[思源笔记](https://github.com/siyuan-note/siyuan)创建、更新指定文档目录列表的挂件。
 
 - 创建指定文档的目录或大纲列表；
@@ -200,8 +202,8 @@ Released under the MIT license  https://jquery.org/license
 2. [markmap](https://markmap.js.org/)；
 
 ```
-markmap-lib v0.14.3 | MIT License
-markmap-view v0.14.3 | MIT License
+markmap-lib v0.18.12 | MIT License
+markmap-view v0.18.12 | MIT License
 https://github.com/markmap/markmap
 https://markmap.js.org/
 ```

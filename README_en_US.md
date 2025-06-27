@@ -116,8 +116,8 @@ Released under the MIT license https://jquery.org/license
 2. [markmap](https://markmap.js.org/);
 
 ```
-markmap-lib v0.14.3 | MIT License
-markmap-view v0.14.3 | MIT License
+markmap-lib v0.18.12 | MIT License
+markmap-view v0.18.12 | MIT License
 https://github.com/markmap/markmap
 https://markmap.js.org/
 ```

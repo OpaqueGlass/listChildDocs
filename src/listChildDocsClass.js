@@ -522,7 +522,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     contentRectCache = {"width": 10, "height": 10};
     modeSettings = {
         "allowZoom": false,
-        "allowPan": false,
+        "allowPan": true,
         "transform": null,
         "settingUniqueFlag": "",
         "foldStatus": {},
@@ -547,8 +547,9 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         return custom_attr;
     }
     load(modeSettings) {
-        if (modeSettings == undefined) return;
-        logPush("LOAD SETTINGS")
+        if (modeSettings == undefined) modeSettings = {};
+        modeSettings = Object.assign(this.modeSettings, modeSettings);
+        logPush("LOAD SETTINGS", modeSettings);
         $("#mode10_allow_zoom").prop("checked", modeSettings["allowZoom"]);
         $("#mode10_allow_pan").prop("checked", modeSettings["allowPan"]);
         $("#mode10_default_expand_level").val(modeSettings["defaultExpandLevel"]);
@@ -656,6 +657,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         return 1;
     }
     saveOnMouseUp(event) {
+        debugPush("logEvent", event);
         if (event.button == 0 && event.srcElement?.nodeName == "circle") {
             let circleElem = event.srcElement;
             let foldFlag = circleElem.getAttribute("fill") === "var(--markmap-circle-open-bg)";

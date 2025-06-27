@@ -262,8 +262,8 @@ let zh_CN = {
     queryFilePathFailed: "获取文档路径失败，文档可能刚创建",
     helperErrorHint: "helper执行时发生错误，如果可以，请向开发者反馈：",
     // 模式内部提示10
-    mode10_allow_pan: "启用拖拽平移",
-    mode10_allow_zoom: "启用滚轮缩放",
+    mode10_allow_pan: "启用滚轮平移",
+    mode10_allow_zoom: "启用滚轮缩放与拖拽移动",
     mode10_hint: "折叠状态将被自动暂存，之后手动保存挂件设置才能持久化保存；<br/>在导图内右键暂存当前缩放和平移状态；之后手动保存挂件设置才能持久化保存。<br/>没有看到任何内容？点击“重置缩放、平移和折叠状态”按钮，然后手动刷新、手动保存挂件设置",
     mode10_reset: "重置缩放、平移和折叠状态",
     mode10_default_expand_level_hint: "默认展开层级数",
