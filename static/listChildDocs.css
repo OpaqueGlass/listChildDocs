@@ -309,33 +309,41 @@ input:hover {
 
 
 /********************************************* 挂件思维导图样式 */
+#markmap {
+    user-select: none;
+    -webkit-user-select: none;  /* Safari */
+    -moz-user-select: none;     /* Firefox */
+    -ms-user-select: none;      /* IE/Edge */
+}
+
 /* 思维导图<a>链接样式 */
-.markmap_a {
+.markmap_a, .markmap-foreign a {
     color: black !important;
     text-decoration: none;
     border-bottom: 1px dashed rgba(0, 0, 0, .1);
     /* white-space: nowrap; */
 }
 /* 思维导图<a>链接鼠标悬停时样式 */
-.markmap_a:hover {
+.markmap_a:hover, .markmap-foreign a:hover {
     color: #1186d9 !important;
     border-bottom: 1px dashed #4CB0F9 !important;
     /* white-space: nowrap; */
 }
+
 
 /* 思维导图普通文字深色样式 */
 .dark-mode .markmap {
     color: #C9D1D9 !important;
 }
 /* 思维导图链接深色样式 */
-.dark-mode .markmap_a {
+.dark-mode .markmap_a, .dark-mode .markmap-foreign a {
     color: #C9D1D9 !important;
     text-decoration: none !important;
     /* white-space: nowrap; */
 }
 
 /* 思维导图悬停样式*/
-.dark-mode .markmap_a:hover{
+.dark-mode .markmap_a:hover, .dark-mode .markmap-foreign a:hover{
     color: #1186d9 !important;
     border-bottom: 1px dashed #4CB0F9 !important;
 }

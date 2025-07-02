@@ -522,7 +522,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     contentRectCache = {"width": 10, "height": 10};
     modeSettings = {
         "allowZoom": false,
-        "allowPan": true,
+        "allowPan": false,
         "transform": null,
         "settingUniqueFlag": "",
         "foldStatus": {},
