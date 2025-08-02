@@ -308,17 +308,11 @@ input:hover {
 }
 
 /*滚动条样式调整*/
-html, body {
-    margin: 0;
-    padding: 0;
-    overflow: auto;
-    height: 100%;
-}
 body.dark-mode {
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: #555 #1e1e1e10;
 }
-body::-webkit-scrollbar {
+/* body::-webkit-scrollbar {
   width: 8px;
 }
 body.dark-mode::-webkit-scrollbar-track {
@@ -334,8 +328,22 @@ body::-webkit-scrollbar-track {
 body::-webkit-scrollbar-thumb {
   background-color: #999;
   border-radius: 4px;
-}
+} */
 
+body {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #555 #1e1e1e10;
+}
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #1e1e1e10;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 4px;
+}
 
 /********************************************* 挂件思维导图样式 */
 #markmap {

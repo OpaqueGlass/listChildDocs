@@ -687,6 +687,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         markmapElem.style.height = "";
         markmapElem.style.display = "";
         // logPush($(window.frameElement).outerHeight(), $("body").outerHeight());
+        // 依赖于html != 100%，这里动态计算空余区域高度
         markmapElem.style.height = ($(window.frameElement).outerHeight() - $("body").outerHeight() + 125) + "px";
         // 计算层最大宽度
         let markmapConfig = {

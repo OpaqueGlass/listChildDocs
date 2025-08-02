@@ -2,7 +2,7 @@
   "name": "listChildDocs",
   "author": "OpaqueGlass",
   "url": "https://github.com/OpaqueGlass/listChildDocs",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "displayName": {
     "default": "listChildDocs",
     "zh_CN": "列出子文档",
