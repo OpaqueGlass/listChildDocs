@@ -521,7 +521,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     widgetAttr;
     contentRectCache = {"width": 10, "height": 10};
     modeSettings = {
-        "allowZoom": false,
+        "allowZoom": true,
         "allowPan": false,
         "transform": null,
         "settingUniqueFlag": "",
@@ -530,6 +530,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
     };
     timer;
     saveEvent = this.saveOnMouseUp.bind(this);
+    saveWheelEvent = this.saveOperation.bind(this);
     markMapInstance;
     init(custom_attr) {
         custom_attr.listColumn = 1;
@@ -592,6 +593,16 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         this.modeSettings.transform = null;
         this.modeSettings.foldStatus = {};
         $("#mode10_default_expand_level").val(999);
+        document.getElementById("refresh")?.click();
+        this.autoSave();
+    }
+    autoSave() {
+        // 自动保存的提示太多，暂时移除了
+        // if (this.globalConfig["safeMode"]) {
+        //     logPush("SAFE MODE");
+        // } else {
+        //     $("#refresh").dblclick();
+        // }
     }
     async doUpdate(textString, updateAttr) {
         this.observer.disconnect();
@@ -653,7 +664,7 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
             this.observer.observe(window.frameElement.parentElement);
         }
         document.getElementById("markmap")?.removeEventListener("mousedown", this.saveEvent, true);
-        document.getElementById("markmap").addEventListener("mousedown", this.saveEvent, true);
+        document.getElementById("markmap")?.addEventListener("mousedown", this.saveEvent, true);
         return 1;
     }
     saveOnMouseUp(event) {
@@ -672,14 +683,18 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
                 }
             }
         }
-        if (event.button !== 2) {
-            return;
-        }
+        // if (event.button !== 2) {
+        //     return;
+        // }
+        this.saveOperation();
+    }
+    saveOperation() {
         clearTimeout(this.timer);
         this.timer = setTimeout(()=>{
             this.modeSettings.transform = this.parseTransformStr(document.getElementById("markmap")?.children[1].getAttribute("transform"));
             logPush("保存transform", this.modeSettings.transform);
-        }, 100);
+            this.autoSave();
+        }, 200);
     }
     loadMarkmap(root, widgetAttr, resettedConfigFlag) {
         let markmapElem = document.getElementById("markmap");
@@ -689,14 +704,17 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
         // logPush($(window.frameElement).outerHeight(), $("body").outerHeight());
         // 依赖于html != 100%，这里动态计算空余区域高度
         markmapElem.style.height = ($(window.frameElement).outerHeight() - $("body").outerHeight() + 125) + "px";
+        const allowZoom = $("#mode10_allow_zoom").prop("checked");
+        const allowPan = $("#mode10_allow_pan").prop("checked");
         // 计算层最大宽度
         let markmapConfig = {
             duration: 0, 
-            zoom: $("#mode10_allow_zoom").prop("checked"), 
-            pan: $("#mode10_allow_pan").prop("checked"), 
+            zoom: false, 
+            pan: false, 
             maxWidth: 0,
             autoFit: false,
             initialExpandLevel: parseInt($("#mode10_default_expand_level").val()),
+            scrollForPan: false,
         };
         if (widgetAttr.listDepth != undefined) {
             if (widgetAttr.listDepth == 0 || widgetAttr.endDocOutline) {
@@ -739,6 +757,38 @@ class MarkmapPrinter extends MarkdownUrlUnorderListPrinter {
                 this.markMapInstance.fit();
             }
         }, 10);
+        // 更改为内部实现pan，主要是将ctrlKey换为altKey
+        const zoomWhilePan = allowPan && allowZoom;
+        if (allowZoom) {
+            const zoom = window.d3.zoom()
+            .filter((event) => {
+                if (event.type === 'wheel') return event.altKey && !event.button;
+                return (!event.altKey || event.type === 'wheel') && !event.button;
+            })
+            .on('zoom', (event)=>{
+                this.markMapInstance.handleZoom(event);
+                this.saveOperation();
+            });
+            this.markMapInstance.svg.call(zoom);
+        }
+        if (allowPan) {
+            const handlePan = (e) => {
+                e.preventDefault();
+                if (e.altKey) {
+                    return;
+                }
+                const transform = window.d3.zoomTransform(this.markMapInstance.svg.node());
+                const newTransform = transform.translate(
+                -e.deltaX / transform.k,
+                -e.deltaY / transform.k,
+                );
+                this.markMapInstance.svg.call(this.markMapInstance.zoom.transform, newTransform);
+            };
+            this.markMapInstance.svg.on("wheel", handlePan);
+        }
+        
+        // const svg = this.markMapInstance.svg.node();
+        
         // $("#markmap a").mousedown((event)=>{
         //     if (event.buttons = 2) {
         //         // event.preventDefault();
