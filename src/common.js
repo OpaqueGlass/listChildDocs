@@ -275,6 +275,11 @@ export function checkWorkEnvironment() {
 
     try {
         let widgetNodeDataset = window.frameElement.parentElement.parentElement.dataset;
+        let widgetParent = window.frameElement.parentElement;
+        if (widgetParent.getAttribute("id")) {
+            // 实际上应该是预览模式
+            return WORK_ENVIRONMENT.WIDGET;
+        }
         let widgetNodeDom = window.frameElement.parentElement.parentElement;
         if (isValidStr(widgetNodeDataset["nodeId"]) || isValidStr(widgetNodeDataset["id"])) {
             widgetId = widgetNodeDataset["nodeId"];

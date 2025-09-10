@@ -206,7 +206,7 @@ export class ConfigSaveManager {
         }
         // 读取独立设置（和数据等）
         const distinctAll = await this.loadDistinct(userDefaultConfig);
-        logPush("distinctAll", userDefaultConfig);
+        logPush("distinctAll", distinctAll);
         if (this.saveMode != CONSTANTS_CONFIG_SAVE_MODE.WIDGET && pathVariable != null) {
             let tempAssignedUserDefault = null, tempAssignedGlobalConfig = null;
             [tempAssignedUserDefault, tempAssignedGlobalConfig] = this.loadFromPathVar(pathVariable);
@@ -278,7 +278,7 @@ export class ConfigSaveManager {
                 debugPush("直接获取到的属性结果", configData);
                 allDataLocal["config"] = Object.assign(userDefaultConfig, configData);
             } else {
-                allDataLocal["config"] = userDefaultConfig;
+                allDataLocal["config"] = Object.assign({}, userDefaultConfig);
             }
             if (response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE]) {
                 const cache = response.data[CONFIG_MANAGER_CONSTANTS.ATTR_NAME_CACHE];

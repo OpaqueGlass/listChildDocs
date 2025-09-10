@@ -994,6 +994,7 @@ async function __init__() {
     
     // 判断工作模式
     const workEnviroment = checkWorkEnvironment();
+    debugPush("工作模式", workEnviroment);
     g_workEnvTypeCode = workEnviroment;
     // 先做基础外观调整
     // 更新明亮/黑夜模式
@@ -1001,6 +1002,7 @@ async function __init__() {
     switch (workEnviroment) {
         case WORK_ENVIRONMENT.WIDGET: {
             g_workEnvId = getCurrentWidgetId();
+            debugPush("挂件id", g_workEnvId);
             g_currentDocId = await getCurrentDocIdF();
             g_configManager = new ConfigSaveManager(CONSTANTS_CONFIG_SAVE_MODE.WIDGET, g_workEnvId, );
             try {

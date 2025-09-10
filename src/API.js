@@ -379,6 +379,10 @@ export async function getCurrentDocIdF(){
  */
 export function getCurrentWidgetId(){
     try{
+        // 预览模式
+        if (window.frameElement.parentElement.getAttribute("id")) {
+            return window.frameElement.parentElement.getAttribute("id");
+        }
         if (!window.frameElement.parentElement.parentElement.dataset.nodeId) {
             return window.frameElement.parentElement.parentElement.dataset.id;
         }else{
