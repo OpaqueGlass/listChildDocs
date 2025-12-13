@@ -383,17 +383,21 @@ function errorShow(msgText, clear = true) {
     // https://github.com/OpaqueGlass/listChildDocs/issues/39
     if (g_myPrinter && g_myPrinter.write2file == 1 && $("#innerSetting").css("display") == "none") {
         window.frameElement.style.height = "10em";
+        // 防止误操作非挂件的情况
+        if (window.frameElement.parentElement && window.frameElement.parentElement.parentElement && window.frameElement.parentElement.parentElement.getAttribute("data-type") == "NodeWidget") {
+            window.frameElement.parentElement.parentElement.style.height = window.frameElement.style.height;
+        }
     }
 }
 
 
-function saveContentCache(textString = g_allData["cacheHTML"]) {
+async function saveContentCache(textString = g_allData["cacheHTML"]) {
     logPush("保存缓存cacheHTML");
     if (isSafelyUpdate(g_currentDocId, {widgetMode: true}, g_workEnvId) == false) {
         warnPush("在历史界面或其他只读状态，此次保存设置操作可能更改文档状态");
     }
     g_allData["cacheHTML"] = textString;
-    g_configManager.saveCache(textString);
+    await g_configManager.saveCache(textString);
     // let response = addblockAttrAPI({ "custom-lcd-cache": textString }, g_workEnvId);
 }
 
@@ -490,7 +494,11 @@ function adjustHeight(modeDoUpdateFlag) {
         debugPush("挂件内调整高度 当前body+10", tempHeight);
         if (isValidStr(g_globalConfig.height_2widget_min) && tempHeight < g_globalConfig.height_2widget_min) tempHeight = parseInt(g_globalConfig.height_2widget_min);
         if (isValidStr(g_globalConfig.height_2widget_max) && tempHeight > g_globalConfig.height_2widget_max) tempHeight = parseInt(g_globalConfig.height_2widget_max);
+        debugPush("挂件内调整高度 最大最小限制后", tempHeight);
         window.frameElement.style.height = tempHeight + "px";
+        if (window.frameElement.parentElement && window.frameElement.parentElement.parentElement && window.frameElement.parentElement.parentElement.getAttribute("data-type") == "NodeWidget") {
+            window.frameElement.parentElement.parentElement.style.height = tempHeight + "px"
+        }
         debugPush("挂件内调整高度");
     }
 }
@@ -581,7 +589,7 @@ async function __main(manual = false, justCreate = false) {
             "modeDoUpdateFlag": modeDoUpdateFlag, "notebook": notebook, "targetDocPath": targetDocPath, "manual": manual, "modeRefreshed": true});
         if (g_myPrinter.write2file == 0) g_allData["cacheHTML"] = textString;
         if ((manual || g_globalConfig.saveCacheWhileAutoEnable) && g_myPrinter.write2file == 0 && isSafelyUpdate(g_currentDocId, {widgetMode: true}, g_workEnvId)) {
-            saveContentCache(textString);
+            await saveContentCache(textString);
         }else if (g_myPrinter.write2file == 0){
             debugPush("只读模式，或未启用只读安全模式，不进行缓存。");
         }
@@ -616,6 +624,11 @@ async function __main(manual = false, justCreate = false) {
     if (modeDoUpdateFlag != -2 && g_myPrinter.write2file == 1 && $("#innerSetting").css("display") == "none" ) {
         window.frameElement.style.width = g_globalConfig.width_2file;
         window.frameElement.style.height = g_globalConfig.height_2file;
+        // 防止误操作非挂件的情况
+        if (window.frameElement.parentElement && window.frameElement.parentElement.parentElement && window.frameElement.parentElement.parentElement.getAttribute("data-type") == "NodeWidget") {
+            window.frameElement.parentElement.parentElement.style.width = window.frameElement.style.width;
+            window.frameElement.parentElement.parentElement.style.height = window.frameElement.style.height;
+        }
     }
     //issue #13 挂件自动高度
     // 挂件内自动高度
@@ -1070,6 +1083,11 @@ async function __init__() {
     if (g_myPrinter.write2file == 1) {
         window.frameElement.style.width = g_globalConfig.width_2file;
         window.frameElement.style.height = g_globalConfig.height_2file;
+        // 防止误操作非挂件的情况
+        if (window.frameElement.parentElement && window.frameElement.parentElement.parentElement && window.frameElement.parentElement.parentElement.getAttribute("data-type") == "NodeWidget") {
+            window.frameElement.parentElement.parentElement.style.width = window.frameElement.style.width;
+            window.frameElement.parentElement.parentElement.style.height = window.frameElement.style.height;
+        }
     }
     // 载入预设schema
     _showSchemaSelect();
@@ -1543,6 +1561,11 @@ function _showSetting(flag = null) {
     if (g_myPrinter.write2file == 1) {//写入文档时重设挂件大小
         window.frameElement.style.height = flag ? g_globalConfig.height_2file_setting : g_globalConfig.height_2file;
         window.frameElement.style.width = flag ? g_globalConfig.width_2file_setting : g_globalConfig.width_2file;
+        // 防止误操作非挂件的情况
+        if (window.frameElement.parentElement && window.frameElement.parentElement.parentElement && window.frameElement.parentElement.parentElement.getAttribute("data-type") == "NodeWidget") {
+            window.frameElement.parentElement.parentElement.style.width = window.frameElement.style.width;
+            window.frameElement.parentElement.parentElement.style.height = window.frameElement.style.height;
+        }
     }
     if (g_globalConfig.showBtnArea == "false") {
         _showBtnArea(flag);
