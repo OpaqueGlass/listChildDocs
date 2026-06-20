@@ -996,7 +996,7 @@ try {
  */
 async function __init__() {
     // 语言判定和跳转
-    if (window.top.siyuan && window.top.siyuan.config.lang != "zh_CN") {
+    if (window.top.siyuan && window.top.siyuan.config.lang != "zh_CN" && window.top.siyuan.config.lang != "zh-CN") {
         if (window.location.href.indexOf("index.html") == -1 && window.location.href.indexOf("index_en.html") == -1) {
             window.location.replace(window.location.href + "index_en.html");
         } else if (window.location.href.indexOf("index_en.html") == -1) {

@@ -499,7 +499,7 @@ try{
 }catch (err){
     console.warn("读取语言信息失败");
 }
-if (siyuanLanguage != "zh_CN" && siyuanLanguage != undefined) {
+if (siyuanLanguage != "zh_CN" && siyuanLanguage != "zh-CN" && siyuanLanguage != undefined) {
     language = en_US;
 }
 
