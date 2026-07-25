@@ -32,6 +32,7 @@ import {
 import { language } from "./config.js";
 import { DefaultPrinter, printerList } from './listChildDocsClass.js';
 import { openRefLink, showFloatWnd } from './ref-util.js';
+import { isNotebookDoc, isNotebookDocEnabled } from "./compatUtils.js";
 
 
 //将Markdown文本写入文件(当前挂件之后的块)
@@ -205,7 +206,7 @@ async function getTextFromNotebooks(rowCountStack) {
         if (g_notebooks[i].closed == true) continue;
         // 插入笔记本名和笔记本图标（本部分逻辑同getOneLevelText）
         let tempVirtualDocObj = {
-            id: "",
+            id: isNotebookDocEnabled() ? g_notebooks[i].id : "",
             name: g_notebooks[i].name,
             icon: g_notebooks[i].icon === "" ? (window.top.siyuan.storage["local-images"].note ? window.top.siyuan.storage["local-images"].note : "1f5c3") : g_notebooks[i].icon
         };
@@ -655,7 +656,11 @@ async function getTargetBlockBoxPath() {
             }
         }
         let notebook = queryResult[0].box;//笔记本名
-        g_targetDocPath = queryResult[0].path;// 块在笔记本下的路径
+        if (isNotebookDoc(queryResult[0].path, queryResult[0].box)) {
+            g_targetDocPath = "/"; // 笔记本文档按照在笔记本根目录计算
+        } else {
+            g_targetDocPath = queryResult[0].path;// 块在笔记本下的路径
+        }
         return [notebook, g_targetDocPath];
     }
 

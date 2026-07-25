@@ -834,6 +834,23 @@ export async function getBlockIdsFromDatabase(attributeViewId) {
     return avResponse.rows.values.map(value => value.blockID).filter(key => key);
 }
 
+
+/**
+ * 获取笔记本文档的部分统计信息
+ * @param notebookId 
+ * @returns 
+ */
+export async function getNotebookInfo(notebookId) {
+    let url = "/api/notebook/getNotebookInfo";
+    let response = await postRequest({notebook: notebookId}, url);
+    if (response.code == 0 && response.data != null){
+        return response.data.boxInfo;
+    } else {
+        warnPush("请求笔记本信息时出错  ", response["msg"])
+    }
+    return null;
+}
+
 export function isMobile() {
     return window.top.document.getElementById("sidebar") ? true : false;
 };
