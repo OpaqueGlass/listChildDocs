@@ -151,9 +151,15 @@ async function getText(notebook, nowDocPath) {
           g_myPrinter.write2file == 0) {
             let tempPathData = nowDocPath.split("/");
             // 排除为笔记本、笔记本直接子文档的情况，split后首个为''
-            if (tempPathData.length > 2) {
+            if (tempPathData.length > 2 || (isNotebookDocEnabled() && !isNotebookDoc(nowDocPath, notebook))) {
+                let parentId = "";
+                if (tempPathData.length > 2) {
+                    parentId = tempPathData[tempPathData.length - 2];
+                } else if (isNotebookDocEnabled()) {
+                    parentId = notebook;
+                }
                 let tempVirtualDocObj = {
-                    id: tempPathData[tempPathData.length - 2],
+                    id: parentId,
                     name: "../",
                     icon: "1f519"//图标🔙
                 };
@@ -687,7 +693,11 @@ async function getTargetBlockBoxPath() {
     if (targetQueryResult.length > 0 && targetQueryResult[0].type === "d") {
         $("#targetDocName").text(targetQueryResult[0].content);
         targetDocName = targetQueryResult[0].content;
-        return [targetQueryResult[0].box, targetQueryResult[0].path];
+        if (isNotebookDoc(targetQueryResult[0].path, targetQueryResult[0].box)) {
+            return [targetQueryResult[0].box, "/"];
+        } else {
+            return [targetQueryResult[0].box, targetQueryResult[0].path];
+        }
     }else if (targetQueryResult.length > 0) {
         throw Error(language["wrongTargetId"]); 
     }
@@ -851,12 +861,17 @@ try{
     if (isInvalidValue(queryResponse) || queryResponse.length != 1) {
         return;
     }
+    
     let docName = queryResponse[0].content;
     let deleteDialog = dialog({
         title: language["dialog_delete"],
         content: language["dialog_delete_hint"].replace(new RegExp("%%", "g"), docName),
         quickClose: true,
         ok: async function() {
+            if (isNotebookDoc(queryResponse[0].path, queryResponse[0].box)) {
+                layui.layer.msg(language["cannotOperateOnNotebookDoc"], {time: 3000, icon: 0});
+                return;
+            }
             await removeDocAPI(queryResponse[0].box, queryResponse[0].path);
             __main(true);
         },

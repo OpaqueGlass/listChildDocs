@@ -339,6 +339,7 @@ let zh_CN = {
     currentDoc: "当前文档",
     deletedSchema: "所选配置已删除",
     childDocsCreated: "已创建",
+    cannotOperateOnNotebookDoc: "无法对笔记本文档进行此操作",
 };
 let en_US = {//先当他不存在 We don't fully support English yet.
     refreshNeeded: "Failed to refresh directory : couldn't find original directory list block. Click refresh button again to generate a new block. ",
@@ -489,7 +490,8 @@ let en_US = {//先当他不存在 We don't fully support English yet.
     configNameSet: "Please enter the configuration name",
     currentDoc: "Current Doc",
     deletedSchema: "The selected schema has been deleted.",
-    childDocsCreated: "Created"
+    childDocsCreated: "Created",
+    cannotOperateOnNotebookDoc: "Cannot perform this operation on notebook documents.",
 };
 let language = zh_CN; // 使用的语言 the language in use. Only zh_CN and en_US are available.
 // ~~若思源设定非中文，则显示英文~~

@@ -5,7 +5,8 @@
 import { language} from './config.js';
 import { getUpdateString, generateBlockId, isValidStr, transfromAttrToIAL, isInvalidValue, logPush, errorPush, debugPush } from "./common.js";
 import { openRefLink } from './ref-util.js';
-import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode, getAttributeView, getAttributeViewPrimaryKeyValues, addAttributeViewBlocks, getBlockIdsFromDatabase } from './API.js';
+import { getCurrentDocIdF, getDoc, getDocPreview, getKramdown, getSubDocsAPI, postRequest, queryAPI, isDarkMode, getAttributeView, getAttributeViewPrimaryKeyValues, addAttributeViewBlocks, getBlockIdsFromDatabase, getNodebookList } from './API.js';
+import { isNotebookDocEnabled } from './compatUtils.js';
 //建议：如果不打算更改listChildDocsMain.js，自定义的Printer最好继承自Printer类
 //警告：doc参数输入目前也输入outline对象，请注意访问范围应当为doc和outline共有属性，例如doc.id doc.name属性
 //
@@ -873,11 +874,17 @@ class ContentBlockPrinter extends Printer {
     async doGenerate(updateAttr) {
         let result = `<div class="mode11-box">`;
         // 获取子文档列表
-        let directChildDocs = await getSubDocsAPI(updateAttr["targetNotebook"], updateAttr["targetDocPath"], updateAttr["widgetSetting"]["maxListCount"], updateAttr["widgetSetting"]["sortBy"], updateAttr["widgetSetting"]["showHiddenDocs"]);
+        let directChildDocs = null;
+        if (updateAttr["targetNotebook"] == "/" && isNotebookDocEnabled()) {
+            directChildDocs = await getNodebookList();
+        } else {
+            directChildDocs = await getSubDocsAPI(updateAttr["targetNotebook"], updateAttr["targetDocPath"], updateAttr["widgetSetting"]["maxListCount"], updateAttr["widgetSetting"]["sortBy"], updateAttr["widgetSetting"]["showHiddenDocs"]);
+        }
+        
         // 获取子文档内容
         for (let oneChildDoc of directChildDocs) {
             let docName = oneChildDoc.name;
-            if (docName.indexOf(".sy") >= 0) {
+            if (docName.endsWith(".sy")) {
                 docName = docName.substring(0, docName.length - 3);
             }
             let emojiStr = this.globalConfig.emojiEnable ? getEmojiHtmlStr(oneChildDoc.icon, oneChildDoc.subFileCount != 0) : "";
@@ -886,7 +893,12 @@ class ContentBlockPrinter extends Printer {
             let [previewText, removeSpace] = await this.generatePreview(oneChildDoc.id);
 
             if (!isValidStr(removeSpace)) {
-                result += await this.generateSecond(updateAttr["targetNotebook"], oneChildDoc.path, updateAttr["widgetSetting"]["maxListCount"], updateAttr["widgetSetting"]["sortBy"], updateAttr["widgetSetting"]["showHiddenDocs"]);
+                let notebookdId = updateAttr["targetNotebook"];
+                if (isNotebookDocEnabled() && updateAttr["targetNotebook"] == "/") {
+                    notebookdId = oneChildDoc.id;
+                    oneChildDoc.path = "/";
+                }
+                result += await this.generateSecond(notebookdId, oneChildDoc.path, updateAttr["widgetSetting"]["maxListCount"], updateAttr["widgetSetting"]["sortBy"], updateAttr["widgetSetting"]["showHiddenDocs"]);
             }else{
                 result += `<div class="mode11-doc-content">${previewText}</div>`;
             }
@@ -896,8 +908,7 @@ class ContentBlockPrinter extends Printer {
         return [result, undefined];
     }
     async doUpdate(textString, updateAttr) {
-        if (updateAttr.widgetSetting.targetId == "/" | updateAttr.widgetSetting.targetId == "\\") {
-            logPush("aa");
+        if (!isNotebookDocEnabled() && (updateAttr.widgetSetting.targetId == "/" || updateAttr.widgetSetting.targetId == "\\")) {
             $("#linksContainer").html(`<p>我不支持目标文档id设置为/，请重新设置一个目标文档id</p>
             <p>The current mode does not support listing from all opened notebooks, so you may not set <code>Target doc id</code> as <code>/</code></p>.`);
             return 1;
