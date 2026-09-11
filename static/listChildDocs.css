@@ -531,3 +531,10 @@ dl::-webkit-scrollbar-track {
 #modeSetting {
     margin-left: 2%;
 }
+
+/* 思源内会在深色模式下填入 color-scheme=dark，iframe内需要声明自己支持 dark 暗色模式 */
+/* 否则浏览器默认为normal，并为 color-scheme 不同的iframe 插入有色canvas背景 */
+/* https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference/Properties/color-scheme */
+:root {
+  color-scheme: light dark;
+}
